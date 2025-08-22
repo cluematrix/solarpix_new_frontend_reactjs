@@ -1,0 +1,31 @@
+import React from "react";
+import { Modal, Button } from "react-bootstrap";
+
+const DeleteModal = ({
+  show,
+  handleClose,
+  onConfirm,
+  modalTitle,
+  modalMessage,
+}) => {
+  return (
+    <Modal show={show} onHide={handleClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>{modalTitle}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>{modalMessage}</p>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={onConfirm}>
+          Delete
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+export default DeleteModal;
