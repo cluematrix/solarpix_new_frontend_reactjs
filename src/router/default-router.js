@@ -13,7 +13,7 @@ import RolePList from "../views/dashboard/RolePermission/rolep-list";
 import DepartmentList from "../views/dashboard/EmployeeManagment/Department/department-list"; //10 Aug
 import ShiftList from "../views/dashboard/EmployeeManagment/Shift/shift-list"; //12 Aug
 import DesignationList from "../views/dashboard/EmployeeManagment/Designation/designation-list"; //10 Aug
-
+import EmployeeType from "../views/dashboard/EmployeeManagment/EmployeeType/EmployeeTypes";
 // employee
 import EmployeeList from "../views/dashboard/Employees/AddEmployee/employee-list"; // 11 Aug
 import AddEmployee from "../views/dashboard/Employees/AddEmployee/add-employee"; //12 Aug
@@ -143,6 +143,11 @@ export const DefaultRouter = [
         element: <DesignationList />,
       },
 
+      //08 Aug 2025
+      {
+        path: "/EmployeeType",
+        element: <EmployeeType />,
+      },
       //10 Aug 2025
       {
         path: "/shift-list",

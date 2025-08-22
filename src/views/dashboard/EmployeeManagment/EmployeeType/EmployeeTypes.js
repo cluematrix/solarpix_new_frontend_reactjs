@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Button, Form } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "../Department/add-edit-modal";
-import DeleteModal from "../Department/delete-modal";
+import AddEditModal from "./add-edit-modal";
+import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
 
-const DepartmentList = () => {
+const EmployeeType = () => {
   const [userlist, setUserlist] = useState([]);
-  const [roleName, setRoleName] = useState("");
+  const [empType, setEmpType] = useState(""); // ✅ updated
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -24,20 +24,12 @@ const DepartmentList = () => {
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-
       let data = [];
-      if (Array.isArray(res.data)) {
-        console.log(res.data);
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
 
-      
+      if (Array.isArray(res.data)) data = res.data;
+      else if (Array.isArray(res.data.data)) data = res.data.data;
 
-      // Match current route
       const matchedPermission = data.find((perm) => perm.route === pathname);
-      console.log("Matched Permission:", matchedPermission);
       setPermissions(matchedPermission || null);
     } catch (err) {
       console.error("Error fetching roles:", err);
@@ -49,10 +41,10 @@ const DepartmentList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch departments
-  const fetchDepartments = () => {
+  // Fetch employee types
+  const fetchEmployeeTypes = () => {
     api
-      .get("/api/v1/admin/department")
+      .get("/api/v1/admin/employmentType")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setUserlist(res.data);
@@ -63,89 +55,78 @@ const DepartmentList = () => {
         }
       })
       .catch((err) => {
-        console.error("Error fetching departments:", err);
+        console.error("Error fetching employee types:", err);
         setUserlist([]);
       });
   };
 
   useEffect(() => {
-    fetchDepartments();
+    fetchEmployeeTypes();
   }, []);
 
-  // Toggle Active/Inactive with optimistic update
+  // Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
-    // Toggle value (0 → 1, 1 → 0)
     const newStatus = currentStatus === 1 ? 0 : 1;
 
-    console.log("Sending update:", { isActive: newStatus });
-
-    // Optimistic UI update
     setUserlist((prev) =>
-      prev.map((dept) =>
-        dept.id === id ? { ...dept, isActive: newStatus } : dept
-      )
+      prev.map((et) => (et.id === id ? { ...et, isActive: newStatus } : et))
     );
 
-    // API call
     api
-      .put(`/api/v1/admin/department/${id}`, { isActive: newStatus })
-      .then((res) => {
-        console.log("Update success:", res.data);
-      })
+      .put(`/api/v1/admin/employmentType/${id}`, { isActive: newStatus })
       .catch((err) => {
         console.error("Update failed:", err);
-        // Rollback if API fails
         setUserlist((prev) =>
-          prev.map((dept) =>
-            dept.id === id ? { ...dept, isActive: currentStatus } : dept
+          prev.map((et) =>
+            et.id === id ? { ...et, isActive: currentStatus } : et
           )
         );
       });
   };
 
-  // Add or Update Department
-  const handleAddOrUpdateRole = () => {
-    if (!roleName.trim()) return;
+  // Add or Update Employee Type
+  const handleAddOrUpdate = () => {
+    if (!empType.trim()) return;
     if (editId) {
       api
-        .put(`/api/v1/admin/department/${editId}`, { name: roleName })
+        .put(`/api/v1/admin/employmentType/${editId}`, { emp_type: empType }) // ✅ use emp_type
         .then(() => {
-          fetchDepartments();
+          fetchEmployeeTypes();
           resetForm();
         })
-        .catch((err) => console.error("Error updating department:", err));
+        .catch((err) => console.error("Error updating employee type:", err));
     } else {
       api
-        .post("/api/v1/admin/department/", { name: roleName })
+        .post("/api/v1/admin/employmentType/", { emp_type: empType }) // ✅ use emp_type
         .then(() => {
-          fetchDepartments();
+          fetchEmployeeTypes();
           resetForm();
         })
-        .catch((err) => console.error("Error adding department:", err));
+        .catch((err) => console.error("Error adding employee type:", err));
     }
   };
 
   const handleEdit = (index) => {
-    const department = userlist[index];
-    setRoleName(department.name);
-    setEditId(department.id || department._id);
+    const emp = userlist[index];
+    setEmpType(emp.emp_type); // ✅ use emp_type
+    setEditId(emp.id || emp._id);
     setShowAddEdit(true);
   };
 
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/department/${deleteId}`)
+      .delete(`/api/v1/admin/employmentType/${deleteId}`)
       .then(() => {
-        fetchDepartments();
+        fetchEmployeeTypes();
         setShowDelete(false);
       })
-      .catch((err) => console.error("Error deleting department:", err));
+      .catch((err) => console.error("Error deleting employee type:", err));
   };
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setRoleName("");
+    setEmpType("");
     setEditId(null);
   };
 
@@ -178,13 +159,13 @@ const DepartmentList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Department List</h4>
+              <h4 className="card-title">Employee Type List</h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + New Department
+                  + Add Type
                 </Button>
               )}
             </Card.Header>
@@ -193,9 +174,9 @@ const DepartmentList = () => {
               <div className="table-responsive">
                 <table className="table table-striped">
                   <thead>
-                    <tr className="ligth">
+                    <tr>
                       <th>Sr. No.</th>
-                      <th>Name</th>
+                      <th>Employee Type</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -204,19 +185,15 @@ const DepartmentList = () => {
                     {userlist.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
-                          No Department available
+                          No Employee Type available
                         </td>
                       </tr>
                     ) : (
                       userlist.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>{item.name}</td>
-
-                          {/* ✅ Status column -> only text */}
+                          <td>{item.emp_type}</td> {/* ✅ show emp_type */}
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
-
-                          {/* ✅ Action column -> toggle + edit + delete */}
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
@@ -264,10 +241,10 @@ const DepartmentList = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        roleName={roleName}
-        setRoleName={setRoleName}
-        onSave={handleAddOrUpdateRole}
-        modalTitle={editId ? "Update Department" : "Add New Department"}
+        empType={empType} // ✅ pass empType
+        setEmpType={setEmpType} // ✅ setter
+        onSave={handleAddOrUpdate}
+        modalTitle={editId ? "Update Employee Type" : "Add New Employee Type"}
         buttonLabel={editId ? "Update" : "Submit"}
       />
 
@@ -280,10 +257,10 @@ const DepartmentList = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Department"
+        modalTitle="Delete Employee Type"
         modalMessage={
           deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete the department "${userlist[deleteIndex].name}"?`
+            ? `Are you sure you want to delete the employee type "${userlist[deleteIndex].emp_type}"?`
             : ""
         }
       />
@@ -291,4 +268,4 @@ const DepartmentList = () => {
   );
 };
 
-export default DepartmentList;
+export default EmployeeType;

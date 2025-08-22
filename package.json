@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
+    "serve": "serve -s build -l 1500",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

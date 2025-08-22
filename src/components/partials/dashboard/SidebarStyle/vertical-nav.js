@@ -237,7 +237,7 @@ const VerticalNav = memo((props) => {
                 ></path>
               </svg>
             </i>
-            <span className="item-name">Role Manage</span>
+            <span className="item-name">Role Management</span>
 
             <i className="right-icon">
               <svg
@@ -480,7 +480,7 @@ const VerticalNav = memo((props) => {
             <i className="icon">
               <AccessibilityIcon />
             </i>
-            <span className="item-name">Employee Manage</span>
+            <span className="item-name">Employee Management</span>
             <i className="right-icon">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -561,9 +561,9 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/employee-type" ? "active" : ""
+                    location.pathname === "/EmployeeType" ? "active" : ""
                   } nav-link`}
-                  to="/shift-list"
+                  to="/EmployeeType"
                 >
                   <i className="icon">
                     <AccountTreeIcon fontSize="small" />
@@ -575,9 +575,9 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/employee-type" ? "active" : ""
+                    location.pathname === "/holiday" ? "active" : ""
                   } nav-link`}
-                  to="/shift-list"
+                  to="/holiday"
                 >
                   <i className="icon">
                     <AccountTreeIcon fontSize="small" />
