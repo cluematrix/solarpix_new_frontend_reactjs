@@ -14,6 +14,8 @@ import DepartmentList from "../views/dashboard/EmployeeManagment/Department/depa
 import ShiftList from "../views/dashboard/EmployeeManagment/Shift/shift-list"; //12 Aug
 import DesignationList from "../views/dashboard/EmployeeManagment/Designation/designation-list"; //10 Aug
 import EmployeeType from "../views/dashboard/EmployeeManagment/EmployeeType/EmployeeTypes";
+import LeaveType from "../views/dashboard/EmployeeManagment/LeaveType/LeaveTypes";
+import AwardList from "../views/dashboard/EmployeeManagment/Award/appreciation/award-list";
 // employee
 import EmployeeList from "../views/dashboard/Employees/AddEmployee/employee-list"; // 11 Aug
 import AddEmployee from "../views/dashboard/Employees/AddEmployee/add-employee"; //12 Aug
@@ -21,13 +23,24 @@ import UpdateEmployee from "../views/dashboard/Employees/AddEmployee/update-empl
 
 import LeavesList from "../views/dashboard/Employees/Leaves/leaves-list"; //12 Aug
 
+// Customer
+
+import ClientCategory from "../views/dashboard/Customer/CustomerCategory/ClientCategory";
+import ContractType from "../views/dashboard/Customer/ContractType/contracttype";
+
+// expense Category
+import ExpenseCategory from "../views/dashboard/Expense/ExpenseCategory/ExpenseCategory"; //26 Aug
 // work
 import ProjectList from "../views/dashboard/work/Project/project-list"; //12 Aug
 import TaskList from "../views/dashboard/work/Task/task-list"; //12 Aug rusghu
-
+import TaskCategory from "../views/dashboard/work/TaskCategory/TaskCategory";
+import ProjectCategory from "../views/dashboard/work/ProjectCategory/ProjectCategory";
+import StockList from "../views/dashboard/work/Stock/stock-list";
 // Leads
 import LeadsList from "../views/dashboard/Leads/Leadcontact/leads-list"; //12 Aug
 import DealList from "../views/dashboard/Leads/Deals/deals-list";
+import LeadSourceList from "../views/dashboard/Leads/LeadSource/leadsSource-list";
+import DealStagesList from "../views/dashboard/Leads/DealStages/dealstages-list";
 // import userProfileEdit from '../views/dashboard/app/user-privacy-setting';
 // widget
 import Widgetbasic from "../views/dashboard/widget/widgetbasic";
@@ -148,6 +161,17 @@ export const DefaultRouter = [
         path: "/EmployeeType",
         element: <EmployeeType />,
       },
+
+      {
+        path: "/LeaveType",
+        element: <LeaveType />,
+      },
+
+      {
+        path: "/award-list",
+        element: <AwardList />,
+      },
+
       //10 Aug 2025
       {
         path: "/shift-list",
@@ -173,6 +197,21 @@ export const DefaultRouter = [
         element: <LeavesList />,
       },
 
+      {
+        path: "/clientCategory-list",
+        element: <ClientCategory />,
+      },
+
+      {
+        path: "/contractType-list",
+        element: <ContractType />,
+      },
+
+      {
+        path: "/ExpenseCategory-list",
+        element: <ExpenseCategory />,
+      },
+
       // Work
       {
         path: "/project-list",
@@ -183,12 +222,35 @@ export const DefaultRouter = [
         element: <TaskList />,
       },
 
+      {
+        path: "/taskcategory-list",
+        element: <TaskCategory />,
+      },
+
+      {
+        path: "/projectcategory-list",
+        element: <ProjectCategory />,
+      },
+
+      {
+        path: "/stock-list",
+        element: <StockList />,
+      },
       // leads
       {
         path: "/leads-list",
         element: <LeadsList />,
       },
 
+      {
+        path: "/leadsSource-list",
+        element: <LeadSourceList />,
+      },
+
+      {
+        path: "/dealstages-list",
+        element: <DealStagesList />,
+      },
       {
         path: "/deals-list",
         element: <DealList />,

@@ -72,7 +72,7 @@ const LeaveList = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table table-striped">
+                <table className="table">
                   <thead>
                     <tr>
                       <th>Sr. No.</th>

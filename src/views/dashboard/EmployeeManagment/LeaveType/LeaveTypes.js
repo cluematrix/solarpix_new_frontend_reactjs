@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
@@ -9,9 +10,15 @@ import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
 
-const EmployeeType = () => {
-  const [userlist, setUserlist] = useState([]);
-  const [empType, setEmpType] = useState("");
+const LeaveType = () => {
+  const [leaveList, setLeaveList] = useState([]);
+  const [leaveData, setLeaveData] = useState({
+    leave_type: "",
+    no_of_leave: "",
+    leave_paid_status: "paid",
+    color: "#000000",
+  });
+
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -22,7 +29,15 @@ const EmployeeType = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // 🔑 Fetch Role Permissions
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const rolesPerPage = 10;
+  const indexOfLastRole = currentPage * rolesPerPage;
+  const indexOfFirstRole = indexOfLastRole - rolesPerPage;
+  const currentRoles = leaveList.slice(indexOfFirstRole, indexOfLastRole);
+  const totalPages = Math.ceil(leaveList.length / rolesPerPage);
+
+  // 🔑 Fetch Permissions
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -39,91 +54,73 @@ const EmployeeType = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Employee Types
-  const fetchEmployeeTypes = () => {
+  // 🔄 Fetch Leave Types
+  const fetchLeaveTypes = () => {
     api
-      .get("/api/v1/admin/employmentType")
+      .get("/api/v1/admin/leaveType")
       .then((res) => {
         const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-        setUserlist(data);
+        setLeaveList(data);
       })
       .catch((err) => {
-        console.error("Error fetching employee types:", err);
-        toast.error("Failed to fetch employee types");
-        setUserlist([]);
+        console.error("Error fetching leave types:", err);
+        toast.error("Failed to fetch leave types");
+        setLeaveList([]);
       });
   };
 
   useEffect(() => {
-    fetchEmployeeTypes();
+    fetchLeaveTypes();
   }, []);
-
-  // ✅ Toggle Active/Inactive
-  const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus ? 0 : 1;
-    setUserlist((prev) =>
-      prev.map((et) => (et.id === id ? { ...et, isActive: newStatus } : et))
-    );
-
-    api
-      .put(`/api/v1/admin/employmentType/${id}`, { isActive: newStatus })
-      .then(() => {
-        toast.success("Status updated successfully");
-      })
-      .catch((err) => {
-        console.error("Update failed:", err);
-        toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
-        setUserlist((prev) =>
-          prev.map((et) =>
-            et.id === id ? { ...et, isActive: currentStatus } : et
-          )
-        );
-      });
-  };
 
   // ✅ Add or Update
   const handleAddOrUpdate = () => {
-    if (!empType.trim()) {
-      toast.warning("Employee type is required");
+    if (!leaveData.leave_type.trim()) {
+      toast.warning("Leave type is required");
       return;
     }
 
     if (editId) {
       api
-        .put(`/api/v1/admin/employmentType/${editId}`, { emp_type: empType })
+        .put(`/api/v1/admin/leaveType/${editId}`, leaveData)
         .then(() => {
-          toast.success("Employee type updated successfully");
-          fetchEmployeeTypes();
+          toast.success("Leave Type updated successfully");
+          fetchLeaveTypes();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error updating employee type:", err);
+          console.error("Error updating leave type:", err);
           toast.error(
-            err.response?.data?.message || "Failed to update employee type"
+            err.response?.data?.message || "Failed to update leave type"
           );
         });
     } else {
       api
-        .post("/api/v1/admin/employmentType", { emp_type: empType })
+        .post("/api/v1/admin/leaveType", leaveData)
         .then(() => {
-          toast.success("Employee type added successfully");
-          fetchEmployeeTypes();
+          toast.success("Leave Type added successfully");
+          fetchLeaveTypes();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error adding employee type:", err);
+          console.error("Error adding leave type:", err);
           toast.error(
-            err.response?.data?.message || "Failed to add employee type"
+            err.response?.data?.message || "Failed to add leave type"
           );
         });
     }
   };
 
+  // ✅ Edit
   const handleEdit = (index) => {
-    const emp = userlist[index];
-    setEmpType(emp.emp_type);
-    setEditId(emp.id);
+    const leave = leaveList[index];
+    setLeaveData({
+      leave_type: leave.leave_type,
+      no_of_leave: leave.no_of_leave,
+      leave_paid_status: leave.leave_paid_status,
+      color: leave.color || "#000000",
+    });
+    setEditId(leave.id);
     setShowAddEdit(true);
   };
 
@@ -131,23 +128,28 @@ const EmployeeType = () => {
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/employmentType/${deleteId}`)
+      .delete(`/api/v1/admin/leaveType/${deleteId}`)
       .then(() => {
-        toast.success("Employee type deleted successfully");
-        fetchEmployeeTypes();
+        toast.success("Leave Type deleted successfully");
+        fetchLeaveTypes();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting employee type:", err);
+        console.error("Error deleting leave type:", err);
         toast.error(
-          err.response?.data?.message || "Failed to delete employee type"
+          err.response?.data?.message || "Failed to delete leave type"
         );
       });
   };
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setEmpType("");
+    setLeaveData({
+      leave_type: "",
+      no_of_leave: "",
+      leave_paid_status: "paid",
+      color: "#000000",
+    });
     setEditId(null);
   };
 
@@ -180,13 +182,13 @@ const EmployeeType = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Employee Type List</h4>
+              <h4 className="card-title">Leave Type List</h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + Add Type
+                  + Add Leave Type
                 </Button>
               )}
             </Card.Header>
@@ -197,50 +199,53 @@ const EmployeeType = () => {
                   <thead>
                     <tr>
                       <th>Sr. No.</th>
-                      <th>Employee Type</th>
-                      <th>Status</th>
+                      <th>Leave Type</th>
+                      <th>No. of Leaves</th>
+                      <th>Paid Status</th>
+                      <th>Color</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {userlist.length === 0 ? (
+                    {currentRoles.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center">
-                          No Employee Type available
+                        <td colSpan="6" className="text-center">
+                          No Leave Type available
                         </td>
                       </tr>
                     ) : (
-                      userlist.map((item, idx) => (
+                      currentRoles.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
-                          <td>{item.emp_type}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
+                          <td>{indexOfFirstRole + idx + 1}</td>
+                          <td>{item.leave_type}</td>
+                          <td>{item.no_of_leave}</td>
+                          <td>{item.leave_paid_status}</td>
+                          <td>
+                            <span
+                              style={{
+                                display: "inline-block",
+                                width: "20px",
+                                height: "20px",
+                                backgroundColor: item.color,
+                                borderRadius: "50%",
+                              }}
+                            ></span>
+                          </td>
                           <td className="d-flex align-items-center">
-                            <Form.Check
-                              type="switch"
-                              id={`active-switch-${item.id}`}
-                              checked={
-                                item.isActive === 1 || item.isActive === true
-                              }
-                              onChange={() =>
-                                handleToggleActive(item.id, item.isActive)
-                              }
-                              className="me-3"
-                            />
-
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(idx)}
+                                onClick={() =>
+                                  handleEdit(indexOfFirstRole + idx)
+                                }
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
-
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
+                                  setDeleteIndex(indexOfFirstRole + idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
@@ -255,6 +260,39 @@ const EmployeeType = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-end mt-3 me-3">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Button
+                      key={i}
+                      variant={currentPage === i + 1 ? "primary" : "light"}
+                      size="sm"
+                      className="mx-1"
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
@@ -264,14 +302,14 @@ const EmployeeType = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        empType={empType}
-        setEmpType={setEmpType}
+        leaveData={leaveData}
+        setLeaveData={setLeaveData}
         onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update Employee Type" : "Add New Employee Type"}
+        modalTitle={editId ? "Update Leave Type" : "Add New Leave Type"}
         buttonLabel={editId ? "Update" : "Submit"}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
         handleClose={() => {
@@ -280,18 +318,18 @@ const EmployeeType = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Employee Type"
+        modalTitle="Delete Leave Type"
         modalMessage={
-          deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete "${userlist[deleteIndex].emp_type}"?`
+          deleteIndex !== null && leaveList[deleteIndex]
+            ? `Are you sure you want to delete "${leaveList[deleteIndex].leave_type}"?`
             : ""
         }
       />
 
-      {/* Toast container */}
+      {/* ✅ Toast */}
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
 
-export default EmployeeType;
+export default LeaveType;

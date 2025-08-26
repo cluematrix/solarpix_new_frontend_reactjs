@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Button, Badge, Form } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "../Shift/add-edit-modal";
@@ -30,6 +32,7 @@ const ShiftList = () => {
       })
       .catch((err) => {
         console.error("Error fetching shifts:", err);
+        toast.error("Failed to fetch shifts");
         setShiftList([]);
       });
   };
@@ -40,7 +43,10 @@ const ShiftList = () => {
 
   // Add or Update Shift
   const handleAddOrUpdateShift = (data) => {
-    if (!data.shift_name.trim()) return;
+    if (!data.shift_name.trim()) {
+      toast.warning("Shift name is required");
+      return;
+    }
 
     const payload = {
       ...data,
@@ -48,21 +54,31 @@ const ShiftList = () => {
     };
 
     if (editId) {
+      // update
       api
         .put(`/api/v1/admin/shift/${editId}`, payload)
         .then(() => {
+          toast.success("Shift updated successfully");
           fetchShifts();
           resetForm();
         })
-        .catch((err) => console.error("Error updating shift:", err));
+        .catch((err) => {
+          console.error("Error updating shift:", err);
+          toast.error(err.response?.data?.message || "Failed to update shift");
+        });
     } else {
+      // add
       api
         .post("/api/v1/admin/shift", payload)
         .then(() => {
+          toast.success("Shift added successfully");
           fetchShifts();
           resetForm();
         })
-        .catch((err) => console.error("Error adding shift:", err));
+        .catch((err) => {
+          console.error("Error adding shift:", err);
+          toast.error(err.response?.data?.message || "Failed to add shift");
+        });
     }
   };
 
@@ -80,9 +96,12 @@ const ShiftList = () => {
     // API update
     api
       .put(`/api/v1/admin/shift/${id}`, { is_active: newStatus })
-      .then(() => console.log("Status updated"))
+      .then(() => {
+        toast.success("Status updated successfully");
+      })
       .catch((err) => {
         console.error("Status update failed:", err);
+        toast.error(err.response?.data?.message || "Failed to update status");
         // rollback
         setShiftList((prev) =>
           prev.map((shift) =>
@@ -106,10 +125,14 @@ const ShiftList = () => {
     api
       .delete(`/api/v1/admin/shift/${deleteId}`)
       .then(() => {
+        toast.success("Shift deleted successfully");
         fetchShifts();
         setShowDelete(false);
       })
-      .catch((err) => console.error("Error deleting shift:", err));
+      .catch((err) => {
+        console.error("Error deleting shift:", err);
+        toast.error(err.response?.data?.message || "Failed to delete shift");
+      });
   };
 
   const resetForm = () => {
@@ -139,7 +162,7 @@ const ShiftList = () => {
             </Card.Header>
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table table-striped">
+                <table className="table">
                   <thead>
                     <tr>
                       <th>Sr. No.</th>
@@ -237,6 +260,9 @@ const ShiftList = () => {
             : ""
         }
       />
+
+      {/* Toast container */}
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };

@@ -4,15 +4,19 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "../Designation/add-edit-modal";
-import DeleteModal from "../Designation/delete-modal";
-import api from "../../../../api/axios";
+import AddEditModal from "./add-edit-modal";
+import DeleteModal from "./delete-modal";
+import api from "../../../../../api/axios";
 import { useLocation } from "react-router";
 
-const RoleList = () => {
-  const [userlist, setUserlist] = useState([]);
-  const [roleName, setRoleName] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
+const AwardList = () => {
+  const [awards, setAwards] = useState([]);
+  const [formData, setFormData] = useState({
+    title: "",
+    icon: "",
+    color: "#000000",
+    description: "",
+  });
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -23,20 +27,15 @@ const RoleList = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // 🔑 PERMISSION CHECK
+  // Permission check
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-      let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
+      let data = Array.isArray(res.data) ? res.data : res.data.data;
       const matchedPermission = data.find((perm) => perm.route === pathname);
       setPermissions(matchedPermission || null);
     } catch (err) {
-      console.error("Error fetching roles:", err);
+      console.error(err);
       setPermissions(null);
     }
   };
@@ -45,152 +44,128 @@ const RoleList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch designations
-  const fetchDesignations = () => {
+  // Fetch Awards
+  const fetchAwards = () => {
     api
-      .get("/api/v1/admin/designation")
+      .get("/api/v1/admin/award")
       .then((res) => {
-        if (Array.isArray(res.data)) {
-          setUserlist(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setUserlist(res.data.data);
-        } else {
-          setUserlist([]);
-        }
+        const data = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+        setAwards(data);
       })
       .catch((err) => {
-        console.error("Error fetching data:", err);
-        toast.error("Failed to fetch designations");
-        setUserlist([]);
+        console.error(err);
+        toast.error("Failed to fetch awards");
+        setAwards([]);
       });
   };
 
   useEffect(() => {
-    fetchDesignations();
+    fetchAwards();
   }, []);
 
   // Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus === 1 ? 0 : 1;
-    setUserlist((prev) =>
-      prev.map((dept) =>
-        dept.id === id ? { ...dept, isActive: newStatus } : dept
+    const newStatus = currentStatus ? false : true;
+    setAwards((prev) =>
+      prev.map((award) =>
+        award.id === id ? { ...award, isActive: newStatus } : award
       )
     );
-
     api
-      .put(`/api/v1/admin/designation/${id}`, { isActive: newStatus })
-      .then(() => {
-        toast.success("Status updated successfully");
-      })
+      .put(`/api/v1/admin/award/${id}`, { isActive: newStatus })
+      .then(() => toast.success("Status updated successfully"))
       .catch((err) => {
-        console.error("Update failed:", err);
         toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
-        setUserlist((prev) =>
-          prev.map((dept) =>
-            dept.id === id ? { ...dept, isActive: currentStatus } : dept
+        setAwards((prev) =>
+          prev.map((award) =>
+            award.id === id ? { ...award, isActive: currentStatus } : award
           )
         );
       });
   };
 
-  // Add or Update Designation
-  const handleAddOrUpdateRole = () => {
-    if (!roleName.trim()) {
-      toast.warning("Designation name is required");
+  // Add or Update Award
+  const handleAddOrUpdateAward = () => {
+    if (!formData.title.trim()) {
+      toast.warning("Award title is required");
       return;
     }
 
     if (editId) {
       // Update
       api
-        .put(`/api/v1/admin/designation/${editId}`, { name: roleName })
+        .put(`/api/v1/admin/award/${editId}`, formData)
         .then(() => {
-          toast.success("Designation updated successfully");
-          fetchDesignations();
+          toast.success("Award updated successfully");
+          fetchAwards();
           resetForm();
         })
-        .catch((err) => {
-          console.error("Error updating designation:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update designation"
-          );
-        });
+        .catch((err) =>
+          toast.error(err.response?.data?.message || "Failed to update award")
+        );
     } else {
       // Add
       api
-        .post("/api/v1/admin/designation", { name: roleName })
+        .post("/api/v1/admin/award", formData)
         .then(() => {
-          toast.success("Designation added successfully");
-          fetchDesignations();
+          toast.success("Award added successfully");
+          fetchAwards();
           resetForm();
         })
-        .catch((err) => {
-          console.error("Error adding designation:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to add designation"
-          );
-        });
+        .catch((err) =>
+          toast.error(err.response?.data?.message || "Failed to add award")
+        );
     }
   };
 
-  // Edit
+  // Edit Award
   const handleEdit = (index) => {
-    const designation = userlist[index];
-    setRoleName(designation.name);
-    setEditIndex(index);
-    setEditId(designation.id || designation._id);
+    const award = awards[index];
+    setFormData({
+      title: award.title,
+      icon: award.icon,
+      color: award.color || "#000000",
+      description: award.description || "",
+    });
+    setEditId(award.id || award._id);
     setShowAddEdit(true);
   };
 
-  // Delete
+  // Delete Award
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/designation/${deleteId}`)
+      .delete(`/api/v1/admin/award/${deleteId}`)
       .then(() => {
-        toast.success("Designation deleted successfully");
-        fetchDesignations();
+        toast.success("Award deleted successfully");
+        fetchAwards();
         setShowDelete(false);
       })
-      .catch((err) => {
-        console.error("Error deleting designation:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to delete designation"
-        );
-      });
+      .catch((err) =>
+        toast.error(err.response?.data?.message || "Failed to delete award")
+      );
   };
 
   // Reset form
   const resetForm = () => {
     setShowAddEdit(false);
-    setRoleName("");
-    setEditIndex(null);
+    setFormData({ title: "", icon: "", color: "#000000", description: "" });
     setEditId(null);
   };
 
-  // 🚫 Block page if no permission
-  if (!permissions) {
+  // Permission block
+  if (!permissions)
+    return <h4 className="text-center">Loading permissions...</h4>;
+  if (!permissions.view)
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
-      </div>
+      <h4 className="text-center">
+        You don’t have permission to view this page.
+      </h4>
     );
-  }
-  if (!permissions.view) {
-    return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>You don’t have permission to view this page.</h4>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -198,46 +173,60 @@ const RoleList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Designation List</h4>
+              <h4 className="card-title">Award List</h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + New Designation
+                  + New Award
                 </Button>
               )}
             </Card.Header>
-
             <Card.Body className="px-0">
               <div className="table-responsive">
                 <table className="table">
                   <thead>
                     <tr className="ligth">
                       <th>Sr. No.</th>
-                      <th>Name</th>
+                      <th>Title</th>
+                      <th>Icon</th>
+                      <th>Color</th>
+                      <th>Description</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {userlist.length === 0 ? (
+                    {awards.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center">
-                          No Designation available
+                        <td colSpan="7" className="text-center">
+                          No awards available
                         </td>
                       </tr>
                     ) : (
-                      userlist.map((item, idx) => (
+                      awards.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>{item.name}</td>
+                          <td>{item.title}</td>
+                          <td>{item.icon}</td>
+                          <td>
+                            <div
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                backgroundColor: item.color || "#000",
+                                borderRadius: "50%",
+                              }}
+                            ></div>
+                          </td>
+                          <td>{item.description}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={item.isActive === 1}
+                              checked={item.isActive}
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
@@ -278,14 +267,14 @@ const RoleList = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        roleName={roleName}
-        setRoleName={setRoleName}
-        onSave={handleAddOrUpdateRole}
-        modalTitle={editId ? "Update Designation" : "Add Designation"}
+        formData={formData}
+        setFormData={setFormData}
+        onSave={handleAddOrUpdateAward}
+        modalTitle={editId ? "Update Award" : "Add Award"}
         buttonLabel={editId ? "Update" : "Submit"}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
         handleClose={() => {
@@ -294,18 +283,17 @@ const RoleList = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Designation"
+        modalTitle="Delete Award"
         modalMessage={
-          deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete the designation "${userlist[deleteIndex].name}"?`
+          deleteIndex !== null && awards[deleteIndex]
+            ? `Are you sure you want to delete the award "${awards[deleteIndex].title}"?`
             : ""
         }
       />
 
-      {/* Toast container */}
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
 
-export default RoleList;
+export default AwardList;

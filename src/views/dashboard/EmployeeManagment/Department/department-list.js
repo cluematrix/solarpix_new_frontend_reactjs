@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "../Department/add-edit-modal";
@@ -27,17 +29,13 @@ const DepartmentList = () => {
 
       let data = [];
       if (Array.isArray(res.data)) {
-        console.log(res.data);
         data = res.data;
       } else if (Array.isArray(res.data.data)) {
         data = res.data.data;
       }
 
-      
-
       // Match current route
       const matchedPermission = data.find((perm) => perm.route === pathname);
-      console.log("Matched Permission:", matchedPermission);
       setPermissions(matchedPermission || null);
     } catch (err) {
       console.error("Error fetching roles:", err);
@@ -74,10 +72,7 @@ const DepartmentList = () => {
 
   // Toggle Active/Inactive with optimistic update
   const handleToggleActive = (id, currentStatus) => {
-    // Toggle value (0 → 1, 1 → 0)
     const newStatus = currentStatus === 1 ? 0 : 1;
-
-    console.log("Sending update:", { isActive: newStatus });
 
     // Optimistic UI update
     setUserlist((prev) =>
@@ -86,14 +81,14 @@ const DepartmentList = () => {
       )
     );
 
-    // API call
     api
       .put(`/api/v1/admin/department/${id}`, { isActive: newStatus })
-      .then((res) => {
-        console.log("Update success:", res.data);
+      .then(() => {
+        toast.success("Status updated successfully");
       })
       .catch((err) => {
         console.error("Update failed:", err);
+        toast.error(err.response?.data?.message || "Failed to update status");
         // Rollback if API fails
         setUserlist((prev) =>
           prev.map((dept) =>
@@ -105,23 +100,41 @@ const DepartmentList = () => {
 
   // Add or Update Department
   const handleAddOrUpdateRole = () => {
-    if (!roleName.trim()) return;
+    if (!roleName.trim()) {
+      toast.warning("Department name is required");
+      return;
+    }
+
     if (editId) {
+      // Update
       api
         .put(`/api/v1/admin/department/${editId}`, { name: roleName })
         .then(() => {
+          toast.success("Department updated successfully");
           fetchDepartments();
           resetForm();
         })
-        .catch((err) => console.error("Error updating department:", err));
+        .catch((err) => {
+          console.error("Error updating department:", err);
+          toast.error(
+            err.response?.data?.message || "Failed to update department"
+          );
+        });
     } else {
+      // Add
       api
         .post("/api/v1/admin/department/", { name: roleName })
         .then(() => {
+          toast.success("Department added successfully");
           fetchDepartments();
           resetForm();
         })
-        .catch((err) => console.error("Error adding department:", err));
+        .catch((err) => {
+          console.error("Error adding department:", err);
+          toast.error(
+            err.response?.data?.message || "Failed to add department"
+          );
+        });
     }
   };
 
@@ -137,10 +150,16 @@ const DepartmentList = () => {
     api
       .delete(`/api/v1/admin/department/${deleteId}`)
       .then(() => {
+        toast.success("Department deleted successfully");
         fetchDepartments();
         setShowDelete(false);
       })
-      .catch((err) => console.error("Error deleting department:", err));
+      .catch((err) => {
+        console.error("Error deleting department:", err);
+        toast.error(
+          err.response?.data?.message || "Failed to delete department"
+        );
+      });
   };
 
   const resetForm = () => {
@@ -191,7 +210,7 @@ const DepartmentList = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table table-striped">
+                <table className="table">
                   <thead>
                     <tr className="ligth">
                       <th>Sr. No.</th>
@@ -212,11 +231,7 @@ const DepartmentList = () => {
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
                           <td>{item.name}</td>
-
-                          {/* ✅ Status column -> only text */}
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
-
-                          {/* ✅ Action column -> toggle + edit + delete */}
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
@@ -287,6 +302,9 @@ const DepartmentList = () => {
             : ""
         }
       />
+
+      {/* Toast container */}
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };

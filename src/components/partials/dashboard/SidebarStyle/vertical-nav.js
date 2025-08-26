@@ -572,6 +572,21 @@ const VerticalNav = memo((props) => {
                   <span className="item-name">Employee Type</span>
                 </Link>
               </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/LeaveType" ? "active" : ""
+                  } nav-link`}
+                  to="/LeaveType"
+                >
+                  <i className="icon">
+                    <AccountTreeIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon"> L T </i>
+                  <span className="item-name">Leave Type</span>
+                </Link>
+              </li>
               <li className="nav-item">
                 <Link
                   className={`${
@@ -584,6 +599,21 @@ const VerticalNav = memo((props) => {
                   </i>
                   <i className="sidenav-mini-icon"> H </i>
                   <span className="item-name">Holiday</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/holiday" ? "active" : ""
+                  } nav-link`}
+                  to="/award-list"
+                >
+                  <i className="icon">
+                    <AccountTreeIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon"> A </i>
+                  <span className="item-name">Award</span>
                 </Link>
               </li>
               {/* <li className="nav-item">
@@ -1003,7 +1033,7 @@ const VerticalNav = memo((props) => {
                       ? "active"
                       : ""
                   } nav-link`}
-                  to="/project-list"
+                  to="/taskcategory-list"
                 >
                   <i className="icon">
                     <AccountTreeIcon fontSize="small" />
@@ -1021,7 +1051,7 @@ const VerticalNav = memo((props) => {
                       ? "active"
                       : ""
                   } nav-link`}
-                  to="/project-list"
+                  to="/projectcategory-list"
                 >
                   <i className="icon">
                     <AccountTreeIcon fontSize="small" />
@@ -1039,7 +1069,7 @@ const VerticalNav = memo((props) => {
                       ? "active"
                       : ""
                   } nav-link`}
-                  to="/project-list"
+                  to="/stock-list"
                 >
                   <i className="icon">
                     <WarehouseSharpIcon fontSize="small" />
@@ -1296,7 +1326,7 @@ const VerticalNav = memo((props) => {
                       ? "active"
                       : ""
                   } nav-link`}
-                  to="/leads-list"
+                  to="/leadsSource-list"
                 >
                   <i className="icon">
                     <FormatListBulletedSharpIcon fontSize="small" />
@@ -1314,7 +1344,7 @@ const VerticalNav = memo((props) => {
                       ? "active"
                       : ""
                   } nav-link`}
-                  to="/leads-list"
+                  to="/dealstages-list"
                 >
                   <i className="icon">
                     <FormatListBulletedSharpIcon fontSize="small" />
@@ -1569,7 +1599,7 @@ const VerticalNav = memo((props) => {
                       ? "active"
                       : ""
                   } nav-link`}
-                  to="/leads-list"
+                  to="/ExpenseCategory-list"
                 >
                   <i className="icon">
                     <CurrencyRupeeSharpIcon fontSize="small" />
@@ -1839,7 +1869,7 @@ const VerticalNav = memo((props) => {
                   className={`${
                     location.pathname === "/employee-list" ? "active" : ""
                   } nav-link`}
-                  to="/employee-list"
+                  to="/clientCategory-list"
                 >
                   <i className="icon">
                     <AccountTreeIcon fontSize="small" />
@@ -1853,7 +1883,7 @@ const VerticalNav = memo((props) => {
                   className={`${
                     location.pathname === "leaves-list" ? "active" : ""
                   } nav-link`}
-                  to="/leaves-list"
+                  to="/contractType-list"
                 >
                   <i className="icon">
                     <ContactEmergencyIcon fontSize="small" />

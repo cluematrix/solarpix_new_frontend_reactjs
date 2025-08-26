@@ -4,11 +4,13 @@ import { Modal, Form, Button } from "react-bootstrap";
 const AddEditModal = ({
   show,
   handleClose,
-  empType,
-  setEmpType,
+  value,
+  setValue,
   onSave,
   modalTitle,
   buttonLabel,
+  fieldLabel,
+  placeholder,
 }) => {
   return (
     <Modal show={show} onHide={handleClose}>
@@ -17,21 +19,18 @@ const AddEditModal = ({
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group controlId="formEmpType">
-            <Form.Label>Employee Type</Form.Label>
+          <Form.Group controlId="formCategory">
+            <Form.Label>{fieldLabel}</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter employee type"
-              value={empType}
-              onChange={(e) => setEmpType(e.target.value)}
+              placeholder={placeholder}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
             />
           </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        {/* <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button> */}
         <Button variant="primary" onClick={onSave}>
           {buttonLabel}
         </Button>

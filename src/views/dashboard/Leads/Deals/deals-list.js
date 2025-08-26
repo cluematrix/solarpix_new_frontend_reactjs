@@ -72,7 +72,7 @@ const DealList = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <Table striped bordered hover>
+                <Table bordered hover>
                   <thead>
                     <tr>
                       <th>Sr. No.</th>

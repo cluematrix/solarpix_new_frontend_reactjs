@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Button, Form } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "../Designation/add-edit-modal";
-import DeleteModal from "../Designation/delete-modal";
+import AddEditModal from "./add-edit-modal";
+import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
 
-const RoleList = () => {
-  const [userlist, setUserlist] = useState([]);
-  const [roleName, setRoleName] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
+const TaskCategory = () => {
+  const [categoryList, setCategoryList] = useState([]);
+  const [category, setCategory] = useState("");
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -23,21 +23,24 @@ const RoleList = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // 🔑 PERMISSION CHECK
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const categoriesPerPage = 10;
+  const indexOfLast = currentPage * categoriesPerPage;
+  const indexOfFirst = indexOfLast - categoriesPerPage;
+  const currentCategories = categoryList.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(categoryList.length / categoriesPerPage);
+
+  // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-      let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
+      const data = Array.isArray(res.data) ? res.data : res.data.data || [];
       const matchedPermission = data.find((perm) => perm.route === pathname);
-      setPermissions(matchedPermission || null);
+      setPermissions(matchedPermission || {});
     } catch (err) {
       console.error("Error fetching roles:", err);
-      setPermissions(null);
+      setPermissions({});
     }
   };
 
@@ -45,132 +48,115 @@ const RoleList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch designations
-  const fetchDesignations = () => {
+  // 🔄 Fetch Task Categories
+  const fetchTaskCategories = () => {
     api
-      .get("/api/v1/admin/designation")
+      .get("/api/v1/admin/taskCategory")
       .then((res) => {
-        if (Array.isArray(res.data)) {
-          setUserlist(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setUserlist(res.data.data);
-        } else {
-          setUserlist([]);
-        }
+        const data = Array.isArray(res.data) ? res.data : res.data.data || [];
+        setCategoryList(data);
       })
       .catch((err) => {
-        console.error("Error fetching data:", err);
-        toast.error("Failed to fetch designations");
-        setUserlist([]);
+        console.error("Error fetching task categories:", err);
+        toast.error("Failed to fetch categories");
+        setCategoryList([]);
       });
   };
 
   useEffect(() => {
-    fetchDesignations();
+    fetchTaskCategories();
   }, []);
 
-  // Toggle Active/Inactive
+  // ✅ Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus === 1 ? 0 : 1;
-    setUserlist((prev) =>
-      prev.map((dept) =>
-        dept.id === id ? { ...dept, isActive: newStatus } : dept
-      )
+    const newStatus = currentStatus ? 0 : 1;
+    setCategoryList((prev) =>
+      prev.map((cat) => (cat.id === id ? { ...cat, isActive: newStatus } : cat))
     );
 
     api
-      .put(`/api/v1/admin/designation/${id}`, { isActive: newStatus })
-      .then(() => {
-        toast.success("Status updated successfully");
-      })
+      .put(`/api/v1/admin/taskCategory/${id}`, { isActive: newStatus })
+      .then(() => toast.success("Status updated successfully"))
       .catch((err) => {
         console.error("Update failed:", err);
-        toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
-        setUserlist((prev) =>
-          prev.map((dept) =>
-            dept.id === id ? { ...dept, isActive: currentStatus } : dept
+        toast.error("Failed to update status");
+        setCategoryList((prev) =>
+          prev.map((cat) =>
+            cat.id === id ? { ...cat, isActive: currentStatus } : cat
           )
         );
       });
   };
 
-  // Add or Update Designation
-  const handleAddOrUpdateRole = () => {
-    if (!roleName.trim()) {
-      toast.warning("Designation name is required");
+  // ✅ Add or Update
+  const handleAddOrUpdate = () => {
+    if (!category.trim()) {
+      toast.error("Category name is required");
       return;
     }
 
     if (editId) {
-      // Update
       api
-        .put(`/api/v1/admin/designation/${editId}`, { name: roleName })
+        .put(`/api/v1/admin/taskCategory/${editId}`, { category })
         .then(() => {
-          toast.success("Designation updated successfully");
-          fetchDesignations();
+          toast.success("Task category updated successfully");
+          fetchTaskCategories();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error updating designation:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update designation"
-          );
+          console.error("Error updating task category:", err);
+          toast.error("Failed to update category");
         });
     } else {
-      // Add
       api
-        .post("/api/v1/admin/designation", { name: roleName })
+        .post("/api/v1/admin/taskCategory", { category })
         .then(() => {
-          toast.success("Designation added successfully");
-          fetchDesignations();
+          toast.success("Task category added successfully");
+          fetchTaskCategories();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error adding designation:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to add designation"
-          );
+          console.error("Error adding task category:", err);
+          if (err.response?.data?.message) {
+            toast.error(err.response.data.message);
+          } else {
+            toast.error("Failed to add category");
+          }
         });
     }
   };
 
-  // Edit
+  // ✅ Edit
   const handleEdit = (index) => {
-    const designation = userlist[index];
-    setRoleName(designation.name);
-    setEditIndex(index);
-    setEditId(designation.id || designation._id);
+    const cat = categoryList[index];
+    setCategory(cat.category);
+    setEditId(cat.id);
     setShowAddEdit(true);
   };
 
-  // Delete
+  // ✅ Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/designation/${deleteId}`)
+      .delete(`/api/v1/admin/taskCategory/${deleteId}`)
       .then(() => {
-        toast.success("Designation deleted successfully");
-        fetchDesignations();
+        toast.success("Task category deleted successfully");
+        fetchTaskCategories();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting designation:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to delete designation"
-        );
+        console.error("Error deleting task category:", err);
+        toast.error("Failed to delete category");
       });
   };
 
-  // Reset form
   const resetForm = () => {
     setShowAddEdit(false);
-    setRoleName("");
-    setEditIndex(null);
+    setCategory("");
     setEditId(null);
   };
 
-  // 🚫 Block page if no permission
+  // 🚫 Permission Handling
   if (!permissions) {
     return (
       <div
@@ -181,6 +167,7 @@ const RoleList = () => {
       </div>
     );
   }
+
   if (!permissions.view) {
     return (
       <div
@@ -198,13 +185,13 @@ const RoleList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Designation List</h4>
+              <h4 className="card-title">Task Category List</h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + New Designation
+                  + Add Category
                 </Button>
               )}
             </Card.Header>
@@ -213,49 +200,53 @@ const RoleList = () => {
               <div className="table-responsive">
                 <table className="table">
                   <thead>
-                    <tr className="ligth">
+                    <tr>
                       <th>Sr. No.</th>
-                      <th>Name</th>
+                      <th>Category</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {userlist.length === 0 ? (
+                    {currentCategories.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
-                          No Designation available
+                          No Task Category available
                         </td>
                       </tr>
                     ) : (
-                      userlist.map((item, idx) => (
-                        <tr key={item.id || item._id}>
-                          <td>{idx + 1}</td>
-                          <td>{item.name}</td>
+                      currentCategories.map((item, idx) => (
+                        <tr key={item.id}>
+                          <td>{indexOfFirst + idx + 1}</td>
+                          <td>{item.category}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={item.isActive === 1}
+                              checked={
+                                item.isActive === 1 || item.isActive === true
+                              }
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
                               className="me-3"
                             />
+
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(idx)}
+                                onClick={() => handleEdit(indexOfFirst + idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
+
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
-                                  setDeleteId(item.id || item._id);
+                                  setDeleteIndex(indexOfFirst + idx);
+                                  setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
                                 color="error"
@@ -269,6 +260,39 @@ const RoleList = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-end mt-3 me-3">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Button
+                      key={i}
+                      variant={currentPage === i + 1 ? "primary" : "light"}
+                      size="sm"
+                      className="mx-1"
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
@@ -278,11 +302,13 @@ const RoleList = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        roleName={roleName}
-        setRoleName={setRoleName}
-        onSave={handleAddOrUpdateRole}
-        modalTitle={editId ? "Update Designation" : "Add Designation"}
+        value={category}
+        setValue={setCategory}
+        onSave={handleAddOrUpdate}
+        modalTitle={editId ? "Update Task Category" : "Add New Task Category"}
         buttonLabel={editId ? "Update" : "Submit"}
+        fieldLabel="Task Category"
+        placeholder="Enter category"
       />
 
       {/* Delete Confirmation Modal */}
@@ -294,18 +320,18 @@ const RoleList = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Designation"
+        modalTitle="Delete Task Category"
         modalMessage={
-          deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete the designation "${userlist[deleteIndex].name}"?`
+          deleteIndex !== null && categoryList[deleteIndex]
+            ? `Are you sure you want to delete "${categoryList[deleteIndex].category}"?`
             : ""
         }
       />
 
-      {/* Toast container */}
+      {/* ✅ Toast */}
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
 
-export default RoleList;
+export default TaskCategory;
