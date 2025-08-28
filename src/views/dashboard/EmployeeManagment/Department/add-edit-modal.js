@@ -10,36 +10,38 @@ const AddEditModal = ({
   modalTitle,
   buttonLabel,
 }) => {
-  return (
-    <>
+  const handleSubmit = (e) => {
+    e.preventDefault(); // prevent page reload
+    onSave();
+  };
 
-      <Modal show={show} onHide={handleClose}>
+  return (
+    <Modal show={show} onHide={handleClose}>
+      <Form onSubmit={handleSubmit}>
         <Modal.Header closeButton>
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form>
-            <Form.Group controlId="formRoleName">
-              <Form.Label className="custom-form-label">
-                Department Name
-              </Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter Department name"
-                value={roleName}
-                onChange={(e) => setRoleName(e.target.value)}
-                className="custom-form-control"
-              />
-            </Form.Group>
-          </Form>
+          <Form.Group controlId="formRoleName">
+            <Form.Label className="custom-form-label">
+              Department Name
+            </Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter Department name"
+              value={roleName}
+              onChange={(e) => setRoleName(e.target.value)}
+              className="custom-form-control"
+            />
+          </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={onSave}>
+          <Button variant="primary" type="submit">
             {buttonLabel}
           </Button>
         </Modal.Footer>
-      </Modal>
-    </>
+      </Form>
+    </Modal>
   );
 };
 
