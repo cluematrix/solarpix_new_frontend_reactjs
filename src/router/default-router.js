@@ -16,6 +16,9 @@ import DesignationList from "../views/dashboard/EmployeeManagment/Designation/de
 import EmployeeType from "../views/dashboard/EmployeeManagment/EmployeeType/EmployeeTypes";
 import LeaveType from "../views/dashboard/EmployeeManagment/LeaveType/LeaveTypes";
 import AwardList from "../views/dashboard/EmployeeManagment/Award/appreciation/award-list";
+import Holiday from "../views/dashboard/EmployeeManagment/Holidays/Holiday";
+import DefaultHoliday from "../views/dashboard/EmployeeManagment/DefaultHoliday/DefaultHoliday";
+
 // employee
 import EmployeeList from "../views/dashboard/Employees/AddEmployee/employee-list"; // 11 Aug
 import AddEmployee from "../views/dashboard/Employees/AddEmployee/add-employee"; //12 Aug
@@ -170,6 +173,16 @@ export const DefaultRouter = [
       {
         path: "/award-list",
         element: <AwardList />,
+      },
+
+      {
+        path: "/holiday",
+        element: <Holiday />,
+      },
+
+      {
+        path: "/default-holiday",
+        element: <DefaultHoliday />,
       },
 
       //10 Aug 2025

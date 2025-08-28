@@ -17,6 +17,8 @@ import CurrencyRupeeSharpIcon from "@mui/icons-material/CurrencyRupeeSharp";
 import AccountBalanceWalletSharpIcon from "@mui/icons-material/AccountBalanceWalletSharp";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import ContactEmergencyIcon from "@mui/icons-material/ContactEmergency";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+
 import {
   Accordion,
   useAccordionButton,
@@ -581,7 +583,7 @@ const VerticalNav = memo((props) => {
                   to="/LeaveType"
                 >
                   <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
+                    <TimeToLeaveIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon"> L T </i>
                   <span className="item-name">Leave Type</span>
@@ -605,12 +607,26 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/holiday" ? "active" : ""
+                    location.pathname === "/Default-Holiday" ? "active" : ""
+                  } nav-link`}
+                  to="/Default-Holiday"
+                >
+                  <i className="icon">
+                    <AccountTreeIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon"> D H </i>
+                  <span className="item-name">Default Holiday</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/award-list" ? "active" : ""
                   } nav-link`}
                   to="/award-list"
                 >
                   <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
+                    <EmojiEventsIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon"> A </i>
                   <span className="item-name">Award</span>

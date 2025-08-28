@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button } from "react-bootstrap";
+import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditStockModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
-
+import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 const StockList = () => {
   const [stockList, setStockList] = useState([]);
   const [formData, setFormData] = useState({
@@ -18,7 +20,7 @@ const StockList = () => {
     attachment: null,
     isActive: true,
   });
-  const [editIndex, setEditIndex] = useState(null);
+  const [editData, setEditData] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
@@ -34,23 +36,18 @@ const StockList = () => {
   const fetchStockList = async () => {
     try {
       const res = await api.get("/api/v1/admin/stock");
-      console.log("API response:", res.data);
-
-      // Handle different structures
       let stocks = [];
-      if (Array.isArray(res.data.data)) {
-        stocks = res.data.data;
-      } else if (res.data.data) {
-        stocks = [res.data.data];
-      } else if (Array.isArray(res.data)) {
-        stocks = res.data;
-      } else if (res.data) {
-        stocks = [res.data];
-      }
+
+      console.log(res.data);
+      if (Array.isArray(res.data.data)) stocks = res.data.data;
+      else if (res.data.data) stocks = [res.data.data];
+      else if (Array.isArray(res.data)) stocks = res.data;
+      else if (res.data) stocks = [res.data];
 
       setStockList(stocks);
     } catch (error) {
       console.error("Error fetching stock:", error);
+      toast.error("Failed to fetch stock list");
     }
   };
 
@@ -65,51 +62,97 @@ const StockList = () => {
       attachment: null,
       isActive: true,
     });
-    setEditIndex(null);
+    setEditData(null);
   };
 
   const handleSave = async (data) => {
+    if (!data.item_name || !data.price) {
+      toast.warning("Item Name and Price are required");
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
+
       for (const key in data) {
-        formDataToSend.append(key, data[key]);
+        if (data[key] !== null && data[key] !== undefined) {
+          if (key === "attachment" && data[key] instanceof File) {
+            formDataToSend.append(key, data[key], data[key].name);
+          } else {
+            formDataToSend.append(key, data[key]);
+          }
+        }
       }
 
-      if (editIndex !== null) {
-        await api.put(`/api/v1/admin/stock/${data.id}`, formDataToSend);
+      if (editData) {
+        await api.put(`/api/v1/admin/stock/${data.id}`, formDataToSend, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("Stock updated successfully");
       } else {
-        await api.post("/admin/stock", formDataToSend);
+        await api.post("/api/v1/admin/stock", formDataToSend, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("Stock added successfully");
       }
 
       fetchStockList();
       setShowAddEdit(false);
       resetForm();
     } catch (error) {
-      console.error("Error saving stock:", error);
+      console.error("Error saving stock:", error.response?.data || error);
+      toast.error(error.response?.data?.message || "Failed to save stock");
     }
   };
 
   const handleEdit = (index) => {
-    setFormData(stockList[index]);
-    setEditIndex(index);
+    const item = stockList[index];
+    setFormData({ ...item, attachment: null }); // reset file when editing
+    setEditData(item);
     setShowAddEdit(true);
+  };
+
+  const handleToggleActive = async (id, currentStatus) => {
+    const newStatus = !currentStatus;
+
+    setStockList((prev) =>
+      prev.map((stock) =>
+        stock.id === id ? { ...stock, isActive: newStatus } : stock
+      )
+    );
+
+    try {
+      await api.put(`/api/v1/admin/stock/${id}`, { isActive: newStatus });
+      toast.success("Status updated successfully");
+    } catch (err) {
+      console.error("Update failed:", err);
+      toast.error(err.response?.data?.message || "Failed to update status");
+
+      setStockList((prev) =>
+        prev.map((stock) =>
+          stock.id === id ? { ...stock, isActive: currentStatus } : stock
+        )
+      );
+    }
   };
 
   const handleDeleteConfirm = async () => {
     if (deleteIndex !== null) {
       try {
         const id = stockList[deleteIndex].id;
-        await api.delete(`/admin/stock/${id}`);
+        await api.delete(`/api/v1/admin/stock/${id}`);
+        toast.success("Stock deleted successfully");
         fetchStockList();
       } catch (error) {
         console.error("Error deleting stock:", error);
+        toast.error(error.response?.data?.message || "Failed to delete stock");
       }
     }
     setShowDelete(false);
     setDeleteIndex(null);
   };
 
-  // Pagination logic
+  // Pagination
   const indexOfLast = currentPage * rowsPerPage;
   const indexOfFirst = indexOfLast - rowsPerPage;
   const currentData = stockList.slice(indexOfFirst, indexOfLast);
@@ -150,7 +193,7 @@ const StockList = () => {
                   <tbody>
                     {currentData.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center">
+                        <td colSpan="8" className="text-center">
                           No stock available
                         </td>
                       </tr>
@@ -169,7 +212,27 @@ const StockList = () => {
                               <span className="badge bg-danger">Inactive</span>
                             )}
                           </td>
-                          <td>
+                          <td className="d-flex align-items-center">
+                            {item.attachment ? (
+                              <RemoveRedEyeIcon
+                                className="me-2"
+                                onClick={() =>
+                                  window.open(item.attachment, "_blank")
+                                }
+                                style={{ cursor: "pointer", color: "#0d6efd" }}
+                              />
+                            ) : (
+                              "-"
+                            )}
+                            <Form.Check
+                              type="switch"
+                              id={`active-switch-${item.id}`}
+                              checked={item.isActive}
+                              onChange={() =>
+                                handleToggleActive(item.id, item.isActive)
+                              }
+                            />
+
                             <CreateTwoToneIcon
                               className="me-2"
                               onClick={() => handleEdit(indexOfFirst + idx)}
@@ -239,7 +302,7 @@ const StockList = () => {
         formData={formData}
         setFormData={setFormData}
         onSave={handleSave}
-        editData={editIndex !== null}
+        editData={!!editData}
       />
 
       {/* Delete Modal */}
@@ -257,6 +320,8 @@ const StockList = () => {
             : ""
         }
       />
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
