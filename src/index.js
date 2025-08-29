@@ -16,6 +16,7 @@ import { SimpleRouter } from "./router/simple-router";
 import { DefaultRouter } from "./router/default-router";
 import Default from "./layouts/dashboard/default";
 import SignIn from "./views/dashboard/auth/sign-in";
+import { ToastContainer } from "react-toastify";
 
 const token = sessionStorage.getItem("solarpix_token");
 
@@ -38,6 +39,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <App>
         <RouterProvider router={router}></RouterProvider>
       </App>
+      <ToastContainer />
     </Provider>
   </React.StrictMode>
 );

@@ -8,6 +8,7 @@ const DeleteModal = ({
   modalTitle,
   modalMessage,
 }) => {
+  console.log("modalMessage",modalMessage)
   return (
     <Modal centered show={show} onHide={handleClose}>
       <Modal.Header closeButton>

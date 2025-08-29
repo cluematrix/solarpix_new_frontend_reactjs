@@ -22,7 +22,6 @@ import DefaultHoliday from "../views/dashboard/EmployeeManagment/DefaultHoliday/
 // employee
 import EmployeeList from "../views/dashboard/Employees/AddEmployee/employee-list"; // 11 Aug
 import AddEmployee from "../views/dashboard/Employees/AddEmployee/add-employee"; //12 Aug
-import UpdateEmployee from "../views/dashboard/Employees/AddEmployee/update-employee";
 
 import LeavesList from "../views/dashboard/Employees/Leaves/leaves-list"; //12 Aug
 
@@ -81,6 +80,7 @@ import RtlSupport from "../views/dashboard/special-pages/RtlSupport";
 //admin
 import Admin from "../views/dashboard/admin/admin";
 import Default from "../layouts/dashboard/default";
+import UpdateEmployee from "../views/dashboard/Employees/AddEmployee/updateEmployee";
 
 export const DefaultRouter = [
   {
