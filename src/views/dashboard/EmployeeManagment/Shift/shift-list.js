@@ -37,14 +37,35 @@ const ShiftList = () => {
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
+
       let data = [];
       if (Array.isArray(res.data)) {
         data = res.data;
       } else if (Array.isArray(res.data.data)) {
         data = res.data.data;
       }
-      const matchedPermission = data.find((perm) => perm.route === pathname);
-      setPermissions(matchedPermission || null);
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);

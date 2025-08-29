@@ -31,15 +31,40 @@ const DefaultHoliday = () => {
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-      const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-      const matchedPermission = data.find((perm) => perm.route === pathname);
-      setPermissions(matchedPermission || {});
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
     } catch (err) {
       console.error("Error fetching roles:", err);
-      setPermissions({});
+      setPermissions(null);
     }
   };
-
   useEffect(() => {
     FETCHPERMISSION();
   }, [pathname]);
@@ -65,7 +90,11 @@ const DefaultHoliday = () => {
 
   // ✅ Add or Update
   const handleAddOrUpdate = () => {
-    if (!formData.day.trim() || !formData.occasion.trim() || !formData.year.trim()) {
+    if (
+      !formData.day.trim() ||
+      !formData.occasion.trim() ||
+      !formData.year.trim()
+    ) {
       toast.warning("Day, Occasion and Year are required");
       return;
     }
@@ -80,7 +109,9 @@ const DefaultHoliday = () => {
         })
         .catch((err) => {
           console.error("Error updating default holiday:", err);
-          toast.error(err.response?.data?.message || "Failed to update default holiday");
+          toast.error(
+            err.response?.data?.message || "Failed to update default holiday"
+          );
         });
     } else {
       api
@@ -92,14 +123,20 @@ const DefaultHoliday = () => {
         })
         .catch((err) => {
           console.error("Error adding default holiday:", err);
-          toast.error(err.response?.data?.message || "Failed to add default holiday");
+          toast.error(
+            err.response?.data?.message || "Failed to add default holiday"
+          );
         });
     }
   };
 
   const handleEdit = (index) => {
     const holiday = holidayList[index];
-    setFormData({ day: holiday.day, occasion: holiday.occasion, year: holiday.year });
+    setFormData({
+      day: holiday.day,
+      occasion: holiday.occasion,
+      year: holiday.year,
+    });
     setEditId(holiday.id);
     setShowAddEdit(true);
   };
@@ -116,7 +153,9 @@ const DefaultHoliday = () => {
       })
       .catch((err) => {
         console.error("Error deleting default holiday:", err);
-        toast.error(err.response?.data?.message || "Failed to delete default holiday");
+        toast.error(
+          err.response?.data?.message || "Failed to delete default holiday"
+        );
       });
   };
 
@@ -129,7 +168,10 @@ const DefaultHoliday = () => {
   // 🚫 Permission Handling
   if (!permissions) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh" }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
         <h4>Loading permissions...</h4>
       </div>
     );
@@ -137,7 +179,10 @@ const DefaultHoliday = () => {
 
   if (!permissions.view) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh" }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
         <h4>You don’t have permission to view this page.</h4>
       </div>
     );
@@ -146,7 +191,10 @@ const DefaultHoliday = () => {
   // 🔄 Pagination Logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = holidayList.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = holidayList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
   const totalPages = Math.ceil(holidayList.length / recordsPerPage);
 
   return (
@@ -157,7 +205,10 @@ const DefaultHoliday = () => {
             <Card.Header className="d-flex justify-content-between">
               <h4 className="card-title">Default Holiday List</h4>
               {permissions.add && (
-                <Button className="btn-primary" onClick={() => setShowAddEdit(true)}>
+                <Button
+                  className="btn-primary"
+                  onClick={() => setShowAddEdit(true)}
+                >
                   + Add Default Holiday
                 </Button>
               )}
@@ -193,7 +244,9 @@ const DefaultHoliday = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(indexOfFirstRecord + idx)}
+                                onClick={() =>
+                                  handleEdit(indexOfFirstRecord + idx)
+                                }
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -253,7 +306,9 @@ const DefaultHoliday = () => {
         formData={formData}
         setFormData={setFormData}
         onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update Default Holiday" : "Add New Default Holiday"}
+        modalTitle={
+          editId ? "Update Default Holiday" : "Add New Default Holiday"
+        }
         buttonLabel={editId ? "Update" : "Submit"}
       />
 
