@@ -22,6 +22,16 @@ const ContractType = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
+  // 🔑 Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(typeList.length / itemsPerPage);
+  const paginatedTypes = typeList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
     try {
@@ -63,7 +73,6 @@ const ContractType = () => {
   const handleToggleActive = (id, currentStatus) => {
     const newStatus = currentStatus ? 0 : 1;
 
-    // Optimistic UI update
     setTypeList((prev) =>
       prev.map((t) => (t.id === id ? { ...t, isActive: newStatus } : t))
     );
@@ -76,7 +85,6 @@ const ContractType = () => {
       .catch((err) => {
         console.error("Update failed:", err);
         toast.error(err.response?.data?.message || "Failed to update status");
-        // Rollback
         setTypeList((prev) =>
           prev.map((t) => (t.id === id ? { ...t, isActive: currentStatus } : t))
         );
@@ -122,7 +130,7 @@ const ContractType = () => {
   };
 
   const handleEdit = (index) => {
-    const t = typeList[index];
+    const t = paginatedTypes[index]; // 👈 Edit from paginated list
     setType(t.type);
     setEditId(t.id);
     setShowAddEdit(true);
@@ -204,16 +212,16 @@ const ContractType = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {typeList.length === 0 ? (
+                    {paginatedTypes.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
                           No Contract Types available
                         </td>
                       </tr>
                     ) : (
-                      typeList.map((item, idx) => (
+                      paginatedTypes.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                           <td>{item.type}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -255,6 +263,27 @@ const ContractType = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-between align-items-center px-3 py-2">
+                  <Button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
@@ -284,8 +313,8 @@ const ContractType = () => {
         onConfirm={handleDeleteConfirm}
         modalTitle="Delete Contract Type"
         modalMessage={
-          deleteIndex !== null && typeList[deleteIndex]
-            ? `Are you sure you want to delete "${typeList[deleteIndex].type}"?`
+          deleteIndex !== null && paginatedTypes[deleteIndex]
+            ? `Are you sure you want to delete "${paginatedTypes[deleteIndex].type}"?`
             : ""
         }
       />

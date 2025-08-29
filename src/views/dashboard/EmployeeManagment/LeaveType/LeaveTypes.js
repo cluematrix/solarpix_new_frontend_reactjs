@@ -18,7 +18,6 @@ const LeaveType = () => {
     leave_paid_status: "paid",
     color: "#000000",
   });
-
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -31,11 +30,11 @@ const LeaveType = () => {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const rolesPerPage = 10;
-  const indexOfLastRole = currentPage * rolesPerPage;
-  const indexOfFirstRole = indexOfLastRole - rolesPerPage;
-  const currentRoles = leaveList.slice(indexOfFirstRole, indexOfLastRole);
-  const totalPages = Math.ceil(leaveList.length / rolesPerPage);
+  const itemsPerPage = 10;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = leaveList.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(leaveList.length / itemsPerPage);
 
   // 🔑 Fetch Permissions
   const FETCHPERMISSION = async () => {
@@ -90,9 +89,7 @@ const LeaveType = () => {
         })
         .catch((err) => {
           console.error("Error updating leave type:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update leave type"
-          );
+          toast.error(err.response?.data?.message || "Failed to update leave type");
         });
     } else {
       api
@@ -104,9 +101,7 @@ const LeaveType = () => {
         })
         .catch((err) => {
           console.error("Error adding leave type:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to add leave type"
-          );
+          toast.error(err.response?.data?.message || "Failed to add leave type");
         });
     }
   };
@@ -136,9 +131,7 @@ const LeaveType = () => {
       })
       .catch((err) => {
         console.error("Error deleting leave type:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to delete leave type"
-        );
+        toast.error(err.response?.data?.message || "Failed to delete leave type");
       });
   };
 
@@ -156,10 +149,7 @@ const LeaveType = () => {
   // 🚫 Permission Handling
   if (!permissions) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
+      <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh" }}>
         <h4>Loading permissions...</h4>
       </div>
     );
@@ -167,10 +157,7 @@ const LeaveType = () => {
 
   if (!permissions.view) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
+      <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh" }}>
         <h4>You don’t have permission to view this page.</h4>
       </div>
     );
@@ -184,10 +171,7 @@ const LeaveType = () => {
             <Card.Header className="d-flex justify-content-between">
               <h4 className="card-title">Leave Type List</h4>
               {permissions.add && (
-                <Button
-                  className="btn-primary"
-                  onClick={() => setShowAddEdit(true)}
-                >
+                <Button className="btn-primary" onClick={() => setShowAddEdit(true)}>
                   + Add Leave Type
                 </Button>
               )}
@@ -207,16 +191,16 @@ const LeaveType = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentRoles.length === 0 ? (
+                    {currentItems.length === 0 ? (
                       <tr>
                         <td colSpan="6" className="text-center">
                           No Leave Type available
                         </td>
                       </tr>
                     ) : (
-                      currentRoles.map((item, idx) => (
+                      currentItems.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{indexOfFirstRole + idx + 1}</td>
+                          <td>{indexOfFirstItem + idx + 1}</td>
                           <td>{item.leave_type}</td>
                           <td>{item.no_of_leave}</td>
                           <td>{item.leave_paid_status}</td>
@@ -235,9 +219,7 @@ const LeaveType = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() =>
-                                  handleEdit(indexOfFirstRole + idx)
-                                }
+                                onClick={() => handleEdit(indexOfFirstItem + idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -245,7 +227,7 @@ const LeaveType = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(indexOfFirstRole + idx);
+                                  setDeleteIndex(indexOfFirstItem + idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}

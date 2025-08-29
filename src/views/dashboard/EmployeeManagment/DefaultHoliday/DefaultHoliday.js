@@ -19,8 +19,13 @@ const DefaultHoliday = () => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
+  // 🔑 Permission
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+
+  // 🔄 Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 5;
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -138,6 +143,12 @@ const DefaultHoliday = () => {
     );
   }
 
+  // 🔄 Pagination Logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = holidayList.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(holidayList.length / recordsPerPage);
+
   return (
     <>
       <Row>
@@ -165,16 +176,16 @@ const DefaultHoliday = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {holidayList.length === 0 ? (
+                    {currentRecords.length === 0 ? (
                       <tr>
                         <td colSpan="5" className="text-center">
                           No Default Holiday available
                         </td>
                       </tr>
                     ) : (
-                      holidayList.map((item, idx) => (
+                      currentRecords.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirstRecord + idx + 1}</td>
                           <td>{item.day}</td>
                           <td>{item.occasion}</td>
                           <td>{item.year}</td>
@@ -182,16 +193,15 @@ const DefaultHoliday = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(idx)}
+                                onClick={() => handleEdit(indexOfFirstRecord + idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
-
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
+                                  setDeleteIndex(indexOfFirstRecord + idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
@@ -206,6 +216,31 @@ const DefaultHoliday = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {holidayList.length > recordsPerPage && (
+                <div className="d-flex justify-content-between align-items-center px-3 pb-3">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>

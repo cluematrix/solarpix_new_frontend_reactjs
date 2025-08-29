@@ -78,7 +78,7 @@ const AddEditModal = ({ show, handleClose, onSave, editData }) => {
           <Row>
             <Col md={12}>
               <Form.Group>
-                <Form.Label className="pt-4">Shift Name</Form.Label>
+                <Form.Label>Shift Name</Form.Label>
                 <Form.Control
                   type="text"
                   name="shift_name"

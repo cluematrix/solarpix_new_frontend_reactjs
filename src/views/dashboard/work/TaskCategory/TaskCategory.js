@@ -23,9 +23,10 @@ const TaskCategory = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // Pagination
+  // 🔹 Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const categoriesPerPage = 10;
+
   const indexOfLast = currentPage * categoriesPerPage;
   const indexOfFirst = indexOfLast - categoriesPerPage;
   const currentCategories = categoryList.slice(indexOfFirst, indexOfLast);

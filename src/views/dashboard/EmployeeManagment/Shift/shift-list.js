@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Badge, Form } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Badge,
+  Form,
+  Pagination,
+} from "react-bootstrap";
+import { ToastContainer, toast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "../Shift/add-edit-modal";
 import DeleteModal from "../Shift/delete-modal";
 import api from "../../../../api/axios";
+import { useLocation } from "react-router";
 
 const ShiftList = () => {
   const [shiftList, setShiftList] = useState([]);
@@ -17,7 +26,36 @@ const ShiftList = () => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // Fetch Shifts
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
+
+  // 🔑 Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // 🔑 Fetch Permission
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+      const matchedPermission = data.find((perm) => perm.route === pathname);
+      setPermissions(matchedPermission || null);
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
+    }
+  };
+
+  useEffect(() => {
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // 🔄 Fetch Shifts
   const fetchShifts = () => {
     api
       .get("/api/v1/admin/shift")
@@ -41,7 +79,7 @@ const ShiftList = () => {
     fetchShifts();
   }, []);
 
-  // Add or Update Shift
+  // ➕ Add / ✏️ Update Shift
   const handleAddOrUpdateShift = (data) => {
     if (!data.shift_name.trim()) {
       toast.warning("Shift name is required");
@@ -50,11 +88,10 @@ const ShiftList = () => {
 
     const payload = {
       ...data,
-      is_active: Number(data.is_active), // ensure 0 or 1
+      is_active: Number(data.is_active),
     };
 
     if (editId) {
-      // update
       api
         .put(`/api/v1/admin/shift/${editId}`, payload)
         .then(() => {
@@ -67,7 +104,6 @@ const ShiftList = () => {
           toast.error(err.response?.data?.message || "Failed to update shift");
         });
     } else {
-      // add
       api
         .post("/api/v1/admin/shift", payload)
         .then(() => {
@@ -82,18 +118,15 @@ const ShiftList = () => {
     }
   };
 
-  // Toggle status directly
+  // 🔄 Toggle Status
   const handleToggleStatus = (id, currentStatus) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
-
-    // Optimistic update
     setShiftList((prev) =>
       prev.map((shift) =>
         shift.id === id ? { ...shift, is_active: newStatus } : shift
       )
     );
 
-    // API update
     api
       .put(`/api/v1/admin/shift/${id}`, { is_active: newStatus })
       .then(() => {
@@ -102,7 +135,6 @@ const ShiftList = () => {
       .catch((err) => {
         console.error("Status update failed:", err);
         toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
         setShiftList((prev) =>
           prev.map((shift) =>
             shift.id === id ? { ...shift, is_active: currentStatus } : shift
@@ -111,7 +143,7 @@ const ShiftList = () => {
       });
   };
 
-  // Edit
+  // ✏️ Edit
   const handleEdit = (index) => {
     const shift = shiftList[index];
     setEditIndex(index);
@@ -119,7 +151,7 @@ const ShiftList = () => {
     setShowAddEdit(true);
   };
 
-  // Delete
+  // ❌ Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
@@ -151,6 +183,34 @@ const ShiftList = () => {
     return `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
   };
 
+  // 🚫 Block if no permission
+  if (!permissions) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>Loading permissions...</h4>
+      </div>
+    );
+  }
+  if (!permissions.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
+  // 📌 Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = shiftList.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(shiftList.length / itemsPerPage);
+
   return (
     <>
       <Row>
@@ -158,7 +218,11 @@ const ShiftList = () => {
           <Card>
             <Card.Header className="d-flex justify-content-between">
               <h4 className="card-title">Shift</h4>
-              <Button onClick={() => setShowAddEdit(true)}>+ Add Shift</Button>
+              {permissions.add && (
+                <Button onClick={() => setShowAddEdit(true)}>
+                  + Add Shift
+                </Button>
+              )}
             </Card.Header>
             <Card.Body className="px-0">
               <div className="table-responsive">
@@ -174,21 +238,19 @@ const ShiftList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {shiftList.length === 0 ? (
+                    {currentItems.length === 0 ? (
                       <tr>
                         <td colSpan="6" className="text-center">
                           No Shift Found
                         </td>
                       </tr>
                     ) : (
-                      shiftList.map((item, idx) => (
+                      currentItems.map((item, idx) => (
                         <tr key={item.id || item._id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirstItem + idx + 1}</td>
                           <td>{item.shift_name}</td>
                           <td>{formatTime12Hour(item.start_time)}</td>
                           <td>{formatTime12Hour(item.end_time)}</td>
-
-                          {/* ✅ Status column shows badge */}
                           <td>
                             {item.is_active === 1 ? (
                               <Badge bg="success">Active</Badge>
@@ -196,8 +258,6 @@ const ShiftList = () => {
                               <Badge bg="danger">Inactive</Badge>
                             )}
                           </td>
-
-                          {/* ✅ Action column: toggle + edit + delete */}
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
@@ -208,22 +268,27 @@ const ShiftList = () => {
                               }
                               className="me-3"
                             />
-
-                            <CreateTwoToneIcon
-                              className="me-2"
-                              onClick={() => handleEdit(idx)}
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                            <DeleteRoundedIcon
-                              onClick={() => {
-                                setDeleteIndex(idx);
-                                setDeleteId(item.id || item._id);
-                                setShowDelete(true);
-                              }}
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                            />
+                            {permissions.edit && (
+                              <CreateTwoToneIcon
+                                className="me-2"
+                                onClick={() =>
+                                  handleEdit(indexOfFirstItem + idx)
+                                }
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
+                            {permissions.del && (
+                              <DeleteRoundedIcon
+                                onClick={() => {
+                                  setDeleteIndex(indexOfFirstItem + idx);
+                                  setDeleteId(item.id || item._id);
+                                  setShowDelete(true);
+                                }}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))
@@ -231,6 +296,29 @@ const ShiftList = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* 📌 Pagination Controls */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center">
+                  <Pagination.Prev
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  />
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  />
+                </Pagination>
+              )}
             </Card.Body>
           </Card>
         </Col>
@@ -261,8 +349,11 @@ const ShiftList = () => {
         }
       />
 
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        transition={Slide}
+      />
     </>
   );
 };

@@ -22,6 +22,15 @@ const DepartmentList = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  // Pagination
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = userlist.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(userlist.length / rowsPerPage);
+
   // 🔑 PERMISSION CHECK
   const FETCHPERMISSION = async () => {
     try {
@@ -227,7 +236,7 @@ const DepartmentList = () => {
                         </td>
                       </tr>
                     ) : (
-                      userlist.map((item, idx) => (
+                      currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
                           <td>{item.name}</td>
@@ -270,6 +279,39 @@ const DepartmentList = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-end mt-3 me-3">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Button
+                      key={i}
+                      variant={currentPage === i + 1 ? "primary" : "light"}
+                      size="sm"
+                      className="mx-1"
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>

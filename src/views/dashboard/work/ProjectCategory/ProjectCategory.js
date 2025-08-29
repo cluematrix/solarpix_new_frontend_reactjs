@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
@@ -21,6 +21,10 @@ const ProjectCategory = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+
+  // 📌 Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // change per your need
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -168,6 +172,13 @@ const ProjectCategory = () => {
     );
   }
 
+  // 📌 Pagination Logic
+  const totalPages = Math.ceil(categoryList.length / itemsPerPage);
+  const paginatedData = categoryList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <>
       <Row>
@@ -197,16 +208,16 @@ const ProjectCategory = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {categoryList.length === 0 ? (
+                    {paginatedData.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
                           No Project Category available
                         </td>
                       </tr>
                     ) : (
-                      categoryList.map((item, idx) => (
+                      paginatedData.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                           <td>{item.category}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -247,6 +258,33 @@ const ProjectCategory = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* 📌 Pagination Controls */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.Prev
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
+                  {[...Array(totalPages)].map((_, idx) => (
+                    <Pagination.Item
+                      key={idx}
+                      active={idx + 1 === currentPage}
+                      onClick={() => setCurrentPage(idx + 1)}
+                    >
+                      {idx + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              )}
             </Card.Body>
           </Card>
         </Col>
@@ -284,7 +322,6 @@ const ProjectCategory = () => {
         }
       />
 
-      {/* ✅ Toast Container */}
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );

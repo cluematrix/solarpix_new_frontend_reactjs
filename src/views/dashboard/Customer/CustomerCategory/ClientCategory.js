@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -21,6 +21,10 @@ const ClientCategory = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+
+  // ✅ Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -172,6 +176,12 @@ const ClientCategory = () => {
     );
   }
 
+  // ✅ Pagination logic
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = categoryList.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(categoryList.length / itemsPerPage);
+
   return (
     <>
       <Row>
@@ -201,16 +211,16 @@ const ClientCategory = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {categoryList.length === 0 ? (
+                    {currentItems.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
                           No Customer Category available
                         </td>
                       </tr>
                     ) : (
-                      categoryList.map((item, idx) => (
+                      currentItems.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.category}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -252,6 +262,41 @@ const ClientCategory = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* ✅ Pagination */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  />
+                  <Pagination.Prev
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              )}
             </Card.Body>
           </Card>
         </Col>

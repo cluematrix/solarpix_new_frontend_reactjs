@@ -19,6 +19,10 @@ const ExpenseCategory = () => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
+  // 🔹 Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
@@ -39,8 +43,8 @@ const ExpenseCategory = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Task Categories
-  const fetchTaskCategories = () => {
+  // 🔄 Fetch Expense Categories
+  const fetchExpenseCategories = () => {
     api
       .get("/api/v1/admin/expenseCategory")
       .then((res) => {
@@ -55,14 +59,13 @@ const ExpenseCategory = () => {
   };
 
   useEffect(() => {
-    fetchTaskCategories();
+    fetchExpenseCategories();
   }, []);
 
   // ✅ Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
     const newStatus = currentStatus ? 0 : 1;
 
-    // optimistic UI update
     setCategoryList((prev) =>
       prev.map((cat) => (cat.id === id ? { ...cat, isActive: newStatus } : cat))
     );
@@ -75,7 +78,6 @@ const ExpenseCategory = () => {
       .catch((err) => {
         console.error("Update failed:", err);
         toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
         setCategoryList((prev) =>
           prev.map((cat) =>
             cat.id === id ? { ...cat, isActive: currentStatus } : cat
@@ -96,11 +98,11 @@ const ExpenseCategory = () => {
         .put(`/api/v1/admin/expenseCategory/${editId}`, { category })
         .then(() => {
           toast.success("Category updated successfully");
-          fetchTaskCategories();
+          fetchExpenseCategories();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error updating Project category:", err);
+          console.error("Error updating category:", err);
           toast.error(
             err.response?.data?.message || "Failed to update category"
           );
@@ -110,11 +112,11 @@ const ExpenseCategory = () => {
         .post("/api/v1/admin/expenseCategory", { category })
         .then(() => {
           toast.success("Category added successfully");
-          fetchTaskCategories();
+          fetchExpenseCategories();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error adding Project category:", err);
+          console.error("Error adding category:", err);
           toast.error(err.response?.data?.message || "Failed to add category");
         });
     }
@@ -134,11 +136,11 @@ const ExpenseCategory = () => {
       .delete(`/api/v1/admin/expenseCategory/${deleteId}`)
       .then(() => {
         toast.success("Category deleted successfully");
-        fetchTaskCategories();
+        fetchExpenseCategories();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting Project category:", err);
+        console.error("Error deleting category:", err);
         toast.error(err.response?.data?.message || "Failed to delete category");
       });
   };
@@ -148,6 +150,12 @@ const ExpenseCategory = () => {
     setCategory("");
     setEditId(null);
   };
+
+  // 🔹 Pagination Logic
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = categoryList.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(categoryList.length / rowsPerPage);
 
   // 🚫 Permission Handling
   if (!permissions) {
@@ -201,16 +209,16 @@ const ExpenseCategory = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {categoryList.length === 0 ? (
+                    {currentData.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
-                          No Projects Category available
+                          No Expense Categories available
                         </td>
                       </tr>
                     ) : (
-                      categoryList.map((item, idx) => (
+                      currentData.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.category}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -233,7 +241,6 @@ const ExpenseCategory = () => {
                                 style={{ cursor: "pointer" }}
                               />
                             )}
-
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
@@ -252,6 +259,27 @@ const ExpenseCategory = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-between align-items-center px-3 py-2">
+                  <Button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
@@ -265,10 +293,10 @@ const ExpenseCategory = () => {
         setValue={setCategory}
         onSave={handleAddOrUpdate}
         modalTitle={
-          editId ? "Update expense Category" : "Add New expense Category"
+          editId ? "Update Expense Category" : "Add New Expense Category"
         }
         buttonLabel={editId ? "Update" : "Submit"}
-        fieldLabel="expense Category"
+        fieldLabel="Expense Category"
         placeholder="Enter category"
       />
 
@@ -281,7 +309,7 @@ const ExpenseCategory = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete expense Category"
+        modalTitle="Delete Expense Category"
         modalMessage={
           deleteIndex !== null && categoryList[deleteIndex]
             ? `Are you sure you want to delete "${categoryList[deleteIndex].category}"?`

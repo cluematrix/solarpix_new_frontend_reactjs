@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router";
 import { Card, Row, Col, Button, Form } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -8,7 +9,35 @@ import AddEditStockModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
+
 const StockList = () => {
+  const { pathname } = useLocation(); // ✅ moved inside component
+  const [permissions, setPermissions] = useState(null);
+
+  // 🔑 Fetch Permission
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const matchedPermission = data.find((perm) => perm.route === pathname);
+      setPermissions(matchedPermission || null);
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
+    }
+  };
+
+  useEffect(() => {
+    FETCHPERMISSION();
+  }, [pathname]);
+
   const [stockList, setStockList] = useState([]);
   const [formData, setFormData] = useState({
     id: "",
@@ -38,7 +67,6 @@ const StockList = () => {
       const res = await api.get("/api/v1/admin/stock");
       let stocks = [];
 
-      console.log(res.data);
       if (Array.isArray(res.data.data)) stocks = res.data.data;
       else if (res.data.data) stocks = [res.data.data];
       else if (Array.isArray(res.data)) stocks = res.data;
@@ -158,6 +186,29 @@ const StockList = () => {
   const currentData = stockList.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(stockList.length / rowsPerPage);
 
+  // 🚫 Block if no permission
+  if (!permissions) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>Loading permissions...</h4>
+      </div>
+    );
+  }
+
+  if (!permissions.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
   return (
     <>
       <Row>
@@ -165,15 +216,17 @@ const StockList = () => {
           <Card>
             <Card.Header className="d-flex justify-content-between">
               <h4 className="card-title">Stock List</h4>
-              <Button
-                className="btn-primary"
-                onClick={() => {
-                  resetForm();
-                  setShowAddEdit(true);
-                }}
-              >
-                + Add Stock
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => {
+                    resetForm();
+                    setShowAddEdit(true);
+                  }}
+                >
+                  + Add Stock
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0">

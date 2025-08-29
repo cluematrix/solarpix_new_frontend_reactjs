@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -22,6 +22,10 @@ const RoleList = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
   // 🔑 PERMISSION CHECK
   const FETCHPERMISSION = async () => {
@@ -170,6 +174,18 @@ const RoleList = () => {
     setEditId(null);
   };
 
+  // Pagination logic
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = userlist.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(userlist.length / rowsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   // 🚫 Block page if no permission
   if (!permissions) {
     return (
@@ -221,16 +237,16 @@ const RoleList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {userlist.length === 0 ? (
+                    {currentData.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
                           No Designation available
                         </td>
                       </tr>
                     ) : (
-                      userlist.map((item, idx) => (
+                      currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.name}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -246,7 +262,7 @@ const RoleList = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(idx)}
+                                onClick={() => handleEdit(indexOfFirst + idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -254,7 +270,7 @@ const RoleList = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
+                                  setDeleteIndex(indexOfFirst + idx);
                                   setDeleteId(item.id || item._id);
                                   setShowDelete(true);
                                 }}
@@ -269,6 +285,29 @@ const RoleList = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.Prev
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  />
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => handlePageChange(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              )}
             </Card.Body>
           </Card>
         </Col>

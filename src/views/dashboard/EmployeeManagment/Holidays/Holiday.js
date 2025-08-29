@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -21,6 +21,10 @@ const Holiday = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -146,6 +150,12 @@ const Holiday = () => {
     );
   }
 
+  // Pagination logic
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentHolidays = holidayList.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(holidayList.length / itemsPerPage);
+
   return (
     <>
       <Row>
@@ -175,23 +185,23 @@ const Holiday = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {holidayList.length === 0 ? (
+                    {currentHolidays.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
                           No Holiday available
                         </td>
                       </tr>
                     ) : (
-                      holidayList.map((item, idx) => (
+                      currentHolidays.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.date}</td>
                           <td>{item.occasion}</td>
                           <td className="d-flex align-items-center">
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(idx)}
+                                onClick={() => handleEdit(indexOfFirst + idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -200,7 +210,7 @@ const Holiday = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
+                                  setDeleteIndex(indexOfFirst + idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
@@ -215,6 +225,34 @@ const Holiday = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {holidayList.length > itemsPerPage && (
+                <div className="d-flex justify-content-between align-items-center px-3">
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <div>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      className="me-2"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>

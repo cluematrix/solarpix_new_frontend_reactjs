@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -7,6 +7,7 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios"; // adjust path
+import { useLocation } from "react-router";
 
 const DealStagesList = () => {
   const [dealStages, setDealStages] = useState([]);
@@ -16,6 +17,37 @@ const DealStagesList = () => {
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // change as needed
+
+  // 🔑 PERMISSION CHECK
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      // Match current route
+      const matchedPermission = data.find((perm) => perm.route === pathname);
+      setPermissions(matchedPermission || null);
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
+    }
+  };
+
+  useEffect(() => {
+    FETCHPERMISSION();
+  }, [pathname]);
 
   // ✅ Fetch list from API
   const fetchDealStages = async () => {
@@ -79,6 +111,35 @@ const DealStagesList = () => {
     }
   };
 
+  // 🚫 Block page if no permission
+  if (!permissions) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>Loading permissions...</h4>
+      </div>
+    );
+  }
+
+  if (!permissions.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
+  // Pagination Logic
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = dealStages.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(dealStages.length / itemsPerPage);
+
   return (
     <>
       <Row>
@@ -86,16 +147,18 @@ const DealStagesList = () => {
           <Card>
             <Card.Header className="d-flex justify-content-between">
               <h4 className="card-title">Deal Stages List</h4>
-              <Button
-                className="btn-primary"
-                onClick={() => {
-                  setFormData({ deal_stages: "", color: "" });
-                  setEditId(null);
-                  setShowAddEdit(true);
-                }}
-              >
-                + Add Deal Stage
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => {
+                    setFormData({ deal_stages: "", color: "" });
+                    setEditId(null);
+                    setShowAddEdit(true);
+                  }}
+                >
+                  + Add Deal Stage
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0">
@@ -110,16 +173,16 @@ const DealStagesList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {dealStages.length === 0 ? (
+                    {currentItems.length === 0 ? (
                       <tr>
                         <td colSpan="6" className="text-center">
                           No Deal Stages Available
                         </td>
                       </tr>
                     ) : (
-                      dealStages.map((item, idx) => (
+                      currentItems.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.deal_stages}</td>
                           <td>
                             <span
@@ -134,20 +197,25 @@ const DealStagesList = () => {
                             </span>
                           </td>
                           <td className="d-flex align-items-center">
-                            <CreateTwoToneIcon
-                              className="me-2"
-                              onClick={() => handleEdit(item.id)}
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                            <DeleteRoundedIcon
-                              onClick={() => {
-                                setDeleteId(item.id);
-                                setShowDelete(true);
-                              }}
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                            />
+                            {permissions.edit && (
+                              <CreateTwoToneIcon
+                                className="me-2"
+                                onClick={() => handleEdit(item.id)}
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
+
+                            {permissions.del && (
+                              <DeleteRoundedIcon
+                                onClick={() => {
+                                  setDeleteId(item.id);
+                                  setShowDelete(true);
+                                }}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))
@@ -155,6 +223,29 @@ const DealStagesList = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-between align-items-center p-3">
+                  <Button
+                    variant="secondary"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="secondary"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
