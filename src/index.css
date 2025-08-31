@@ -1,0 +1,44 @@
+.form-control::placeholder {
+  font-size: 12px; /* adjust as needed */
+  color: #888; /* optional for better UI */
+}
+
+.form-label {
+  font-size: 13px;
+}
+
+.form-check-label {
+  font-size: 0.875rem; /* 14px */
+}
+
+.form-check-input {
+  width: 14px;
+  height: 14px;
+  margin-top: 0.3rem; /* align vertically with smaller text */
+}
+
+.form-control {
+  font-size: 0.875rem; /* 14px */
+}
+
+.form-select {
+  font-size: 0.875rem; /* 14px */
+}
+
+/* status dot color */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-dot.active {
+  background-color: #28a745; /* Green for active */
+}
+
+.status-dot.inactive {
+  background-color: #dc3545; /* Red for inactive */
+}
+

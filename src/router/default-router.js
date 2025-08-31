@@ -20,8 +20,8 @@ import Holiday from "../views/dashboard/EmployeeManagment/Holidays/Holiday";
 import DefaultHoliday from "../views/dashboard/EmployeeManagment/DefaultHoliday/DefaultHoliday";
 
 // employee
-import EmployeeList from "../views/dashboard/Employees/AddEmployee/employee-list"; // 11 Aug
-import AddEmployee from "../views/dashboard/Employees/AddEmployee/add-employee"; //12 Aug
+import EmployeeList from "../views/dashboard/Employees/AddEmployee/employeeList"; // 11 Aug
+import AddEmployee from "../views/dashboard/Employees/AddEmployee/addEmployee"; //12 Aug
 
 import LeavesList from "../views/dashboard/Employees/Leaves/leaves-list"; //12 Aug
 
