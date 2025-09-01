@@ -1,40 +1,43 @@
-import React, { useState } from "react";
-import { Card, Row, Col, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Card, Row, Col, Button, Spinner, Form } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddEditLeaveModal from "./add-edit-modal";
-
+import ViewLeaveModal from "./view-modal"; // new modal
+import api from "../../../../api/axios";
+import Select from "react-select";
 const LeaveList = () => {
-  // const [leaveList, setLeaveList] = useState([]);
-
-  const [leaveList, setLeaveList] = useState([
-    {
-      employeeName: "John Doe",
-      leaveType: "Casual",
-      duration: "Full Day",
-      date: "2025-08-10",
-      reason: "Family function",
-    },
-    {
-      employeeName: "Alice Johnson",
-      leaveType: "Sick",
-      duration: "First Half",
-      date: "2025-08-12",
-      reason: "Doctor appointment",
-    },
-    {
-      employeeName: "Michael Brown",
-      leaveType: "Earned",
-      duration: "Multiple Days",
-      date: "2025-08-15 to 2025-08-20",
-      reason: "Vacation",
-    },
-  ]);
+  const [leaveList, setLeaveList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [editIndex, setEditIndex] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
 
+  const [viewData, setViewData] = useState(null); // for view modal
+
+  // 🔹 Fetch leaves from API
+  const fetchLeaves = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/v1/admin/employeeLeave");
+      setLeaveList(res.data);
+    } catch (error) {
+      console.error("Error fetching leaves:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
+  const statusOptions = [
+    { value: "pending", label: "⏳ Pending" },
+    { value: "approve", label: "✅ Approve" },
+    { value: "reject", label: "❌ Reject" },
+  ];
   const handleSaveLeave = (data) => {
     if (editIndex !== null) {
       const updatedList = [...leaveList];
@@ -51,8 +54,35 @@ const LeaveList = () => {
     setShowAddEdit(true);
   };
 
-  const handleDelete = (index) => {
-    setLeaveList(leaveList.filter((_, i) => i !== index));
+  // 🔹 Delete leave by ID
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this leave request?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/api/v1/admin/employeeLeave/${id}`);
+      setLeaveList(leaveList.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Error deleting leave:", error);
+      alert("Failed to delete leave. Please try again.");
+    }
+  };
+
+  // 🔹 Update status
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await api.put(`/api/v1/admin/employeeLeave/${id}`, { status: newStatus });
+      setLeaveList((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status: newStatus } : item
+        )
+      );
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status. Please try again.");
+    }
   };
 
   return (
@@ -71,59 +101,92 @@ const LeaveList = () => {
             </Card.Header>
 
             <Card.Body className="px-0">
-              <div className="table-responsive">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Sr. No.</th>
-                      <th>Employee</th>
-                      <th>Leave Type</th>
-                      <th>Duration</th>
-                      <th>Date</th>
-                      <th>Reason</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaveList.length === 0 ? (
+              {loading ? (
+                <div className="text-center p-4">
+                  <Spinner animation="border" />
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table">
+                    <thead>
                       <tr>
-                        <td colSpan="7" className="text-center">
-                          No leave requests available
-                        </td>
+                        <th>Sr. No.</th>
+                        <th>Employee</th>
+                        <th>Leave Type</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Action</th>
                       </tr>
-                    ) : (
-                      leaveList.map((item, idx) => (
-                        <tr key={idx}>
-                          <td>{idx + 1}</td>
-                          <td>{item.employeeName}</td>
-                          <td>{item.leaveType}</td>
-                          <td>{item.duration}</td>
-                          <td>{item.date}</td>
-                          <td>{item.reason}</td>
-                          <td>
-                            <CreateTwoToneIcon
-                              className="me-2"
-                              onClick={() => handleEdit(idx)}
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                            <DeleteRoundedIcon
-                              onClick={() => handleDelete(idx)}
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                            />
+                    </thead>
+                    <tbody>
+                      {leaveList.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="text-center ">
+                            No leave requests available
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ) : (
+                        leaveList.map((item, idx) => (
+                          <tr key={item.id}>
+                            <td>{idx + 1}</td>
+                            <td>{item.employee?.name}</td>
+                            <td>{item.leaveType?.leave_type}</td>
+                            <td>{item.duration}</td>
+                            <td>{item.reason}</td>
+                            <td>
+                              <Form.Select
+                                size="sm"
+                                className={`status-dropdown text-black ${
+                                  item.status === "pending"
+                                    ? "status-pending"
+                                    : item.status === "approve"
+                                    ? "status-approve"
+                                    : "status-reject"
+                                }`}
+                                value={item.status}
+                                onChange={(e) =>
+                                  handleStatusChange(item.id, e.target.value)
+                                }
+                              >
+                                <option value="pending">⏳ Pending</option>
+                                <option value="approve">✅ Approve</option>
+                                <option value="reject">❌ Reject</option>
+                              </Form.Select>
+                            </td>
+
+                            <td>
+                              <VisibilityIcon
+                                className="me-2"
+                                onClick={() => setViewData(item)}
+                                color="action"
+                                style={{ cursor: "pointer" }}
+                              />
+                              <CreateTwoToneIcon
+                                className="me-2"
+                                onClick={() => handleEdit(idx)}
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                              <DeleteRoundedIcon
+                                onClick={() => handleDelete(item.id)}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
+      {/* Add/Edit Modal */}
       <AddEditLeaveModal
         show={showAddEdit}
         handleClose={() => {
@@ -133,6 +196,15 @@ const LeaveList = () => {
         onSave={handleSaveLeave}
         editData={editIndex !== null ? leaveList[editIndex] : null}
       />
+
+      {/* View Modal */}
+      {viewData && (
+        <ViewLeaveModal
+          show={!!viewData}
+          handleClose={() => setViewData(null)}
+          data={viewData}
+        />
+      )}
     </>
   );
 };
