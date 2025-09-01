@@ -2,29 +2,21 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-
+import "react-toastify/dist/ReactToastify.css";
+import "./index.css"
 //router
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 //store
 import { Provider } from "react-redux";
 //reducer
 import { store } from "./store";
-
-import Index from "./views/index";
 import { IndexRouters } from "./router";
 import { SimpleRouter } from "./router/simple-router";
 import { DefaultRouter } from "./router/default-router";
-import Default from "./layouts/dashboard/default";
-import SignIn from "./views/dashboard/auth/sign-in";
-
+import { ToastContainer } from "react-toastify";
 const token = sessionStorage.getItem("solarpix_token");
-
 const router = createBrowserRouter(
   [
-    // {
-    //   path: "/",
-    //   element: <Index />,
-    // },
     ...(token === null ? SimpleRouter : []),
     ...(token !== null ? DefaultRouter : []),
     ...IndexRouters,
@@ -37,12 +29,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Provider store={store}>
       <App>
         <RouterProvider router={router}></RouterProvider>
+      <ToastContainer />
       </App>
     </Provider>
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
