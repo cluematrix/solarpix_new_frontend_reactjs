@@ -26,7 +26,7 @@ const AddEditProjectModal = ({
     { id: "Neha Gupta", name: "Neha Gupta" },
   ];
 
-  const currencyOptions = ["USD", "EUR", "INR", "GBP"];
+  // const currencyOptions = ["USD", "EUR", "INR", "GBP"];
 
   useEffect(() => {
     if (!editData) {
@@ -207,7 +207,7 @@ const AddEditProjectModal = ({
                   />
                 </Form.Group>
               </Col>
-              <Col md={4}>
+              {/* <Col md={4}>
                 <Form.Group>
                   <Form.Label className="pt-4">Currency</Form.Label>
                   <Form.Select
@@ -223,7 +223,7 @@ const AddEditProjectModal = ({
                     ))}
                   </Form.Select>
                 </Form.Group>
-              </Col>
+              </Col> */}
               <Col md={4}>
                 <Form.Group>
                   <Form.Label className="pt-4">Project Budget</Form.Label>

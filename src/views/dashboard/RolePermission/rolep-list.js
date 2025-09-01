@@ -23,8 +23,9 @@ const RolePermissionList = () => {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res = await api.get("/api/v1/admin/role/getAllisActiveRoles");
+        const res = await api.get("/api/v1/admin/role/active");
         if (res.data && Array.isArray(res.data)) {
+          console.log(res);
           const activeRoles = res.data.filter(
             (r) => r.isActive === 1 || r.isActive === true
           );

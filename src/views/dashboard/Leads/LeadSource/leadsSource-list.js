@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { useLocation } from "react-router";
+import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -9,6 +10,9 @@ import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios"; // adjust path
 
 const LeadSourceList = () => {
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
+
   const [leadSources, setLeadSources] = useState([]);
   const [formData, setFormData] = useState({ lead_source: "" });
   const [editId, setEditId] = useState(null);
@@ -17,10 +21,56 @@ const LeadSourceList = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
+  // 🔹 Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // change as needed
+
+  // 🔑 Fetch Permission
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
+    }
+  };
+  useEffect(() => {
+    FETCHPERMISSION();
+  }, [pathname]);
+
   // ✅ Fetch list from API
   const fetchLeadSources = async () => {
     try {
-      const res = await api.get("/api/v1/admin/leadSource"); // GET API
+      const res = await api.get("/api/v1/admin/leadSource");
       if (Array.isArray(res.data)) {
         setLeadSources(res.data);
       } else if (Array.isArray(res.data.data)) {
@@ -105,6 +155,35 @@ const LeadSourceList = () => {
       });
   };
 
+  // 🔹 Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = leadSources.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(leadSources.length / itemsPerPage);
+
+  // 🚫 Block if no permission
+  if (!permissions) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>Loading permissions...</h4>
+      </div>
+    );
+  }
+
+  if (!permissions.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
   return (
     <>
       <Row>
@@ -112,16 +191,18 @@ const LeadSourceList = () => {
           <Card>
             <Card.Header className="d-flex justify-content-between">
               <h4 className="card-title">Lead Source List</h4>
-              <Button
-                className="btn-primary"
-                onClick={() => {
-                  setFormData({ lead_source: "" });
-                  setEditId(null);
-                  setShowAddEdit(true);
-                }}
-              >
-                + Add Lead Source
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => {
+                    setFormData({ lead_source: "" });
+                    setEditId(null);
+                    setShowAddEdit(true);
+                  }}
+                >
+                  + Add Lead Source
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0">
@@ -132,52 +213,52 @@ const LeadSourceList = () => {
                       <th>Sr. No.</th>
                       <th>Lead Source</th>
                       <th>Status</th>
-                      {/* <th>Created At</th> */}
-                      {/* <th>Updated At</th> */}
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {leadSources.length === 0 ? (
+                    {currentItems.length === 0 ? (
                       <tr>
                         <td colSpan="6" className="text-center">
                           No Lead Sources Available
                         </td>
                       </tr>
                     ) : (
-                      leadSources.map((item, idx) => (
+                      currentItems.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirstItem + idx + 1}</td>
                           <td>{item.lead_source}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
-                          {/* <td>{new Date(item.created_at).toLocaleString()}</td> */}
-                          {/* <td>{new Date(item.updated_at).toLocaleString()}</td> */}
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
                               checked={
                                 item.isActive === 1 || item.isActive === true
-                              } // ✅ works with 1 or true
+                              }
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
                               className="me-3"
                             />
-                            <CreateTwoToneIcon
-                              className="me-2"
-                              onClick={() => handleEdit(item.id)}
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                            <DeleteRoundedIcon
-                              onClick={() => {
-                                setDeleteId(item.id);
-                                setShowDelete(true);
-                              }}
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                            />
+                            {permissions.edit && (
+                              <CreateTwoToneIcon
+                                className="me-2"
+                                onClick={() => handleEdit(item.id)}
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
+                            {permissions.delete && (
+                              <DeleteRoundedIcon
+                                onClick={() => {
+                                  setDeleteId(item.id);
+                                  setShowDelete(true);
+                                }}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))
@@ -185,6 +266,41 @@ const LeadSourceList = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* 🔹 Pagination Controls */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  />
+                  <Pagination.Prev
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              )}
             </Card.Body>
           </Card>
         </Col>

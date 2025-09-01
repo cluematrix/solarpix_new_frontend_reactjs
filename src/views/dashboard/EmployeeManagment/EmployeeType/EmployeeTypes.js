@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -19,6 +19,10 @@ const EmployeeType = () => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
+  // 🔹 Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
@@ -26,12 +30,38 @@ const EmployeeType = () => {
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-      const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-      const matchedPermission = data.find((perm) => perm.route === pathname);
-      setPermissions(matchedPermission || {});
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
     } catch (err) {
       console.error("Error fetching roles:", err);
-      setPermissions({});
+      setPermissions(null);
     }
   };
 
@@ -151,6 +181,12 @@ const EmployeeType = () => {
     setEditId(null);
   };
 
+  // 🔹 Pagination logic
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = userlist.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(userlist.length / itemsPerPage);
+
   // 🚫 Permission Handling
   if (!permissions) {
     return (
@@ -203,16 +239,16 @@ const EmployeeType = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {userlist.length === 0 ? (
+                    {currentItems.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
                           No Employee Type available
                         </td>
                       </tr>
                     ) : (
-                      userlist.map((item, idx) => (
+                      currentItems.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.emp_type}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -231,7 +267,7 @@ const EmployeeType = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(idx)}
+                                onClick={() => handleEdit(indexOfFirst + idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -240,7 +276,7 @@ const EmployeeType = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
+                                  setDeleteIndex(indexOfFirst + idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
@@ -255,6 +291,41 @@ const EmployeeType = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* 🔹 Pagination UI */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  />
+                  <Pagination.Prev
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
+                  {[...Array(totalPages).keys()].map((num) => (
+                    <Pagination.Item
+                      key={num + 1}
+                      active={num + 1 === currentPage}
+                      onClick={() => setCurrentPage(num + 1)}
+                    >
+                      {num + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              )}
             </Card.Body>
           </Card>
         </Col>

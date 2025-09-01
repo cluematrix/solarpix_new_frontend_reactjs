@@ -632,180 +632,7 @@ const VerticalNav = memo((props) => {
                   <span className="item-name">Award</span>
                 </Link>
               </li>
-              {/* <li className="nav-item">
-                <Link
-                  className={`${location.pathname === "/auth/sign-in" ? "active" : ""
-                    } nav-link`}
-                  to="/auth/sign-in"
-                >
-                  <i className="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="10"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <g>
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="8"
-                          fill="currentColor"
-                        ></circle>
-                      </g>
-                    </svg>
-                  </i>
-                  <i className="sidenav-mini-icon"> L </i>
-                  <span className="item-name">Login</span>
-                </Link>
-              </li> */}
-              {/* <li className="nav-item">
-                <Link
-                  className={`${location.pathname === "/auth/sign-up" ? "active" : ""
-                    } nav-link`}
-                  to="/auth/sign-up"
-                >
-                  <i className="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="10"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <g>
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="8"
-                          fill="currentColor"
-                        ></circle>
-                      </g>
-                    </svg>
-                  </i>
-                  <i className="sidenav-mini-icon"> R </i>
-                  <span className="item-name">Register</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${location.pathname === "/auth/confirm-mail" ? "active" : ""
-                    } nav-link`}
-                  to="/auth/confirm-mail"
-                >
-                  <i className="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="10"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <g>
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="8"
-                          fill="currentColor"
-                        ></circle>
-                      </g>
-                    </svg>
-                  </i>
-                  <i className="sidenav-mini-icon"> C </i>
-                  <span className="item-name">Confirm Mail</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${location.pathname === "/auth/lock-screen" ? "active" : ""
-                    } nav-link`}
-                  to="/auth/lock-screen"
-                >
-                  <i className="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="10"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <g>
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="8"
-                          fill="currentColor"
-                        ></circle>
-                      </g>
-                    </svg>
-                  </i>
-                  <i className="sidenav-mini-icon"> L </i>
-                  <span className="item-name">Lock Screen</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${location.pathname === "/auth/recoverpw" ? "active" : ""
-                    } nav-link`}
-                  to="/auth/recoverpw"
-                >
-                  <i className="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="10"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <g>
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="8"
-                          fill="currentColor"
-                        ></circle>
-                      </g>
-                    </svg>
-                  </i>
-                  <i className="sidenav-mini-icon"> R </i>
-                  <span className="item-name">Recover password</span>
-                </Link>
-              </li> */}
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
 
-        {/* Employee */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-auth1"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
-            eventKey="sidebar-auth1"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
-          >
-            <i className="icon">
-              <GroupsIcon />
-            </i>
-            <span className="item-name">Employee</span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-auth1">
-            <ul className="sub-nav">
               <li className="nav-item">
                 <Link
                   className={`${
@@ -823,7 +650,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "leaves-list" ? "active" : ""
+                    location.pathname === "/leaves-list" ? "active" : ""
                   } nav-link`}
                   to="/leaves-list"
                 >
@@ -834,39 +661,6 @@ const VerticalNav = memo((props) => {
                   <span className="item-name">Leave</span>
                 </Link>
               </li>
-              {/* <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname ===
-                    "dashboard/EmployeeManagment/Designation/designation-list"
-                      ? "active"
-                      : ""
-                  } nav-link`}
-                  to="dashboard/EmployeeManagment/Designation/designation-list"
-                >
-                  <i className="icon">
-                    <svg
-                      width="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M11.997 15.1746C7.684 15.1746 4 15.8546 4 18.5746C4 21.2956 7.661 21.9996 11.997 21.9996C16.31 21.9996 19.994 21.3206 19.994 18.5996C19.994 15.8786 16.334 15.1746 11.997 15.1746Z"
-                        fill="currentColor"
-                      />
-                      <path
-                        opacity="0.4"
-                        d="M11.9971 12.5838C14.9351 12.5838 17.2891 10.2288 17.2891 7.29176C17.2891 4.35476 14.9351 1.99976 11.9971 1.99976C9.06008 1.99976 6.70508 4.35476 6.70508 7.29176C6.70508 10.2288 9.06008 12.5838 11.9971 12.5838Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </i>
-                  <i className="sidenav-mini-icon"> D </i>
-                  <span className="item-name">Designation</span>
-                </Link>
-              </li> */}
-
               {/* <li className="nav-item">
                 <Link
                   className={`${location.pathname === "/auth/sign-in" ? "active" : ""
@@ -1044,10 +838,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
-                      ? "active"
-                      : ""
+                    location.pathname === "/taskcategory-list" ? "active" : ""
                   } nav-link`}
                   to="/taskcategory-list"
                 >
@@ -1062,8 +853,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
+                    location.pathname === "/projectcategory-list"
                       ? "active"
                       : ""
                   } nav-link`}
@@ -1080,10 +870,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
-                      ? "active"
-                      : ""
+                    location.pathname === "/stock-list" ? "active" : ""
                   } nav-link`}
                   to="/stock-list"
                 >
@@ -1097,10 +884,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
-                      ? "active"
-                      : ""
+                    location.pathname === "/project-list" ? "active" : ""
                   } nav-link`}
                   to="/project-list"
                 >
@@ -1114,9 +898,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "dashboardEmployeesLeavesleaves-list"
-                      ? "active"
-                      : ""
+                    location.pathname === "/task-list" ? "active" : ""
                   } nav-link`}
                   to="/task-list"
                 >
@@ -1337,10 +1119,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
-                      ? "active"
-                      : ""
+                    location.pathname === "/leadsSource-list" ? "active" : ""
                   } nav-link`}
                   to="/leadsSource-list"
                 >
@@ -1355,10 +1134,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
-                      ? "active"
-                      : ""
+                    location.pathname === "/dealstages-list" ? "active" : ""
                   } nav-link`}
                   to="/dealstages-list"
                 >
@@ -1372,10 +1148,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
-                      ? "active"
-                      : ""
+                    location.pathname === "/leads-list" ? "active" : ""
                   } nav-link`}
                   to="/leads-list"
                 >
@@ -1389,7 +1162,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "dashboard-list" ? "active" : ""
+                    location.pathname === "/deals-list" ? "active" : ""
                   } nav-link`}
                   to="/deals-list"
                 >
@@ -1610,8 +1383,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname ===
-                    "dashboardEmployeesAddEmployeeemployee-list"
+                    location.pathname === "/ExpenseCategory-list"
                       ? "active"
                       : ""
                   } nav-link`}
@@ -1883,7 +1655,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/employee-list" ? "active" : ""
+                    location.pathname === "/clientCategory-list" ? "active" : ""
                   } nav-link`}
                   to="/clientCategory-list"
                 >
@@ -1897,7 +1669,7 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "leaves-list" ? "active" : ""
+                    location.pathname === "/contractType-list" ? "active" : ""
                   } nav-link`}
                   to="/contractType-list"
                 >

@@ -83,7 +83,7 @@ const SignIn = ({ swal }) => {
       formData.password === "12345678"
     ) {
       sessionStorage.setItem("solarpix_token", "abc123");
-      sessionStorage.setItem("roleId", "1"); // store roleId for admin
+      sessionStorage.setItem("roleId", "2"); // store roleId for admin
 
       swal
         .fire({

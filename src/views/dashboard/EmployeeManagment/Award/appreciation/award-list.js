@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -27,19 +27,48 @@ const AwardList = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
+  // 🔑 Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   // Permission check
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-      let data = Array.isArray(res.data) ? res.data : res.data.data;
-      const matchedPermission = data.find((perm) => perm.route === pathname);
-      setPermissions(matchedPermission || null);
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching roles:", err);
       setPermissions(null);
     }
   };
-
   useEffect(() => {
     FETCHPERMISSION();
   }, [pathname]);
@@ -69,7 +98,7 @@ const AwardList = () => {
 
   // Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus ? false : true;
+    const newStatus = !currentStatus;
     setAwards((prev) =>
       prev.map((award) =>
         award.id === id ? { ...award, isActive: newStatus } : award
@@ -96,7 +125,6 @@ const AwardList = () => {
     }
 
     if (editId) {
-      // Update
       api
         .put(`/api/v1/admin/award/${editId}`, formData)
         .then(() => {
@@ -108,7 +136,6 @@ const AwardList = () => {
           toast.error(err.response?.data?.message || "Failed to update award")
         );
     } else {
-      // Add
       api
         .post("/api/v1/admin/award", formData)
         .then(() => {
@@ -157,14 +184,30 @@ const AwardList = () => {
     setEditId(null);
   };
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentAwards = awards.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(awards.length / itemsPerPage);
+
   // Permission block
   if (!permissions)
-    return <h4 className="text-center">Loading permissions...</h4>;
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>Loading permissions...</h4>
+      </div>
+    );
   if (!permissions.view)
     return (
-      <h4 className="text-center">
-        You don’t have permission to view this page.
-      </h4>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
     );
 
   return (
@@ -198,16 +241,16 @@ const AwardList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {awards.length === 0 ? (
+                    {currentAwards.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="text-center">
                           No awards available
                         </td>
                       </tr>
                     ) : (
-                      awards.map((item, idx) => (
+                      currentAwards.map((item, idx) => (
                         <tr key={item.id || item._id}>
-                          <td>{idx + 1}</td>
+                          <td>{indexOfFirstItem + idx + 1}</td>
                           <td>{item.title}</td>
                           <td>{item.icon}</td>
                           <td>
@@ -235,7 +278,9 @@ const AwardList = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(idx)}
+                                onClick={() =>
+                                  handleEdit(indexOfFirstItem + idx)
+                                }
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -243,7 +288,7 @@ const AwardList = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
+                                  setDeleteIndex(indexOfFirstItem + idx);
                                   setDeleteId(item.id || item._id);
                                   setShowDelete(true);
                                 }}
@@ -258,6 +303,35 @@ const AwardList = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-3">
+                  <Pagination>
+                    <Pagination.Prev
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                    />
+                    {[...Array(totalPages)].map((_, idx) => (
+                      <Pagination.Item
+                        key={idx + 1}
+                        active={idx + 1 === currentPage}
+                        onClick={() => setCurrentPage(idx + 1)}
+                      >
+                        {idx + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Next
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
