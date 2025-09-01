@@ -7,6 +7,7 @@ import DeleteModal from "./deleteModal";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const EmployeeList = () => {
   const navigate = useNavigate();
@@ -42,10 +43,17 @@ const EmployeeList = () => {
     fetchEmployee();
   }, []);
 
+  // navigate to edit page
   const handleEdit = (id) => {
     navigate(`/update-employee/${id}`);
   };
 
+  // navigate to view page
+  const handleView = (id) => {
+    navigate(`/view-employee/${id}`);
+  };
+
+  // delete modal
   const openDeleteModal = (id, idx) => {
     setDeleteIndex(idx);
     setShowDelete(true);
@@ -160,7 +168,7 @@ const EmployeeList = () => {
                                 color="primary"
                                 style={{
                                   cursor: "pointer",
-                                  marginLeft: "10px",
+                                  marginLeft: "5px",
                                 }}
                               />
                               <DeleteRoundedIcon
@@ -168,7 +176,15 @@ const EmployeeList = () => {
                                 color="error"
                                 style={{
                                   cursor: "pointer",
-                                  marginLeft: "10px",
+                                  marginLeft: "5px",
+                                }}
+                              />
+                              <VisibilityIcon 
+                                onClick={() => handleView(item.id)}
+                                color="primary"
+                                style={{
+                                  cursor: "pointer",
+                                  marginLeft: "5px",
                                 }}
                               />
                             </td>

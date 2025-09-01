@@ -43,6 +43,10 @@ const UpdateEmployee = () => {
     notice_start_date: "",
     notice_end_date: "",
     shift_id: "",
+    bank_name: "",
+    account_no: "",
+    ifsc_code: "",
+    branch_name: "",
   };
 
   const [loading, setLoading] = useState(true);
@@ -91,6 +95,13 @@ const UpdateEmployee = () => {
     pincode: Yup.string()
       .required("Pincode is required")
       .matches(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+    bank_name: Yup.string().required("Bank name is required"),
+    account_no: Yup.string()
+      .min(11, "Account number should be 11 digits")
+      .required("Account number is required")
+      .matches(/^[0-9]+$/, "Account number must be numeric"),
+    ifsc_code: Yup.string().required("IFSC code is required"),
+    branch_name: Yup.string().required("Branch name is required"),
   });
 
   useEffect(() => {
@@ -544,7 +555,7 @@ const UpdateEmployee = () => {
           </Row>
 
           {/* Row 8 {photo, skill}*/}
-          <Row className="mt-3">
+          <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomFileInput
                 label="Profile Picture"
@@ -568,6 +579,74 @@ const UpdateEmployee = () => {
                 onBlur={handleBlur}
                 placeholder="Enter Skill"
                 touched={touched.skill}
+              />
+            </Col>
+          </Row>
+
+          <hr />
+          <Card.Header className="p-0 pb-2">
+            <h5 className="mb-0">Bank Details</h5>
+          </Card.Header>
+
+          {/* Row 9 */}
+          <Row className="mt-3">
+            <Col md={4}>
+              <CustomInput
+                label="Bank Name"
+                name="bank_name"
+                value={values.bank_name}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Bank Name"
+                touched={touched.bank_name}
+                errors={errors.bank_name}
+                required={true}
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomInput
+                type="text"
+                label="Account No"
+                name="account_no"
+                value={values.account_no}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Account No"
+                touched={touched.account_no}
+                errors={errors.account_no}
+                required={true}
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomInput
+                label="IFSC Code"
+                name="ifsc_code"
+                value={values.ifsc_code}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter IFSC Code"
+                touched={touched.ifsc_code}
+                errors={errors.ifsc_code}
+                required={true}
+              />
+            </Col>
+          </Row>
+
+          {/* Row 10 */}
+          <Row className="mt-3">
+            <Col md={4}>
+              <CustomInput
+                label="Branch Name"
+                name="branch_name"
+                value={values.branch_name}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Branch Name"
+                touched={touched.branch_name}
+                errors={errors.branch_name}
+                required={true}
               />
             </Col>
           </Row>

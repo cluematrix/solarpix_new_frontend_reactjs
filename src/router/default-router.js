@@ -80,7 +80,12 @@ import RtlSupport from "../views/dashboard/special-pages/RtlSupport";
 //admin
 import Admin from "../views/dashboard/admin/admin";
 import Default from "../layouts/dashboard/default";
+
+// employee 01 Sep
 import UpdateEmployee from "../views/dashboard/Employees/AddEmployee/updateEmployee";
+import EmpProfileTab from "../views/dashboard/Employees/EmployeeProfile/empProfileTab";
+
+// employee profile 01 Sep
 
 export const DefaultRouter = [
   {
@@ -204,6 +209,10 @@ export const DefaultRouter = [
       {
         path: "update-employee/:id", //13 Aug
         element: <UpdateEmployee />,
+      },
+      {
+        path: "view-employee/:id", //13 Aug
+        element: <EmpProfileTab />,
       },
       {
         path: "/leaves-list",
