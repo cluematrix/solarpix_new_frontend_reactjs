@@ -1,13 +1,6 @@
 .form-control::placeholder {
-<<<<<<< HEAD
-  font-size: 12px;
-  /* adjust as needed */
-  color: #888;
-  /* optional for better UI */
-=======
   font-size: 14px; /* adjust as needed */
   color: #888; /* optional for better UI */
->>>>>>> c36d53775b3607ebe1a02b48dd937a641872a0db
 }
 
 .form-label {

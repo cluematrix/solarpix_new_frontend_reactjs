@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Form,
+  Pagination,
+  Spinner,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
@@ -25,6 +33,8 @@ const ProjectCategory = () => {
   // 📌 Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // change per your need
+
+  const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -62,9 +72,13 @@ const ProjectCategory = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    } finally {
+      setLoading(false); //  Stop loader after API call
     }
   };
   useEffect(() => {
+    setLoading(true);
+
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -174,14 +188,11 @@ const ProjectCategory = () => {
     setEditId(null);
   };
 
-  // 🚫 Permission Handling
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -25,6 +25,8 @@ const ExpenseCategory = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+
+  const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -62,9 +64,13 @@ const ExpenseCategory = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    } finally {
+      setLoading(false); //  Stop loader after API call
     }
   };
   useEffect(() => {
+    setLoading(true);
+
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -182,14 +188,11 @@ const ExpenseCategory = () => {
   const currentData = categoryList.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(categoryList.length / rowsPerPage);
 
-  // 🚫 Permission Handling
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
