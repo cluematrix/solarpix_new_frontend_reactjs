@@ -43,7 +43,6 @@ const AddEmployee = () => {
     skill: "",
     photo: null,
     role_id: "",
-    role_id: "",
     bank_name: "",
     account_no: "",
     ifsc_code: "",
@@ -200,21 +199,6 @@ const AddEmployee = () => {
   }, []);
 
   useEffect(() => {
-    // After metaData.employeeList is loaded
-    if (metaData.employeeList && metaData.employeeList.length > 0) {
-      // Get last emp_id (assuming sorted by creation)
-      const lastEmp = metaData.employeeList[metaData.employeeList.length - 1];
-      let lastId = lastEmp.emp_id || "SOLAR000";
-      // Extract number part
-      let num = parseInt(lastId.replace("SOLAR", ""), 10);
-      // Increment and pad with zeros
-      let nextId = "SOLAR" + String(num + 1).padStart(3, "0");
-      formik.setFieldValue("emp_id", nextId);
-    } else {
-      // First employee
-      formik.setFieldValue("emp_id", "SOLAR001");
-    }
-  }, [metaData.employeeList]);
     // After metaData.employeeList is loaded
     if (metaData.employeeList && metaData.employeeList.length > 0) {
       // Get last emp_id (assuming sorted by creation)
