@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "react-toastify/dist/ReactToastify.css";
-import "./index.css"
+import "./index.css";
 //router
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 //store
@@ -29,7 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Provider store={store}>
       <App>
         <RouterProvider router={router}></RouterProvider>
-      <ToastContainer />
+        <ToastContainer />
       </App>
     </Provider>
   </React.StrictMode>

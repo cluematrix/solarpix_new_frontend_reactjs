@@ -14,6 +14,7 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+
 import api from "../../../api/axios";
 
 const SignIn = ({ swal }) => {
@@ -63,8 +64,7 @@ const SignIn = ({ swal }) => {
     e.preventDefault();
     setGeneralError("");
 
-    const { isValid, newErrors } = validate();
-
+    const { isValid } = validate();
     if (!isValid) {
       await swal.fire({
         icon: "warning",
@@ -77,35 +77,40 @@ const SignIn = ({ swal }) => {
       return;
     }
 
-    // Dummy login
-    if (
-      formData.email === "admin@gmail.com" &&
-      formData.password === "12345678"
-    ) {
-      sessionStorage.setItem("solarpix_token", "abc123");
-      sessionStorage.setItem("roleId", "1"); // store roleId for admin
-      sessionStorage.setItem("employee_id", "1"); // store roleId for admin
+    try {
+      const response = await api.post("api/v1/website/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      console.log(response);
+      if (response.data && response.data.success) {
+        console.log(response.data.data);
+        const { accessToken, user } = response.data;
 
-      swal
-        .fire({
+        sessionStorage.setItem("solarpix_token", accessToken);
+        sessionStorage.setItem("roleId", user.role_id);
+        sessionStorage.setItem("employee_id", user.id);
+
+        await swal.fire({
           icon: "success",
           title: "Login successful",
           showConfirmButton: false,
           timer: 1200,
           toast: true,
           position: "top-start",
-        })
-        .then(() => {
-          navigate("/");
-          window.location.reload();
         });
-    } else {
-      setGeneralError("Invalid email or password");
 
+        navigate("/");
+        window.location.reload();
+      } else {
+        throw new Error(response.data.message || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       await swal.fire({
         icon: "error",
         title: "Login failed",
-        text: "Invalid email or password",
+        text: error.response?.data?.message || "Invalid email or password",
         showConfirmButton: false,
         timer: 2000,
         toast: true,
@@ -127,13 +132,11 @@ const SignIn = ({ swal }) => {
               <Card className="card-transparent shadow-none d-flex justify-content-center mb-0 auth-card">
                 <Card.Body>
                   <center>
-                    {" "}
                     <h1 className="logo-title ms-3">SolarPix</h1>
                   </center>
                   <br />
-                  <br></br>
                   <h3 className="mb-2 text-center">Sign In</h3>
-                  <br></br>
+                  <br />
                   <Form noValidate onSubmit={handleSubmit}>
                     {generalError && (
                       <p className="text-danger text-center">{generalError}</p>

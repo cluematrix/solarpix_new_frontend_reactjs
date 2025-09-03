@@ -42,7 +42,7 @@ const AddEmployee = () => {
     notice_end_date: "",
     skill: "",
     photo: null,
-    role_id: "1", // default
+    role_id: "",
     bank_name: "",
     account_no: "",
     ifsc_code: "",
@@ -58,6 +58,7 @@ const AddEmployee = () => {
     shift: [],
     employeeType: [],
     employeeList: [],
+    employeeRole: [],
   });
 
   const validationSchema = Yup.object().shape({
@@ -105,7 +106,7 @@ const AddEmployee = () => {
     pincode: Yup.string()
       .required("Pincode is required")
       .matches(/^\d{6}$/, "Enter a valid 6-digit pincode"),
-    // skill: Yup.string().required("Skill is required"),
+    role_id: Yup.string().required("Role is required"),
     bank_name: Yup.string().required("Bank name is required"),
     account_no: Yup.string()
       .min(11, "Account number should be 11 digits")
@@ -162,14 +163,21 @@ const AddEmployee = () => {
     const fetchAll = async () => {
       try {
         setLoading(true);
-        const [deptRes, desigRes, shiftRes, empTypeRes, empListRes] =
-          await Promise.all([
-            api.get("/api/v1/admin/department"),
-            api.get("/api/v1/admin/designation"),
-            api.get("/api/v1/admin/shift"),
-            api.get("/api/v1/admin/employmentType"),
-            api.get("/api/v1/admin/employee"),
-          ]);
+        const [
+          deptRes,
+          desigRes,
+          shiftRes,
+          empTypeRes,
+          empListRes,
+          empRoleListRes,
+        ] = await Promise.all([
+          api.get("/api/v1/admin/department"),
+          api.get("/api/v1/admin/designation"),
+          api.get("/api/v1/admin/shift"),
+          api.get("/api/v1/admin/employmentType"),
+          api.get("/api/v1/admin/employee"),
+          api.get("/api/v1/admin/role/active"),
+        ]);
 
         setMetaData({
           departments: deptRes.data.filter((d) => d.isActive),
@@ -177,7 +185,9 @@ const AddEmployee = () => {
           shift: shiftRes.data.filter((s) => s.isActive),
           employeeType: empTypeRes.data.filter((t) => t.isActive),
           employeeList: empListRes.data.data.filter((e) => e.isActive),
+          employeeRole: empRoleListRes.data,
         });
+        console.log("empRoleListRes", empRoleListRes);
       } catch (error) {
         errorToast("Error loading data");
         console.error(error);
@@ -189,22 +199,23 @@ const AddEmployee = () => {
     fetchAll();
   }, []);
 
+  console.log("employeeRole", metaData.employeeRole);
   useEffect(() => {
-  // After metaData.employeeList is loaded
-  if (metaData.employeeList && metaData.employeeList.length > 0) {
-    // Get last emp_id (assuming sorted by creation)
-    const lastEmp = metaData.employeeList[metaData.employeeList.length - 1];
-    let lastId = lastEmp.emp_id || "SOLAR000";
-    // Extract number part
-    let num = parseInt(lastId.replace("SOLAR", ""), 10);
-    // Increment and pad with zeros
-    let nextId = "SOLAR" + String(num + 1).padStart(3, "0");
-    formik.setFieldValue("emp_id", nextId);
-  } else {
-    // First employee
-    formik.setFieldValue("emp_id", "SOLAR001");
-  }
-}, [metaData.employeeList]);
+    // After metaData.employeeList is loaded
+    if (metaData.employeeList && metaData.employeeList.length > 0) {
+      // Get last emp_id (assuming sorted by creation)
+      const lastEmp = metaData.employeeList[metaData.employeeList.length - 1];
+      let lastId = lastEmp.emp_id || "SOLAR000";
+      // Extract number part
+      let num = parseInt(lastId.replace("SOLAR", ""), 10);
+      // Increment and pad with zeros
+      let nextId = "SOLAR" + String(num + 1).padStart(3, "0");
+      formik.setFieldValue("emp_id", nextId);
+    } else {
+      // First employee
+      formik.setFieldValue("emp_id", "SOLAR001");
+    }
+  }, [metaData.employeeList]);
 
   const today = new Date();
   today.setFullYear(today.getFullYear() - 18);
@@ -408,6 +419,26 @@ const AddEmployee = () => {
                   touched={touched.designation_id}
                   required
                 />
+              </Col>
+            </Row>
+
+            {/* Row 4 {Role}*/}
+            <Row className="mt-3 mb-4">
+              <Col md={4}>
+                <Col md={4}>
+                  <CustomSelect
+                    label="Role"
+                    name="role_id"
+                    value={values.role_id}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    options={metaData.employeeRole}
+                    placeholder="--"
+                    error={errors.role_id}
+                    touched={touched.role_id}
+                    required
+                  />
+                </Col>
               </Col>
             </Row>
 

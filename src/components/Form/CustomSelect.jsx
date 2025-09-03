@@ -13,8 +13,8 @@ const CustomSelect = ({
   touched,
   required = false,
   size = "md", // optional size
-  lableKey="id",
-  lableName="name"
+  lableKey = "id",
+  lableName = "name",
 }) => {
   return (
     <Form.Group>
@@ -32,11 +32,12 @@ const CustomSelect = ({
         className={touched && error ? "is-invalid" : ""}
       >
         <option value="">{placeholder}</option>
-        {options.length > 0 &&  options?.map((item) => (
-          <option key={item[lableKey]} value={item[lableKey]}>
-            {item[lableName]}
-          </option>
-        ))}
+        {options.length > 0 &&
+          options?.map((item) => (
+            <option key={item[lableKey]} value={item[lableKey]}>
+              {item[lableName]}
+            </option>
+          ))}
       </Form.Select>
       {touched && error && (
         <div className="invalid-feedback" style={{ fontSize: "11px" }}>

@@ -12,6 +12,7 @@ import topHeader5 from "../../../../assets/images/dashboard/top-header5.png";
 
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import { errorToast } from "../../../Toast/errorToast";
 
 const SubHeader = memo(() => {
   const [time, setTime] = useState(new Date());
@@ -21,7 +22,7 @@ const SubHeader = memo(() => {
 
   const employeeId = sessionStorage.getItem("employee_id");
 
-  // ⏰ Update clock every second
+  //  Update clock every second
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -81,6 +82,7 @@ const SubHeader = memo(() => {
   }, [employeeId]);
 
   // 🚀 Handle Clock In
+  // 🚀 Handle Clock In
   const handleClockIn = async () => {
     const now = new Date();
     const todayDate = now.toISOString().split("T")[0];
@@ -94,12 +96,16 @@ const SubHeader = memo(() => {
         employee_id: employeeId,
         clock_in: now.toTimeString().split(" ")[0],
         date: todayDate,
+        isClock_in: true, 
       });
 
       setIsClockedIn(true);
       setClockInTime(formattedClockIn);
       setClockOutTime(null);
     } catch (err) {
+      errorToast(
+        err.response.data.message || "You have already completed 2 shifts today"
+      );
       console.error("Clock In failed:", err);
     }
   };
@@ -118,8 +124,10 @@ const SubHeader = memo(() => {
         employee_id: employeeId,
         date: todayDate,
         clock_out: now.toTimeString().split(" ")[0],
+        isClock_in: false, 
       });
 
+      // alert(res);
       if (res.data.success) {
         setIsClockedIn(false);
         setClockOutTime(formattedClockOut);

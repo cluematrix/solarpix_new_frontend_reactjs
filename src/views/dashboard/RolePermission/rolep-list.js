@@ -11,7 +11,7 @@ const RolePermissionList = () => {
   const [loadingModules, setLoadingModules] = useState(true);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
 
-  // ✅ Match backend field names
+  //  Match backend field names
   const permissionTypes = [
     { label: "View", field: "view" },
     { label: "Add", field: "add" },
@@ -19,7 +19,7 @@ const RolePermissionList = () => {
     { label: "Delete", field: "del" },
   ];
 
-  // ✅ fetch roles
+  //  fetch roles
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -43,7 +43,7 @@ const RolePermissionList = () => {
     fetchRoles();
   }, []);
 
-  // ✅ fetch modules
+  // fetch modules
   useEffect(() => {
     const fetchModules = async () => {
       try {
@@ -63,7 +63,7 @@ const RolePermissionList = () => {
     fetchModules();
   }, []);
 
-  // ✅ fetch permissions for selected role
+  //  fetch permissions for selected role
   const fetchPermissions = async (roleId) => {
     setLoadingPermissions(true);
     try {
@@ -112,19 +112,24 @@ const RolePermissionList = () => {
     }
   };
 
-  // ✅ FIXED: Added catch block
+  //  FIXED: Added catch block
   const handleSave = async () => {
     try {
       // Convert permissions state into JSON payload
       const payloadArray = Object.entries(permissions).map(
-        ([moduleId, perms]) => ({
-          role_id: parseInt(selectedRole),
-          module_id: parseInt(moduleId),
-          view: perms.view || false,
-          add: perms.add || false,
-          edit: perms.edit || false,
-          del: perms.del || false,
-        })
+        ([moduleId, perms]) => {
+          const module = modules.find((m) => m.id === parseInt(moduleId));
+          return {
+            role_id: parseInt(selectedRole),
+            module_id: parseInt(moduleId),
+            view: perms.view || false,
+            add: perms.add || false,
+            edit: perms.edit || false,
+            del: perms.del || false,
+            display_name: module?.display_name || null, // include display_name
+            route: module?.route || null, // include route
+          };
+        }
       );
 
       await api.put("/api/v1/admin/rolePermission", payloadArray, {
@@ -157,7 +162,7 @@ const RolePermissionList = () => {
               <Form.Select value={selectedRole} onChange={handleSelectRole}>
                 <option value="">-- Select Role --</option>
                 {roles
-                  .filter((role) => role.id !== 1) // 🚫 Exclude Admin from dropdown
+                  .filter((role) => role.id !== 1) // Exclude Admin from dropdown
                   .map((role) => (
                     <option key={role.id} value={role.id}>
                       {role.name}
