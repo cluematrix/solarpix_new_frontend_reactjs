@@ -150,8 +150,8 @@ const SubHeader = memo(() => {
             <Col md="12">
               <div className="d-flex justify-content-between flex-wrap align-items-center">
                 <div>
-                  <h1>Hello!</h1>
-                  <p>SolarPix Team</p>
+                  <h1>Hello! SolarPix Team</h1>
+                  <p>Empower Your Energy, Sustainably Managed.</p>
                 </div>
                 <div
                   className="text-end p-3 rounded shadow-sm"

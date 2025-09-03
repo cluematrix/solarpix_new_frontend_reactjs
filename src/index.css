@@ -1,6 +1,19 @@
+body {
+  font-family: sans-serif;
+}
+
+.btn {
+  font-size: 14px;
+  padding: .5rem
+}
+
+
+
 .form-control::placeholder {
-  font-size: 14px; /* adjust as needed */
-  color: #888; /* optional for better UI */
+  font-size: 14px;
+  /* adjust as needed */
+  color: #888;
+  /* optional for better UI */
 }
 
 .form-label {
@@ -49,13 +62,13 @@
 }
 
 
-.loader-div{
+.loader-div {
   height: 50vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.spinner{
+.spinner {
   color: blue;
 }

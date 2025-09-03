@@ -51,7 +51,7 @@ const AddEditStockModal = ({
   };
 
   return (
-    <Modal show={show} onHide={handleModalClose} size="lg">
+    <Modal show={show} onHide={handleModalClose} size="lg" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>{editData ? "Edit Stock" : "Add Stock"}</Modal.Title>
       </Modal.Header>

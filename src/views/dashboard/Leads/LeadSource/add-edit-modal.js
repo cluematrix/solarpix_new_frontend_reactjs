@@ -12,7 +12,7 @@ const AddEditModal = ({ show, handleClose, onSave, formData, setFormData, editDa
   };
 
   return (
-    <Modal show={show} onHide={handleClose}>
+    <Modal show={show} onHide={handleClose} backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>{editData ? "Edit Lead Source" : "Add Lead Source"}</Modal.Title>
       </Modal.Header>

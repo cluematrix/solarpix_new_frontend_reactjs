@@ -26,10 +26,10 @@ import AddEmployee from "../views/dashboard/Employees/AddEmployee/addEmployee"; 
 import LeavesList from "../views/dashboard/Employees/Leaves/leaves-list"; //12 Aug
 
 // Customer
-
+import CustomerList from "../views/dashboard/Customer/Customers/customerList";
 import ClientCategory from "../views/dashboard/Customer/CustomerCategory/ClientCategory";
 import ContractType from "../views/dashboard/Customer/ContractType/contracttype";
-
+import ClientSubCategory from "../views/dashboard/Customer/CustomerSubCategory/ClientSubCategory";
 // expense Category
 import ExpenseCategory from "../views/dashboard/Expense/ExpenseCategory/ExpenseCategory"; //26 Aug
 // work
@@ -84,6 +84,8 @@ import Default from "../layouts/dashboard/default";
 // employee 01 Sep
 import UpdateEmployee from "../views/dashboard/Employees/AddEmployee/updateEmployee";
 import EmpProfileTab from "../views/dashboard/Employees/EmployeeProfile/empProfileTab";
+import UpdateCustomer from "../views/dashboard/Customer/Customers/updateCustomer";
+import AddCustomer from "../views/dashboard/Customer/Customers/addCustomer";
 
 // employee profile 01 Sep
 
@@ -220,8 +222,26 @@ export const DefaultRouter = [
       },
 
       {
+        path: "/CustomerList",
+        element: <CustomerList />,
+      },
+
+      {
+        path: "/add-customer",
+        element: <AddCustomer />,
+      },
+      {
+        path: "update-customer/:id", //13 Aug
+        element: <UpdateCustomer />,
+      },
+
+      {
         path: "/clientCategory-list",
         element: <ClientCategory />,
+      },
+      {
+        path: "/clientSubCategory-list",
+        element: <ClientSubCategory />,
       },
 
       {
