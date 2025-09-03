@@ -96,7 +96,7 @@ const SubHeader = memo(() => {
         employee_id: employeeId,
         clock_in: now.toTimeString().split(" ")[0],
         date: todayDate,
-        isClock_in: true, 
+        isClock_in: true,
       });
 
       setIsClockedIn(true);
@@ -124,7 +124,7 @@ const SubHeader = memo(() => {
         employee_id: employeeId,
         date: todayDate,
         clock_out: now.toTimeString().split(" ")[0],
-        isClock_in: false, 
+        isClock_in: false,
       });
 
       // alert(res);

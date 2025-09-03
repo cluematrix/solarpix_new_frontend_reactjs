@@ -134,7 +134,7 @@ const DealStagesList = () => {
   };
 
   // 🚫 Loader while checking permissions
-  if (loading) {
+  if (!loading) {
     return (
       <div
         style={{
