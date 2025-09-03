@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button } from "react-bootstrap";
+import { Card, Row, Col, Button, Spinner } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
-import api from "../../../../api/axios"; // adjust path
+import api from "../../../../api/axios";
 import { useLocation } from "react-router";
 
 const DealStagesList = () => {
@@ -21,9 +21,12 @@ const DealStagesList = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
+  // 🔄 Loader for permission check
+  const [loading, setLoading] = useState(true);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // change as needed
+  const itemsPerPage = 5;
 
   // 🔑 PERMISSION CHECK
   const FETCHPERMISSION = async () => {
@@ -38,10 +41,7 @@ const DealStagesList = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
 
-      // ✅ Match current role + route
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
@@ -61,10 +61,13 @@ const DealStagesList = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    } finally {
+      setLoading(false); // ✅ Stop loader after API call
     }
   };
 
   useEffect(() => {
+    setLoading(true); // reset loader each time route changes
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -130,19 +133,24 @@ const DealStagesList = () => {
     }
   };
 
-  // 🚫 Block page if no permission
-  if (!permissions) {
+  // 🚫 Loader while checking permissions
+  if (loading) {
     return (
       <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
+        style={{
+          height: "50vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <h4>Loading permissions...</h4>
+        <Spinner animation="border" style={{ color: "blue" }} />
       </div>
     );
   }
 
-  if (!permissions.view) {
+  // 🚫 Block page if no permission
+  if (!permissions?.view) {
     return (
       <div
         className="d-flex justify-content-center align-items-center"

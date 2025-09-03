@@ -657,8 +657,23 @@ const VerticalNav = memo((props) => {
                   <i className="icon">
                     <TimeToLeaveIcon fontSize="small" />
                   </i>
-                  <i className="sidenav-mini-icon"> L </i>
-                  <span className="item-name">Leave</span>
+                  <i className="sidenav-mini-icon">E L </i>
+                  <span className="item-name">Employee Leave</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/leaves-list" ? "active" : ""
+                  } nav-link`}
+                  to="/leaves-list"
+                >
+                  <i className="icon">
+                    <TimeToLeaveIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">A</i>
+                  <span className="item-name">Attendance</span>
                 </Link>
               </li>
               {/* <li className="nav-item">
