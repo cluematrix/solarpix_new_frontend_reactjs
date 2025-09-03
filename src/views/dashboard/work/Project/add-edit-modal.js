@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Form, Button, Row, Col, Badge } from "react-bootstrap";
+import { Modal, Form, Button } from "react-bootstrap";
 import AddProject from "./addProject";
+import UpdateProjectForm from "./updateProjectForm";
 
 const AddEditProjectModal = ({
   show,
@@ -9,22 +10,15 @@ const AddEditProjectModal = ({
   formData,
   setFormData,
   editData,
+  openEditModal,
 }) => {
   const [showMembersModal, setShowMembersModal] = useState(false);
 
-  const departmentOptions = [
-    { value: "HRM", label: "Human Resource Management" },
-    { value: "IT", label: "Information Technology" },
-    { value: "Finance", label: "Finance" },
-    { value: "Marketing", label: "Marketing" },
-    { value: "Operations", label: "Operations" },
-  ];
-
   const membersList = [
-    { id: "Rohit Sharma", name: "Rohit Sharma" },
-    { id: "Priya Singh", name: "Priya Singh" },
-    { id: "Amit Verma", name: "Amit Verma" },
-    { id: "Neha Gupta", name: "Neha Gupta" },
+    { id: "1", name: "Rohit Sharma" },
+    { id: "2", name: "Priya Singh" },
+    { id: "3", name: "Amit Verma" },
+    { id: "4", name: "Neha Gupta" },
   ];
 
   // const currencyOptions = ["USD", "EUR", "INR", "GBP"];
@@ -34,20 +28,6 @@ const AddEditProjectModal = ({
       setFormData((prev) => ({ ...prev, file: null, projectMembers: [] }));
     }
   }, [editData, setFormData]);
-
-  // const handleChange = (e) => {
-  //   const { name, value, files } = e.target;
-  //   if (files) {
-  //     setFormData({ ...formData, [name]: files[0] });
-  //   } else {
-  //     setFormData({ ...formData, [name]: value });
-  //   }
-  // };
-
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   onSave(formData);
-  // };
 
   const toggleMemberSelection = (id) => {
     setFormData((prev) => {
@@ -61,16 +41,38 @@ const AddEditProjectModal = ({
     });
   };
 
+  console.log("openEditModal", openEditModal);
+  console.log("formData.projectMembersModal", formData.projectMembers);
+
+  // Helper to get selected member names
+  const selectedMemberNames = membersList
+    .filter((member) => formData.projectMembers?.includes(member.id))
+    .map((member) => member.name);
+
+  console.log("Selected Members:", selectedMemberNames);
   return (
     <>
-      <Modal show={show} onHide={handleClose} size="lg">
+      <Modal show={show} onHide={handleClose} size="lg" backdrop="static">
         <Modal.Header closeButton className="mb-4">
-          <Modal.Title>{editData ? "Edit Project" : "Add Project"}</Modal.Title>
+          <Modal.Title>
+            {openEditModal ? "Edit Project" : "Add Project"}
+          </Modal.Title>
         </Modal.Header>
-        <AddProject
-          setShowMembersModal={setShowMembersModal}
-          formData={formData}
-        />
+        {openEditModal ? (
+          <UpdateProjectForm
+            setShowMembersModal={setShowMembersModal}
+            formData={formData}
+            handleClose={handleClose}
+            selectedMemberNames={selectedMemberNames}
+          />
+        ) : (
+          <AddProject
+            setShowMembersModal={setShowMembersModal}
+            formData={formData}
+            handleClose={handleClose}
+            selectedMemberNames={selectedMemberNames}
+          />
+        )}
       </Modal>
 
       {/* Members Selection Modal */}

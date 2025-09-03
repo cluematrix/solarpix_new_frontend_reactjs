@@ -263,9 +263,9 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "role-list" ? "active" : ""
+                    location.pathname === "/role-list" ? "active" : ""
                   } nav-link`}
-                  to="role-list"
+                  to="/role-list"
                 >
                   <i className="icon">
                     <svg
@@ -302,9 +302,9 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "rolep-list" ? "active" : ""
+                    location.pathname === "/rolep-list" ? "active" : ""
                   } nav-link`}
-                  to="rolep-list"
+                  to="/rolep-list"
                 >
                   <i className="icon">
                     <KeyIcon fontSize="small" />

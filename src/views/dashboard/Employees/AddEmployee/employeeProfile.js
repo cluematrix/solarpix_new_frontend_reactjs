@@ -44,8 +44,8 @@ const EmployeeProfile = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
@@ -274,19 +274,19 @@ const EmployeeProfile = () => {
                 <tbody>
                   <tr>
                     <td className="ps-0">Bank Name</td>
-                    <td  className="ps-0">{emp?.bank_name || "--"}</td>
+                    <td className="ps-0">{emp?.bank_name || "--"}</td>
                   </tr>
                   <tr>
                     <td className="ps-0">Account No</td>
-                    <td  className="ps-0">{emp?.account_no || "--"}</td>
+                    <td className="ps-0">{emp?.account_no || "--"}</td>
                   </tr>
                   <tr>
                     <td className="ps-0">IFSC Code</td>
-                    <td  className="ps-0">{emp?.ifsc_code || "--"}</td>
+                    <td className="ps-0">{emp?.ifsc_code || "--"}</td>
                   </tr>
                   <tr>
                     <td className="ps-0">Branch Name</td>
-                    <td  className="ps-0">{emp?.branch_name || "--"}</td>
+                    <td className="ps-0">{emp?.branch_name || "--"}</td>
                   </tr>
                 </tbody>
               </Table>

@@ -1,5 +1,9 @@
+body{
+  font-family: sans-serif;
+}
+
 .form-control::placeholder {
-  font-size: 14px; /* adjust as needed */
+  font-size: 13px; /* adjust as needed */
   color: #888; /* optional for better UI */
 }
 
@@ -18,7 +22,8 @@
 }
 
 .form-control {
-  font-size: 0.875rem; /* 14px */
+  font-size: 13px;
+  padding-left: 8px;
 }
 
 .form-select {
@@ -42,3 +47,18 @@
   background-color: #dc3545; /* Red for inactive */
 }
 
+.loader-div{
+  height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+ 
+.spinner{
+  color: blue;
+}
+
+.btn{
+  font-size: 14px;
+  padding: .5rem
+}

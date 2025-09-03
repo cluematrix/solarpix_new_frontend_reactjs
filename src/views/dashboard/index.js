@@ -268,7 +268,7 @@ const Index = memo((props) => {
   };
   return (
     <Fragment>
-      <Row>
+      <Row className="mt-4">
         <Col md="12" lg="12">
           <Row className="row-cols-1">
             <div

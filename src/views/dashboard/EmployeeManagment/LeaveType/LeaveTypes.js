@@ -114,7 +114,9 @@ const LeaveType = () => {
         })
         .catch((err) => {
           console.error("Error updating leave type:", err);
-          toast.error(err.response?.data?.message || "Failed to update leave type");
+          toast.error(
+            err.response?.data?.message || "Failed to update leave type"
+          );
         });
     } else {
       api
@@ -126,7 +128,9 @@ const LeaveType = () => {
         })
         .catch((err) => {
           console.error("Error adding leave type:", err);
-          toast.error(err.response?.data?.message || "Failed to add leave type");
+          toast.error(
+            err.response?.data?.message || "Failed to add leave type"
+          );
         });
     }
   };
@@ -156,7 +160,9 @@ const LeaveType = () => {
       })
       .catch((err) => {
         console.error("Error deleting leave type:", err);
-        toast.error(err.response?.data?.message || "Failed to delete leave type");
+        toast.error(
+          err.response?.data?.message || "Failed to delete leave type"
+        );
       });
   };
 
@@ -174,7 +180,10 @@ const LeaveType = () => {
   // 🚫 Permission Handling
   if (!permissions) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh" }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
         <h4>Loading permissions...</h4>
       </div>
     );
@@ -182,7 +191,10 @@ const LeaveType = () => {
 
   if (!permissions.view) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh" }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
         <h4>You don’t have permission to view this page.</h4>
       </div>
     );
@@ -190,13 +202,16 @@ const LeaveType = () => {
 
   return (
     <>
-      <Row>
+      <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
               <h4 className="card-title">Leave Type List</h4>
               {permissions.add && (
-                <Button className="btn-primary" onClick={() => setShowAddEdit(true)}>
+                <Button
+                  className="btn-primary"
+                  onClick={() => setShowAddEdit(true)}
+                >
                   + Add Leave Type
                 </Button>
               )}
@@ -244,7 +259,9 @@ const LeaveType = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(indexOfFirstItem + idx)}
+                                onClick={() =>
+                                  handleEdit(indexOfFirstItem + idx)
+                                }
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />

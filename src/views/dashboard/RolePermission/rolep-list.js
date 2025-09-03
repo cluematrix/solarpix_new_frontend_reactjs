@@ -144,7 +144,7 @@ const RolePermissionList = () => {
   };
 
   return (
-    <Card className="p-3 shadow-sm">
+    <Card className="p-3 shadow-sm mt-4">
       {/* Role dropdown */}
       {/* Role dropdown */}
       <Row className="mb-3">

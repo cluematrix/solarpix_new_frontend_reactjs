@@ -221,8 +221,8 @@ const AddEmployee = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }

@@ -218,8 +218,8 @@ const UpdateEmployee = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
@@ -307,16 +307,17 @@ const UpdateEmployee = () => {
               />
             </Col>
             <Col md={4}>
-              <CustomInput
-                label="Password"
-                name="password"
-                value={values.password}
+              <CustomSelect
+                label="Role"
+                name="role_id"
+                value={values.role_id}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Password"
-                touched={touched.password}
-                errors={errors.password}
-                required={true}
+                options={metaData.employeeRoleList}
+                placeholder="--"
+                error={errors.role_id}
+                touched={touched.role_id}
+                required
               />
             </Col>
           </Row>
@@ -423,24 +424,6 @@ const UpdateEmployee = () => {
                 onBlur={handleBlur}
                 placeholder="Enter Skill"
                 touched={touched.skill}
-              />
-            </Col>
-          </Row>
-
-          {/* Row 8 {role_id}*/}
-          <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomSelect
-                label="Role"
-                name="role_id"
-                value={values.role_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={metaData.employeeRoleList}
-                placeholder="--"
-                error={errors.role_id}
-                touched={touched.role_id}
-                required
               />
             </Col>
           </Row>

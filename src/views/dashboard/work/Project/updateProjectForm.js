@@ -7,12 +7,12 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import { maritialStatusData } from "../../../../mockData";
+import { genderData, maritialStatusData } from "../../../../mockData";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomCheckbox from "../../../../components/Form/CustomCheckbox";
 
-const AddProject = ({
+const UpdateProjectForm = ({
   formData,
   setShowMembersModal,
   handleClose,
@@ -61,14 +61,13 @@ const AddProject = ({
     try {
       const { client_id, ...payload } = values;
       const res = await api.post("/api/v1/admin/project", payload);
-      successToast(res.data.message || "Project added successfully");
-
+      successToast(res.data.message || "Project updated successfully");
       setMetaData({ project: res.data.data });
       resetForm();
       navigate("/project-list");
     } catch (err) {
-      console.error("Error adding employee:", err);
-      errorToast(err.response?.data?.message || "Failed to add employee");
+      console.error("Error updating project:", err);
+      errorToast(err.response?.data?.message || "Failed to update project");
     }
   };
 
@@ -87,6 +86,7 @@ const AddProject = ({
     handleSubmit,
     isSubmitting,
     setFieldValue,
+    setValues,
   } = formik;
 
   useEffect(() => {
@@ -100,7 +100,7 @@ const AddProject = ({
             api.get("/api/v1/admin/employee"),
             api.get("/api/v1/admin/project"),
           ]);
-        console.log("Project", projectRes.data.data);
+        console.log("Project Categories:", projectCatRes.data.data);
         setMetaData({
           projectCategory: projectCatRes.data.data.filter((d) => d.isActive),
           clientList: clientRes.data.filter((d) => d.isActive),
@@ -119,31 +119,19 @@ const AddProject = ({
   }, []);
 
   useEffect(() => {
-    const roleId = String(sessionStorage.getItem("roleId"));
-    console.log("roleId from sessionStorage", roleId);
-    console.log("values.assign_by", values.assign_by);
     if (formData?.projectMembers) {
-      setFieldValue("assign_to", formData.projectMembers);
-      setFieldValue("assign_by", roleId);
+      setFieldValue("added_by", formData.projectMembers);
     }
   }, [formData?.projectMembers, setFieldValue]);
 
   useEffect(() => {
-    // After metaData.project is loaded
-    if (metaData.project && metaData.project.length > 0) {
-      // Get last short_code (assuming sorted by creation)
-      const lastShortCode = metaData.project[metaData.project.length - 1];
-      let lastId = lastShortCode.short_code || "SOLAR000";
-      // Extract number part
-      let num = parseInt(lastId.replace("SOLAR", ""), 10);
-      // Increment and pad with zeros
-      let nextId = "SOLAR" + String(num + 1).padStart(3, "0");
-      formik.setFieldValue("short_code", nextId);
-    } else {
-      // First project
-      formik.setFieldValue("short_code", "SOLAR001");
+    if (formData) {
+      setValues({
+        ...values, // preserve other values if needed
+        ...formData, // overwrite with formData
+      });
     }
-  }, [metaData.project]);
+  }, [formData]);
 
   if (loading) {
     return (
@@ -159,8 +147,7 @@ const AddProject = ({
     values.is_deadline
   );
 
-  console.log("formik values:", values);
-  console.log("formData?.projectMembers", formData?.projectMembers);
+  console.log("formik values update:", values);
   return (
     <>
       <Card>
@@ -372,4 +359,4 @@ const AddProject = ({
   );
 };
 
-export default AddProject;
+export default UpdateProjectForm;

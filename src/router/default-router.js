@@ -33,7 +33,7 @@ import ContractType from "../views/dashboard/Customer/ContractType/contracttype"
 // expense Category
 import ExpenseCategory from "../views/dashboard/Expense/ExpenseCategory/ExpenseCategory"; //26 Aug
 // work
-import ProjectList from "../views/dashboard/work/Project/project-list"; //12 Aug
+import ProjectList from "../views/dashboard/work/Project/projectList"; //12 Aug
 import TaskList from "../views/dashboard/work/Task/task-list"; //12 Aug rusghu
 import TaskCategory from "../views/dashboard/work/TaskCategory/TaskCategory";
 import ProjectCategory from "../views/dashboard/work/ProjectCategory/ProjectCategory";

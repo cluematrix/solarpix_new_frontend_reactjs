@@ -212,7 +212,7 @@ const AwardList = () => {
 
   return (
     <>
-      <Row>
+      <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">

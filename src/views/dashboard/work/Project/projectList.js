@@ -1,37 +1,34 @@
+// Created by: Sufyan 03 Sep 2025
+
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
+import { Card, Row, Col, Button, Spinner, Form } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import DeleteModal from "./deleteModal";
+import AddEditModal from "./add-edit-modal";
+import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 
-const EmployeeList = () => {
-  const navigate = useNavigate();
-
-  const [employee, setEmployee] = useState([]);
-  const [loading, setLoading] = useState(false);
+const ProjectList = () => {
+  const [projectData, setProjectData] = useState([]);
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const rolesPerPage = 10;
   const indexOfLastRole = currentPage * rolesPerPage;
   const indexOfFirstRole = indexOfLastRole - rolesPerPage;
-  const totalPages = Math.ceil(employee.length / rolesPerPage);
-  const currentEmployees = employee.slice(indexOfFirstRole, indexOfLastRole);
-
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
+  const totalPages = Math.ceil(projectData.length / rolesPerPage);
+  const currentProject = projectData.slice(indexOfFirstRole, indexOfLastRole);
   const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // fetch employee
-  const fetchEmployee = async () => {
+  // fetch project
+  const fetchProject = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/api/v1/admin/employee");
-      setEmployee(res.data.data || []);
+      const res = await api.get("/api/v1/admin/project");
+      console.log("Project List API Response:", res.data.data);
+      setProjectData(res.data.data || []);
     } catch (err) {
       console.error("Error fetching employee:", err);
     } finally {
@@ -40,17 +37,47 @@ const EmployeeList = () => {
   };
 
   useEffect(() => {
-    fetchEmployee();
+    fetchProject();
   }, []);
 
-  // navigate to edit page
-  const handleEdit = (id) => {
-    navigate(`/update-employee/${id}`);
+  const [formData, setFormData] = useState({
+    short_code: "",
+    project_name: "",
+    is_deadline: false,
+    start_date: "",
+    end_date: "",
+    project_category_id: "",
+    client_id: "",
+    project_summary: "",
+    project_budget: "",
+    hour_estimate: "",
+    added_by: [],
+    projectMembers: "", // single member id
+  });
+  const [editIndex, setEditIndex] = useState(null);
+  const [showAddEdit, setShowAddEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [openEditModalData, setOpenEditModalData] = useState(false);
+
+  const handleAddOrUpdateProject = (data) => {
+    if (!data.projectName.trim()) return; // basic validation
+
+    if (editIndex !== null) {
+      const updatedList = [...projectData];
+      updatedList[editIndex] = data;
+      setProjectData(updatedList);
+    } else {
+      setProjectData([...projectData, data]);
+    }
+    setShowAddEdit(false);
   };
 
-  // navigate to view page
-  const handleView = (id) => {
-    navigate(`/view-employee/${id}`);
+  const handleEdit = (index, item) => {
+    setFormData(item);
+    setEditIndex(index);
+    setShowAddEdit(true);
+    setOpenEditModalData(true);
   };
 
   // delete modal
@@ -63,38 +90,46 @@ const EmployeeList = () => {
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/employee/${deleteId}`)
+      .delete(`/api/v1/admin/project/${deleteId}`)
       .then(() => {
-        successToast("Employee Deleted Successfully");
-        setEmployee((prev) => prev.filter((emp) => emp.id !== deleteId));
+        successToast("Project Deleted Successfully");
+        setProjectData((prev) => prev.filter((p) => p.id !== deleteId));
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting department:", err);
-        errorToast(err.response?.data?.message || "Failed to delete employee");
+        console.error("Error deleting project:", err);
+        errorToast(err.response?.data?.message || "Failed to delete project");
       });
+
+    if (deleteIndex !== null) {
+      setProjectData(projectData.filter((_, i) => i !== deleteIndex));
+    }
+    setShowDelete(false);
+    setDeleteIndex(null);
   };
+
+  console.log("Current Project for Pagination:", currentProject);
 
   const handleToggleActive = async (id, status) => {
     const newStatus = !status;
     try {
-      const res = await api.put(`/api/v1/admin/employee/${id}`, {
+      const res = await api.put(`/api/v1/admin/project/${id}`, {
         isActive: newStatus,
       });
-      console.log("resUpdatedEmp", res);
+      console.log("resUpdatedPro", res);
       if (res.status === 200) {
         console.log("enter", res.status);
-        successToast("Employee status updated successfully");
-        setEmployee((prev) =>
+        successToast("Project updated successfully");
+        setProjectData((prev) =>
           prev.map((emp) =>
             emp.id === id ? { ...emp, isActive: newStatus } : emp
           )
         );
       }
     } catch (err) {
-      console.error("Error employee status:", err);
+      console.error("Error project status:", err);
       errorToast(
-        err.response?.data?.message || "Failed to update employee status"
+        err.response?.data?.message || "Failed to update project status"
       );
     }
   };
@@ -105,19 +140,22 @@ const EmployeeList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title">Employee List</h5>
+              <h4 className="card-title">Project List</h4>
               <Button
-                className="btn-primary fs-6"
-                onClick={() => navigate("/add-employee")}
+                className="btn-primary"
+                onClick={() => {
+                  setShowAddEdit(true);
+                  setOpenEditModalData(false);
+                }}
               >
-                + Add Employee
+                + Add Project
               </Button>
             </Card.Header>
 
             <Card.Body className="px-0">
               {loading ? (
                 <div className="loader-div">
-                  <Spinner className="spinner" animation="border" />
+                  <Spinner animation="border" className="spinner" />
                 </div>
               ) : (
                 <div className="table-responsive">
@@ -125,27 +163,31 @@ const EmployeeList = () => {
                     <thead>
                       <tr>
                         <th>Sr. No.</th>
-                        <th>Emp ID</th>
-                        <th>Name</th>
-                        <th>Reporting To</th>
+                        <th>Short Code</th>
+                        <th>Project Name</th>
+                        <th>Member</th>
+                        <th>Start Date</th>
+                        <th>Deadline</th>
                         <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {currentEmployees.length === 0 ? (
+                      {projectData.length === 0 ? (
                         <tr>
-                          <td colSpan="6" className="text-center">
-                            No Employee available
+                          <td colSpan="7" className="text-center">
+                            No projects available
                           </td>
                         </tr>
                       ) : (
-                        currentEmployees.map((item, idx) => (
-                          <tr key={item.id}>
-                            <td>{indexOfFirstRole + idx + 1}</td>
-                            <td>{item.emp_id}</td>
-                            <td>{item.name}</td>
-                            <td>{item?.manager?.name || "N/A"}</td>
+                        projectData.map((item, idx) => (
+                          <tr key={idx}>
+                            <td>{idx + 1}</td>
+                            <td>{item.short_code || "--"}</td>
+                            <td>{item.project_name || "--"}</td>
+                            <td>{item.start_date || "--"}</td>
+                            <td>{item.end_date || "--"}</td>
+                            <td>{item.assignTo || "--"}</td>
                             <td>
                               <span
                                 className={`status-dot ${
@@ -164,28 +206,15 @@ const EmployeeList = () => {
                                 }
                               />
                               <CreateTwoToneIcon
-                                onClick={() => handleEdit(item.id)}
+                                className="me-2"
+                                onClick={() => handleEdit(idx, item)}
                                 color="primary"
-                                style={{
-                                  cursor: "pointer",
-                                  marginLeft: "5px",
-                                }}
+                                style={{ cursor: "pointer" }}
                               />
                               <DeleteRoundedIcon
                                 onClick={() => openDeleteModal(item.id, idx)}
                                 color="error"
-                                style={{
-                                  cursor: "pointer",
-                                  marginLeft: "5px",
-                                }}
-                              />
-                              <VisibilityIcon
-                                onClick={() => handleView(item.id)}
-                                color="primary"
-                                style={{
-                                  cursor: "pointer",
-                                  marginLeft: "5px",
-                                }}
+                                style={{ cursor: "pointer" }}
                               />
                             </td>
                           </tr>
@@ -196,7 +225,7 @@ const EmployeeList = () => {
                 </div>
               )}
               {/* Pagination Controls */}
-              {totalPages > 1 && !loading && (
+              {totalPages > 1 && (
                 <div className="d-flex justify-content-end mt-3 me-3">
                   <Button
                     variant="secondary"
@@ -232,6 +261,19 @@ const EmployeeList = () => {
         </Col>
       </Row>
 
+      {/* Add/Edit Modal */}
+      <AddEditModal
+        show={showAddEdit}
+        handleClose={() => {
+          setShowAddEdit(false);
+        }}
+        formData={formData}
+        setFormData={setFormData}
+        onSave={handleAddOrUpdateProject}
+        editData={editIndex !== null}
+        openEditModal={openEditModalData} // selected item data
+      />
+
       {/* Delete Confirmation Modal */}
       <DeleteModal
         show={showDelete}
@@ -240,10 +282,10 @@ const EmployeeList = () => {
           setDeleteIndex(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Employee"
+        modalTitle="Delete Project"
         modalMessage={
-          deleteIndex !== null && employee[deleteIndex]
-            ? `Are you sure you want to delete the employee ${employee[deleteIndex].name}?`
+          deleteIndex !== null
+            ? `Are you sure you want to delete project "${projectData[deleteIndex].project_name}"?`
             : ""
         }
       />
@@ -251,4 +293,4 @@ const EmployeeList = () => {
   );
 };
 
-export default EmployeeList;
+export default ProjectList;
