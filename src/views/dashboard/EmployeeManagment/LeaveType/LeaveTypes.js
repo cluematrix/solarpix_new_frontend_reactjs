@@ -36,8 +36,7 @@ const LeaveType = () => {
   const currentItems = leaveList.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(leaveList.length / itemsPerPage);
 
-
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Permissions
   const FETCHPERMISSION = async () => {
@@ -75,12 +74,12 @@ const LeaveType = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
-    }finally {
+    } finally {
       setLoading(false); //  Stop loader after API call
     }
   };
   useEffect(() => {
-        setLoading(true);
+    setLoading(true);
 
     FETCHPERMISSION();
   }, [pathname]);
@@ -187,16 +186,8 @@ const LeaveType = () => {
   //  Loader while checking permissions
   if (loading) {
     return (
-<<<<<<< HEAD
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
-=======
       <div className="loader-div">
         <Spinner animation="border" className="spinner" />
->>>>>>> 04f7405e2a9ffeafb123a6c15f293b36dafb917e
       </div>
     );
   }
