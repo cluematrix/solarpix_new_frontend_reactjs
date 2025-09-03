@@ -271,7 +271,11 @@ const Index = memo((props) => {
       <Row>
         <Col md="12" lg="12">
           <Row className="row-cols-1">
-            <div className="overflow-hidden d-slider1 " data-aos="fade-up" data-aos-delay="800">
+            <div
+              className="overflow-hidden d-slider1 "
+              data-aos="fade-up"
+              data-aos-delay="800"
+            >
               <Swiper
                 className="p-0 m-0 mb-2 list-inline "
                 slidesPerView={5}
@@ -288,11 +292,10 @@ const Index = memo((props) => {
                   1500: { slidesPerView: 4 },
                   1920: { slidesPerView: 4 },
                   2040: { slidesPerView: 7 },
-                  2440: { slidesPerView: 8 }
+                  2440: { slidesPerView: 8 },
                 }}
-    
               >
-                <SwiperSlide className="card card-slide" >
+                <SwiperSlide className="card card-slide">
                   <div className="card-body">
                     <div className="progress-widget">
                       <Circularprogressbar
@@ -1208,6 +1211,6 @@ const Index = memo((props) => {
       </Row>
     </Fragment>
   );
-})
+});
 
-export default Index
+export default Index;

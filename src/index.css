@@ -1,10 +1,10 @@
 .form-control::placeholder {
-  font-size: 12px; /* adjust as needed */
+  font-size: 14px; /* adjust as needed */
   color: #888; /* optional for better UI */
 }
 
 .form-label {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .form-check-label {
