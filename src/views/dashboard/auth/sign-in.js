@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Card from "../../../components/Card";
 import { withSwal } from "react-sweetalert2";
 
-import auth1 from "../../../assets/images/auth/01.png";
+import auth1 from "../../../assets/images/auth/solarpix-sign.png";
 
 // MUI Components
 import InputLabel from "@mui/material/InputLabel";
