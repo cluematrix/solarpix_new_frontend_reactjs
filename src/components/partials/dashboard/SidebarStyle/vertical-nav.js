@@ -1670,6 +1670,20 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
+                    location.pathname === "/customerList" ? "active" : ""
+                  } nav-link`}
+                  to="/customerList"
+                >
+                  <i className="icon">
+                    <PersonAddIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon"> C </i>
+                  <span className="item-name">Customer</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
                     location.pathname === "/clientCategory-list" ? "active" : ""
                   } nav-link`}
                   to="/clientCategory-list"
@@ -1679,6 +1693,22 @@ const VerticalNav = memo((props) => {
                   </i>
                   <i className="sidenav-mini-icon"> C </i>
                   <span className="item-name">Customer Category</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/clientSubCategory-list"
+                      ? "active"
+                      : ""
+                  } nav-link`}
+                  to="/clientSubCategory-list"
+                >
+                  <i className="icon">
+                    <AccountTreeIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon"> CS </i>
+                  <span className="item-name">Customer Sub Category</span>
                 </Link>
               </li>
               <li className="nav-item">

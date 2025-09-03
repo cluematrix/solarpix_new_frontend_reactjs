@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form, Pagination } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Form,
+  Pagination,
+  Spinner,
+} from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -26,6 +34,8 @@ const RoleList = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
+
+  const [loading, setLoading] = useState(true);
 
   // 🔑 PERMISSION CHECK
   const FETCHPERMISSION = async () => {
@@ -63,9 +73,12 @@ const RoleList = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    } finally {
+      setLoading(false); // ✅ Stop loader after API call
     }
   };
   useEffect(() => {
+    setLoading(true);
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -206,14 +219,14 @@ const RoleList = () => {
     }
   };
 
-  // 🚫 Block page if no permission
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
       <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
+       className="loader-div"
+    
       >
-        <h4>Loading permissions...</h4>
+        <Spinner animation="border" className="spinner"/>
       </div>
     );
   }

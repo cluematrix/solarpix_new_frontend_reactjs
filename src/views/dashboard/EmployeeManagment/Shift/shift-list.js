@@ -7,6 +7,7 @@ import {
   Badge,
   Form,
   Pagination,
+  Spinner
 } from "react-bootstrap";
 import { ToastContainer, toast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,6 +33,8 @@ const ShiftList = () => {
   // 🔑 Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+    const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Permission
   const FETCHPERMISSION = async () => {
@@ -69,10 +72,14 @@ const ShiftList = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    }finally {
+      setLoading(false); //  Stop loader after API call
     }
   };
 
   useEffect(() => {
+        setLoading(true);
+
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -204,14 +211,11 @@ const ShiftList = () => {
     return `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
   };
 
-  // 🚫 Block if no permission
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }

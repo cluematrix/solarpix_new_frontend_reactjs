@@ -12,13 +12,15 @@ body{
 }
 
 .form-check-label {
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
+  /* 14px */
 }
 
 .form-check-input {
   width: 14px;
   height: 14px;
-  margin-top: 0.3rem; /* align vertically with smaller text */
+  margin-top: 0.3rem;
+  /* align vertically with smaller text */
 }
 
 .form-control {
@@ -27,7 +29,8 @@ body{
 }
 
 .form-select {
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
+  /* 14px */
 }
 
 /* status dot color */
@@ -40,11 +43,13 @@ body{
 }
 
 .status-dot.active {
-  background-color: #28a745; /* Green for active */
+  background-color: #28a745;
+  /* Green for active */
 }
 
 .status-dot.inactive {
-  background-color: #dc3545; /* Red for inactive */
+  background-color: #dc3545;
+  /* Red for inactive */
 }
 
 .loader-div{

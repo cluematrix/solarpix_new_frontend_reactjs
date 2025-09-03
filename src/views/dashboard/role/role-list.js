@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
@@ -21,6 +21,8 @@ const RoleList = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+
+  const [loading, setLoading] = useState(true);
 
   // 🔑 PERMISSION CHECK
   const FETCHPERMISSION = async () => {
@@ -58,10 +60,14 @@ const RoleList = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    } finally {
+      setLoading(false); //  Stop loader after API call
     }
   };
 
   useEffect(() => {
+    setLoading(true);
+
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -148,18 +154,14 @@ const RoleList = () => {
     setEditId(null);
   };
 
-  // 🚫 Block page if no permission
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
-
   if (!permissions.view) {
     return (
       <div

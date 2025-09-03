@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button } from "react-bootstrap";
+import { Card, Row, Col, Button, Spinner } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -25,6 +25,8 @@ const Holiday = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -62,10 +64,14 @@ const Holiday = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    } finally {
+      setLoading(false); //  Stop loader after API call
     }
   };
 
   useEffect(() => {
+    setLoading(true);
+
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -153,18 +159,14 @@ const Holiday = () => {
     setEditId(null);
   };
 
-  // 🚫 Permission Handling
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
-
   if (!permissions.view) {
     return (
       <div

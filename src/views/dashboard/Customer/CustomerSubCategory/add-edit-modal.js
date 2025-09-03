@@ -4,6 +4,9 @@ import { Modal, Form, Button } from "react-bootstrap";
 const AddEditModal = ({
   show,
   handleClose,
+  selectedCategory,
+  setSelectedCategory,
+  categoryList,
   value,
   setValue,
   onSave,
@@ -19,7 +22,21 @@ const AddEditModal = ({
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group controlId="formCategory">
+          <Form.Group className="mb-3">
+            <Form.Label>Category</Form.Label>
+            <Form.Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="">-- Select Category --</option>
+              {categoryList.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.category}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+          <Form.Group>
             <Form.Label>{fieldLabel}</Form.Label>
             <Form.Control
               type="text"

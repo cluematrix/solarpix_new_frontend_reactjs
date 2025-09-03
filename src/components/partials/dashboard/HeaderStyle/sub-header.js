@@ -96,7 +96,7 @@ const SubHeader = memo(() => {
         employee_id: employeeId,
         clock_in: now.toTimeString().split(" ")[0],
         date: todayDate,
-        isClock_in: true, 
+        isClock_in: true,
       });
 
       setIsClockedIn(true);
@@ -124,7 +124,7 @@ const SubHeader = memo(() => {
         employee_id: employeeId,
         date: todayDate,
         clock_out: now.toTimeString().split(" ")[0],
-        isClock_in: false, 
+        isClock_in: false,
       });
 
       // alert(res);
@@ -150,8 +150,8 @@ const SubHeader = memo(() => {
             <Col md="12">
               <div className="d-flex justify-content-between flex-wrap align-items-center">
                 <div>
-                  <h1>Hello!</h1>
-                  <p>SolarPix Team</p>
+                  <h1>Hello! SolarPix Team</h1>
+                  <p>Empower Your Energy, Sustainably Managed.</p>
                 </div>
                 <div
                   className="text-end p-3 rounded shadow-sm"

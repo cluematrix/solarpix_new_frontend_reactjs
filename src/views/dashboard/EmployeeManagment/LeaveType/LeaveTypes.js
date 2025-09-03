@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button } from "react-bootstrap";
+import { Card, Row, Col, Button, Spinner } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -35,6 +35,9 @@ const LeaveType = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = leaveList.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(leaveList.length / itemsPerPage);
+
+
+    const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Permissions
   const FETCHPERMISSION = async () => {
@@ -72,9 +75,13 @@ const LeaveType = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    }finally {
+      setLoading(false); //  Stop loader after API call
     }
   };
   useEffect(() => {
+        setLoading(true);
+
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -177,18 +184,22 @@ const LeaveType = () => {
     setEditId(null);
   };
 
-  // 🚫 Permission Handling
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
+<<<<<<< HEAD
       <div
         className="d-flex justify-content-center align-items-center"
         style={{ height: "70vh" }}
       >
         <h4>Loading permissions...</h4>
+=======
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+>>>>>>> 04f7405e2a9ffeafb123a6c15f293b36dafb917e
       </div>
     );
   }
-
   if (!permissions.view) {
     return (
       <div

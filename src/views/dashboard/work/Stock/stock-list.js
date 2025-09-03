@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router";
-import { Card, Row, Col, Button, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -13,6 +13,7 @@ import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 const StockList = () => {
   const { pathname } = useLocation(); // ✅ moved inside component
   const [permissions, setPermissions] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Permission
   const FETCHPERMISSION = async () => {
@@ -50,9 +51,13 @@ const StockList = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
+    } finally {
+      setLoading(false); //  Stop loader after API call
     }
   };
   useEffect(() => {
+    setLoading(true);
+
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -204,18 +209,14 @@ const StockList = () => {
   const currentData = stockList.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(stockList.length / rowsPerPage);
 
-  // 🚫 Block if no permission
-  if (!permissions) {
+  //  Loader while checking permissions
+  if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>Loading permissions...</h4>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
-
   if (!permissions.view) {
     return (
       <div
