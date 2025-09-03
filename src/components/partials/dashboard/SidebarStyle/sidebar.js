@@ -12,13 +12,17 @@ import * as SettingSelector from "../../../../store/setting/selectors";
 import { useSelector } from "react-redux";
 import Logo from "../../components/logo";
 
+// import { MdOutlineMenuOpen } from "react-icons/md";
+// import { ImCross } from "react-icons/im";
 // import SidebarDark from '../../components/settingoffcanvas'
-
+import { RxCross2 } from "react-icons/rx";
+import { GoArrowRight } from "react-icons/go";
 // export const SidebarDark =() =>{
 
 // }
 
 const Sidebar = memo((props) => {
+  const [toggle, setToggle] = React.useState(false);
   const sidebarColor = useSelector(SettingSelector.sidebar_color);
   const sidebarHide = useSelector(SettingSelector.sidebar_show); // array
   const sidebarType = useSelector(SettingSelector.sidebar_type); // array
@@ -26,7 +30,9 @@ const Sidebar = memo((props) => {
 
   const minisidebar = () => {
     document.getElementsByTagName("ASIDE")[0].classList.toggle("sidebar-mini");
+    setToggle(!toggle);
   };
+
   useEffect(() => {
     Scrollbar.init(document.querySelector("#my-scrollbar"));
 
@@ -86,12 +92,12 @@ const Sidebar = memo((props) => {
             <h4 className="logo-title">SolarPix</h4>
           </Link>
           <div
-            className="sidebar-toggle"
+            className="sidebar-toggle p-1"
             data-toggle="sidebar"
             data-active="true"
             onClick={minisidebar}
           >
-            <i className="icon">
+            {/* <i className="icon">
               <svg
                 width="20"
                 className="icon-20"
@@ -115,7 +121,8 @@ const Sidebar = memo((props) => {
                   strokeLinejoin="round"
                 ></path>
               </svg>
-            </i>
+            </i> */}
+            {toggle ? <GoArrowRight /> : <RxCross2 />}
           </div>
         </div>
         <div

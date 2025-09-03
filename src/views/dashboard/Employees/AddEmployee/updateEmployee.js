@@ -28,7 +28,7 @@ const UpdateEmployee = () => {
     gender: "",
     dob: "",
     maritial_status: "",
-    role_id: "1", // default
+    role_id: "", // default
     department_id: "",
     designation_id: "",
     employment_type_id: "",
@@ -56,6 +56,7 @@ const UpdateEmployee = () => {
     shift: [],
     employeeType: [],
     employeeList: [],
+    employeeRoleList: [],
   });
 
   const [employeeById, setEmployeeById] = useState([]);
@@ -115,6 +116,7 @@ const UpdateEmployee = () => {
           empTypeRes,
           empListRes,
           empByIdRes,
+          employeeRoleRes,
         ] = await Promise.all([
           api.get("/api/v1/admin/department"),
           api.get("/api/v1/admin/designation"),
@@ -122,6 +124,7 @@ const UpdateEmployee = () => {
           api.get("/api/v1/admin/employmentType"),
           api.get("/api/v1/admin/employee"),
           api.get(`/api/v1/admin/employee/${id}`),
+          api.get("/api/v1/admin/role/active"),
         ]);
 
         setMetaData({
@@ -130,6 +133,7 @@ const UpdateEmployee = () => {
           shift: shiftRes.data.filter((s) => s.isActive),
           employeeType: empTypeRes.data.filter((t) => t.isActive),
           employeeList: empListRes.data.data.filter((e) => e.isActive),
+          employeeRoleList: employeeRoleRes.data,
         });
 
         setEmployeeById(empByIdRes.data.data);
@@ -206,7 +210,7 @@ const UpdateEmployee = () => {
           : "",
       });
     }
-  }, [employeeById, setValues, setFieldValue]);
+  }, [employeeById]);
 
   const today = new Date();
   today.setFullYear(today.getFullYear() - 18);
@@ -304,6 +308,23 @@ const UpdateEmployee = () => {
             </Col>
             <Col md={4}>
               <CustomInput
+                label="Password"
+                name="password"
+                value={values.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Password"
+                touched={touched.password}
+                errors={errors.password}
+                required={true}
+              />
+            </Col>
+          </Row>
+
+          {/* Row 5  dob, gender, maritial_status*/}
+          <Row className="mt-3">
+            <Col md={4}>
+              <CustomInput
                 type="date"
                 label="DOB"
                 name="dob"
@@ -317,24 +338,120 @@ const UpdateEmployee = () => {
                 max={maxDOB}
               />
             </Col>
-          </Row>
-
-          {/* Row 3, {probation_end_date, employment_type_id, joining_date*/}
-          <Row className="mt-3">
             <Col md={4}>
-              <CustomInput
-                type="date"
-                label="Probation End Date"
-                name="probation_end_date"
-                value={values.probation_end_date}
+              <CustomRadioGroup
+                label="Gender"
+                name="gender"
+                options={genderData}
+                value={values.gender}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Probation End Date"
-                touched={touched.probation_end_date}
-                errors={errors.probation_end_date}
+                touched={touched.gender}
+                error={errors.gender}
+                required
+              />
+            </Col>
+            <Col md={4}>
+              <CustomSelect
+                label="Marital Status"
+                name="maritial_status"
+                value={values.maritial_status}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                options={maritialStatusData}
+                placeholder="--"
+                error={errors.maritial_status}
+                touched={touched.maritial_status}
+              />
+            </Col>
+          </Row>
+
+          {/* Row 6 {address, state, city}*/}
+          <Row className="mt-3">
+            <Col md={12}>
+              <CustomInput
+                label="Address"
+                name="address"
+                as="textarea"
+                value={values.address}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Address"
+                touched={touched.address}
+                errors={errors.address}
+                required={true}
+                row={1}
+              />
+            </Col>
+          </Row>
+
+          {/* Row 8 {pincode, photo, skill}*/}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomInput
+                label="Pin Code"
+                name="pincode"
+                value={values.pincode}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Pin Code"
+                touched={touched.pincode}
+                errors={errors.pincode}
                 required={true}
               />
             </Col>
+            <Col md={4}>
+              <CustomFileInput
+                label="Profile Picture"
+                name="photo"
+                accept="image/*"
+                onChange={(e) =>
+                  setFieldValue("photo", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.photo}
+                error={errors.photo}
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomInput
+                label="Skill"
+                name="skill"
+                value={values.skill}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Skill"
+                touched={touched.skill}
+              />
+            </Col>
+          </Row>
+
+          {/* Row 8 {role_id}*/}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomSelect
+                label="Role"
+                name="role_id"
+                value={values.role_id}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                options={metaData.employeeRoleList}
+                placeholder="--"
+                error={errors.role_id}
+                touched={touched.role_id}
+                required
+              />
+            </Col>
+          </Row>
+
+          <hr />
+          <Card.Header className="p-0 pb-2">
+            <h5 className="mb-0">Job Details</h5>
+          </Card.Header>
+
+          {/* Row 3, {probation_end_date, employment_type_id, joining_date*/}
+          <Row className="mt-3">
             <Col md={4}>
               <CustomSelect
                 label="Employment Type"
@@ -350,6 +467,7 @@ const UpdateEmployee = () => {
                 lableName="emp_type"
               />
             </Col>
+
             <Col md={4}>
               <CustomInput
                 type="date"
@@ -363,6 +481,21 @@ const UpdateEmployee = () => {
                 errors={errors.joining_date}
                 min={new Date().toISOString().split("T")[0]}
                 required
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomInput
+                type="date"
+                label="Probation End Date"
+                name="probation_end_date"
+                value={values.probation_end_date}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Probation End Date"
+                touched={touched.probation_end_date}
+                errors={errors.probation_end_date}
+                required={true}
               />
             </Col>
           </Row>
@@ -413,12 +546,7 @@ const UpdateEmployee = () => {
             </Col>
           </Row>
 
-          <hr />
-          <Card.Header className="p-0 pb-2">
-            <h5 className="mb-0">Other Details</h5>
-          </Card.Header>
-
-          {/* Row 5 shift_id, gender, maritial_status*/}
+          {/* Row 7 { notice_start_date, notice_end_date}*/}
           <Row className="mt-3">
             <Col md={4}>
               <CustomSelect
@@ -436,94 +564,7 @@ const UpdateEmployee = () => {
                 le
               />
             </Col>
-            <Col md={4}>
-              <CustomRadioGroup
-                label="Gender"
-                name="gender"
-                options={genderData}
-                value={values.gender}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                touched={touched.gender}
-                error={errors.gender}
-                required
-              />
-            </Col>
-            <Col md={4}>
-              <CustomSelect
-                label="Marital Status"
-                name="maritial_status"
-                value={values.maritial_status}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={maritialStatusData}
-                placeholder="--"
-                error={errors.maritial_status}
-                touched={touched.maritial_status}
-              />
-            </Col>
-          </Row>
 
-          {/* Row 6 {address, state, city}*/}
-          <Row className="mt-3">
-            <Col md={4}>
-              <CustomInput
-                label="Address"
-                name="address"
-                as="textarea"
-                value={values.address}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Address"
-                touched={touched.address}
-                errors={errors.address}
-                required={true}
-                row={1}
-              />
-            </Col>
-            <Col md={4}>
-              <CustomInput
-                label="State"
-                name="state"
-                value={values.state}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter State"
-                touched={touched.state}
-                errors={errors.state}
-                required={true}
-              />
-            </Col>
-            <Col md={4}>
-              <CustomInput
-                label="City"
-                name="city"
-                value={values.city}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter City"
-                touched={touched.city}
-                errors={errors.city}
-                required={true}
-              />
-            </Col>
-          </Row>
-
-          {/* Row 7 {pincode, notice_start_date, notice_end_date}*/}
-          <Row className="mt-3">
-            <Col md={4}>
-              <CustomInput
-                label="Pin Code"
-                name="pincode"
-                value={values.pincode}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Pin Code"
-                touched={touched.pincode}
-                errors={errors.pincode}
-                required={true}
-              />
-            </Col>
             <Col md={4}>
               <CustomInput
                 type="date"
@@ -550,35 +591,6 @@ const UpdateEmployee = () => {
                 touched={touched.notice_end_date}
                 errors={errors.notice_end_date}
                 min={new Date().toISOString().split("T")[0]}
-              />
-            </Col>
-          </Row>
-
-          {/* Row 8 {photo, skill}*/}
-          <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomFileInput
-                label="Profile Picture"
-                name="photo"
-                accept="image/*"
-                onChange={(e) =>
-                  setFieldValue("photo", e.currentTarget.files[0])
-                }
-                onBlur={handleBlur}
-                touched={touched.photo}
-                error={errors.photo}
-              />
-            </Col>
-
-            <Col md={4}>
-              <CustomInput
-                label="Skill"
-                name="skill"
-                value={values.skill}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Skill"
-                touched={touched.skill}
               />
             </Col>
           </Row>

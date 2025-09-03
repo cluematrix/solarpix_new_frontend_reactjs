@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import EmployeeProfile from "../AddEmployee/employeeProfile";
 import { Card, Container, Nav } from "react-bootstrap";
+import ProjectProfile from "../../work/Project/projectProfile";
 
 const EmpProfileTab = () => {
   // Track active tab
@@ -12,14 +13,7 @@ const EmpProfileTab = () => {
       case "profile":
         return <EmployeeProfile />;
       case "projects":
-        return (
-          <Card>
-            <Card.Body>
-              <h5>Projects</h5>
-              <p>Projects screen content here...</p>
-            </Card.Body>
-          </Card>
-        );
+        return <ProjectProfile />;
       case "tasks":
         return (
           <Card>
@@ -82,12 +76,15 @@ const EmpProfileTab = () => {
   };
 
   return (
-    <Container fluid className="p-0">
+    <Container fluid className="p-0 mt-3 z-3">
       {/* Top Navigation Tabs */}
-      <Nav variant="tabs" className="mb-4">
+      <Nav
+        variant="tabs"
+        className="mb-4"
+        onSelect={(key) => setActiveTab(key)}
+      >
         <Nav.Item>
           <Nav.Link
-            as="button"
             active={activeTab === "profile"}
             onClick={() => setActiveTab("profile")}
           >
@@ -96,7 +93,6 @@ const EmpProfileTab = () => {
         </Nav.Item>
         <Nav.Item>
           <Nav.Link
-            as="button"
             active={activeTab === "projects"}
             onClick={() => setActiveTab("projects")}
           >
