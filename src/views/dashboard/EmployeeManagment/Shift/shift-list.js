@@ -7,7 +7,7 @@ import {
   Badge,
   Form,
   Pagination,
-  Spinner
+  Spinner,
 } from "react-bootstrap";
 import { ToastContainer, toast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -34,7 +34,7 @@ const ShiftList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Permission
   const FETCHPERMISSION = async () => {
@@ -72,13 +72,13 @@ const ShiftList = () => {
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
-    }finally {
+    } finally {
       setLoading(false); //  Stop loader after API call
     }
   };
 
   useEffect(() => {
-        setLoading(true);
+    setLoading(true);
 
     FETCHPERMISSION();
   }, [pathname]);
@@ -242,7 +242,7 @@ const ShiftList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Shift</h4>
+              <h4 className="card-title fw-bold">Shifts</h4>
               {permissions.add && (
                 <Button onClick={() => setShowAddEdit(true)}>
                   + Add Shift

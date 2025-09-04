@@ -58,7 +58,7 @@ const DealList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Deal List</h4>
+              <h4 className="card-title fw-bold">Deals </h4>
               <Button
                 className="btn-primary"
                 onClick={() => {

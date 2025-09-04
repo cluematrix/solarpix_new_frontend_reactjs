@@ -234,7 +234,7 @@ const StockList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Stock List</h4>
+              <h4 className="card-title fw-bold">Stocks </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

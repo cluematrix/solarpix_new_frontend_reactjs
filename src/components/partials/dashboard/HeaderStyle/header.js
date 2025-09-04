@@ -66,7 +66,9 @@ const Header = memo((props) => {
       <Navbar
         expand="lg"
         variant="light"
-        className={`nav iq-navbar ${headerNavbar} ${navbarHide.join(" ")}`}
+        className={`nav iq-navbar fixed-top ${headerNavbar} ${navbarHide.join(
+          " "
+        )}`}
       >
         <Container fluid className="navbar-inner">
           <Link to="/dashboard" className="navbar-brand">

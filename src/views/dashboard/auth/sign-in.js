@@ -3,7 +3,7 @@ import { Row, Col, Image, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import Card from "../../../components/Card";
 import { withSwal } from "react-sweetalert2";
-
+import logoImg from "../../../assets/images/logo/main_logo.jpg";
 import auth1 from "../../../assets/images/auth/solarpix-sign.png";
 
 // MUI Components
@@ -18,6 +18,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import api from "../../../api/axios";
 
 const SignIn = ({ swal }) => {
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -65,48 +66,49 @@ const SignIn = ({ swal }) => {
     setGeneralError("");
 
     const { isValid } = validate();
-    if (!isValid) {
-      await swal.fire({
-        icon: "warning",
-        title: "Validation error",
-        showConfirmButton: false,
-        timer: 1200,
-        toast: true,
-        position: "top-start",
-      });
-      return;
-    }
+    // if (!isValid) {
+    //   await swal.fire({
+    //     icon: "warning",
+    //     title: "Validation error",
+    //     showConfirmButton: false,
+    //     timer: 1200,
+    //     toast: true,
+    //     position: "top-start",
+    //   });
+    //   return;
+    // }
 
     try {
-      const response = await api.post("api/v1/website/auth/login", {
-        email: formData.email,
-        password: formData.password,
-      });
-      console.log(response);
-      if (response.data && response.data.success) {
-        console.log(response.data.data);
-        const { accessToken, user } = response.data;
-
-        sessionStorage.setItem("solarpix_token", accessToken);
-        console.log(accessToken);
-        sessionStorage.setItem("roleId", user.role_id);
-        sessionStorage.setItem("employee_id", user.id);
-
-        await swal.fire({
-          icon: "success",
-          title: "Login successful",
-          showConfirmButton: false,
-          timer: 1200,
-          toast: true,
-          position: "top-start",
+      if (isValid) {
+        setLoading(true);
+        const response = await api.post("api/v1/website/auth/login", {
+          email: formData.email,
+          password: formData.password,
         });
+        console.log(response);
+        if (response.data && response.data.success) {
+          setLoading(false);
+          console.log(response.data.data);
+          const { accessToken, user } = response.data;
 
-        navigate("/");
-        window.location.reload();
-      } else {
-        throw new Error(response.data.message || "Login failed");
+          sessionStorage.setItem("solarpix_token", accessToken);
+          sessionStorage.setItem("roleId", user.role_id);
+          sessionStorage.setItem("employee_id", user.id);
+
+          await swal.fire({
+            icon: "success",
+            title: "Login successful",
+            showConfirmButton: false,
+            timer: 1200,
+            toast: true,
+            position: "top-start",
+          });
+          window.location.reload();
+          navigate("/");
+        }
       }
     } catch (error) {
+      setLoading(false);
       console.error("Login error:", error);
       await swal.fire({
         icon: "error",
@@ -118,8 +120,6 @@ const SignIn = ({ swal }) => {
         position: "top-start",
       });
 
-      setFormData({ email: "", password: "" });
-      setErrors({});
       setGeneralError("");
     }
   };
@@ -127,16 +127,22 @@ const SignIn = ({ swal }) => {
   return (
     <section className="login-content">
       <Row className="m-0 align-items-center bg-white vh-100">
-        <Col md="6">
+        <Col md="6" lg="5">
           <Row className="justify-content-center">
             <Col md="10">
               <Card className="card-transparent shadow-none d-flex justify-content-center mb-0 auth-card">
                 <Card.Body>
                   <center>
-                    <h1 className="logo-title ms-3">SolarPix</h1>
+                    {/* <h1 className="logo-title ms-3">SolarPix</h1> */}
+                    <img src={logoImg} alt="Logo" width={80} height={80} />
                   </center>
                   <br />
-                  <h3 className="mb-2 text-center">Sign In</h3>
+                  <h3
+                    className="mb-2 text-center"
+                    style={{ fontFamily: "poppins" }}
+                  >
+                    Sign In
+                  </h3>
                   <br />
                   <Form noValidate onSubmit={handleSubmit}>
                     {generalError && (
@@ -218,15 +224,23 @@ const SignIn = ({ swal }) => {
                         </Form.Group>
                       </Col>
 
-                      <Col lg="12" className="d-flex justify-content-between">
+                      <Col
+                        lg="12"
+                        className="d-flex"
+                        style={{ marginTop: "-10px", fontSize: "12px" }}
+                      >
                         <Link to="/auth/recoverpw">Forgot Password?</Link>
                       </Col>
                     </Row>
 
                     <br />
                     <div className="d-flex justify-content-center">
-                      <Button type="submit" variant="primary">
-                        Sign In
+                      <Button
+                        type="submit"
+                        variant="primary w-100"
+                        disabled={loading}
+                      >
+                        {loading ? "Loading..." : "Sign In"}
                       </Button>
                     </div>
                   </Form>
@@ -239,11 +253,12 @@ const SignIn = ({ swal }) => {
         {/* Right Side Image */}
         <Col
           md="6"
+          lg="7"
           className="d-md-block d-none bg-primary p-0 mt-n1 vh-100 overflow-hidden"
         >
           <Image
             src={auth1}
-            className="Image-fluid gradient-main animated-scaleX"
+            className="Image-fluid gradient-main"
             alt="images"
           />
         </Col>

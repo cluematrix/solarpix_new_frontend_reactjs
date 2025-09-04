@@ -216,7 +216,7 @@ const ContractType = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Contract Type List</h4>
+              <h4 className="card-title fw-bold">Contract Types </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

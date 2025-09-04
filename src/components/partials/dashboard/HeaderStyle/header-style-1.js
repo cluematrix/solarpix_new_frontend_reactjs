@@ -38,7 +38,7 @@ const HeaderStyle1 = memo(() => {
 
   return (
     <Fragment>
-      <Navbar expand="xl" className="nav  iq-navbar">
+      <Navbar expand="xl" className="nav  iq-navbar ">
         <Container fluid className="navbar-inner">
           <MobildeOffcanvas />
           <Navbar.Brand as="div" className="col-lg-2 col-lg-3 ">

@@ -1,7 +1,14 @@
 import React from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 
-const AddEditModal = ({ show, handleClose, onSave, formData, setFormData, editData }) => {
+const AddEditModal = ({
+  show,
+  handleClose,
+  onSave,
+  formData,
+  setFormData,
+  editData,
+}) => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -12,9 +19,11 @@ const AddEditModal = ({ show, handleClose, onSave, formData, setFormData, editDa
   };
 
   return (
-    <Modal show={show} onHide={handleClose} backdrop="static">
+    <Modal centered show={show} onHide={handleClose} backdrop="static">
       <Modal.Header closeButton>
-        <Modal.Title>{editData ? "Edit Lead Source" : "Add Lead Source"}</Modal.Title>
+        <Modal.Title>
+          {editData ? "Edit Lead Source" : "Add Lead Source"}
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>

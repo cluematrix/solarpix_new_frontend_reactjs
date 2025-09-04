@@ -9,23 +9,30 @@ body{
 
 .form-label {
   font-size: 14px;
+  color: black;
 }
 
 .form-check-label {
   font-size: 0.875rem;
-  /* 14px */
+   color: black;
 }
 
 .form-check-input {
   width: 14px;
   height: 14px;
   margin-top: 0.3rem;
+  color: black;
   /* align vertically with smaller text */
 }
 
 .form-control {
   font-size: 13px;
   padding-left: 8px;
+  color: black;
+}
+
+input{
+  color: black !important;
 }
 
 .form-select {
@@ -67,3 +74,4 @@ body{
   font-size: 14px;
   padding: .5rem
 }
+

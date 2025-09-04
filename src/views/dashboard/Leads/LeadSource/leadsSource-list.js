@@ -201,7 +201,7 @@ const LeadSourceList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Lead Source List</h4>
+              <h4 className="card-title fw-bold">Lead Sources </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

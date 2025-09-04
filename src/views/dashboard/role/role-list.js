@@ -179,7 +179,7 @@ const RoleList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Role List</h4>
+              <h4 className="card-title fw-bold">Roles </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
