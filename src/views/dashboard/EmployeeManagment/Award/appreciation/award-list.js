@@ -228,7 +228,7 @@ const AwardList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Award List</h4>
+              <h4 className="card-title fw-bold">Awards </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

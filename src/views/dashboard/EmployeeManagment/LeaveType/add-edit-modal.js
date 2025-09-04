@@ -12,7 +12,7 @@ const AddEditModal = ({
   buttonLabel,
 }) => {
   return (
-    <Modal show={show} onHide={handleClose} backdrop="static">
+    <Modal centered show={show} onHide={handleClose} backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>{modalTitle}</Modal.Title>
       </Modal.Header>

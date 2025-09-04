@@ -203,11 +203,8 @@ const EmployeeType = () => {
   //  Loader while checking permissions
   if (loading) {
     return (
-      <div
-       className="loader-div"
-    
-      >
-        <Spinner animation="border" className="spinner"/>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
@@ -228,7 +225,7 @@ const EmployeeType = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Employee Type List</h4>
+              <h4 className="card-title fw-bold">Employee Type </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

@@ -173,7 +173,7 @@ const DealStagesList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Deal Stages List</h4>
+              <h4 className="card-title fw-bold">Deal Stages </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

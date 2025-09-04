@@ -105,7 +105,7 @@ const LeadsList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Lead Contact List</h4>
+              <h4 className="card-title fw-bold">Leads Contact </h4>
               <Button
                 className="btn-primary"
                 onClick={() => {

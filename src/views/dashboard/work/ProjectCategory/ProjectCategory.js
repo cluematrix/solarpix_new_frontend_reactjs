@@ -221,7 +221,7 @@ const ProjectCategory = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Project Category List</h4>
+              <h4 className="card-title fw-bold">Project Categories </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

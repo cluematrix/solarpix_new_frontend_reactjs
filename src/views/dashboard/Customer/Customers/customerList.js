@@ -105,7 +105,7 @@ const CustomerList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title">Customer List</h5>
+              <h5 className="card-title fw-bold">Customers </h5>
               <Button
                 className="btn-primary fs-6"
                 onClick={() => navigate("/add-Customer")}

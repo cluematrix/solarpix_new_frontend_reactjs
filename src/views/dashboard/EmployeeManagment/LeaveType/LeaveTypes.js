@@ -208,7 +208,7 @@ const LeaveType = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Leave Type List</h4>
+              <h4 className="card-title fw-bold">Leave Type </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

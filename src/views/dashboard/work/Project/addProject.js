@@ -103,7 +103,7 @@ const AddProject = ({
         console.log("Project", projectRes.data.data);
         setMetaData({
           projectCategory: projectCatRes.data.data.filter((d) => d.isActive),
-          clientList: clientRes.data.filter((d) => d.isActive),
+          clientList: clientRes.data.data.filter((d) => d.isActive),
           employeeList: empListRes.data.data.filter((e) => e.isActive),
           project: projectRes.data.data.filter((e) => e.isActive),
         });
@@ -145,13 +145,13 @@ const AddProject = ({
     }
   }, [metaData.project]);
 
-  if (loading) {
-    return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="text-center loader-div">
+  //       <Spinner animation="border spinner" />
+  //     </div>
+  //   );
+  // }
 
   console.log(
     "typeof values.is_deadline:",
@@ -311,7 +311,12 @@ const AddProject = ({
                   <div>
                     {selectedMemberNames?.length > 0 ? (
                       selectedMemberNames?.map((m) => (
-                        <Badge bg="info" text="dark" className="me-2" key={m}>
+                        <Badge
+                          bg="light"
+                          text="dark"
+                          className="me-2 p-1"
+                          key={m}
+                        >
                           {m}
                         </Badge>
                       ))
@@ -320,7 +325,6 @@ const AddProject = ({
                     )}
                   </div>
                   <Button
-                    variant="outline-primary"
                     size="sm"
                     className="mt-2"
                     onClick={() => setShowMembersModal(true)}

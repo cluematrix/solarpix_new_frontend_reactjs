@@ -222,11 +222,8 @@ const RoleList = () => {
   //  Loader while checking permissions
   if (loading) {
     return (
-      <div
-       className="loader-div"
-    
-      >
-        <Spinner animation="border" className="spinner"/>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
@@ -247,7 +244,7 @@ const RoleList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Designation List</h4>
+              <h4 className="card-title fw-bold">Designations </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"

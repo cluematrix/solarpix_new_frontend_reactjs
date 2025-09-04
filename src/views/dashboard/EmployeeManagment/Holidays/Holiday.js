@@ -190,7 +190,7 @@ const Holiday = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Holiday List</h4>
+              <h4 className="card-title fw-bold">Holidays </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
