@@ -88,6 +88,7 @@ const SignIn = ({ swal }) => {
         const { accessToken, user } = response.data;
 
         sessionStorage.setItem("solarpix_token", accessToken);
+        console.log(accessToken);
         sessionStorage.setItem("roleId", user.role_id);
         sessionStorage.setItem("employee_id", user.id);
 

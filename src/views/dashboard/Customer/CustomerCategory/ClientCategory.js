@@ -32,7 +32,7 @@ const ClientCategory = () => {
 
   // ✅ Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
@@ -220,11 +220,11 @@ const ClientCategory = () => {
 
   return (
     <>
-      <Row>
+      <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Customer Category List</h4>
+              <h4 className="card-title">Customer Categories</h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -269,7 +269,7 @@ const ClientCategory = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
+                              className="me-1"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form , Spinner} from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -212,7 +212,7 @@ const ContractType = () => {
 
   return (
     <>
-      <Row>
+      <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
