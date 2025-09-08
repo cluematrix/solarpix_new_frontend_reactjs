@@ -27,13 +27,12 @@ const AddCustomer = () => {
     pincode: "",
     photo: null,
     client_category_id: "",
-    client_sub_category_id: "",
   };
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
-  const [subCategories, setSubCategories] = useState([]);
+  const [customerList, setCustomerList] = useState([]); // store all customers
 
   const validationSchema = Yup.object().shape({
     client_id: Yup.string().required("Customer ID is required"),
@@ -56,9 +55,6 @@ const AddCustomer = () => {
       .required("Pincode is required")
       .matches(/^\d{6}$/, "Enter a valid 6-digit pincode"),
     client_category_id: Yup.string().required("Client Category is required"),
-    client_sub_category_id: Yup.string().required(
-      "Client Sub Category is required"
-    ),
     photo: Yup.mixed()
       .nullable()
       .test(
@@ -82,10 +78,11 @@ const AddCustomer = () => {
         }
       });
 
-      const res = await api.post("/api/v1/admin/Customer", formData);
+      const res = await api.post("/api/v1/admin/client", formData);
+      console.log(res);
       successToast(res.data.message || "Customer added successfully");
       resetForm();
-      navigate("/Customer-list");
+      navigate("/CustomerList");
     } catch (err) {
       errorToast(err.response?.data?.message || "Failed to add Customer");
     }
@@ -108,52 +105,51 @@ const AddCustomer = () => {
     isSubmitting,
   } = formik;
 
-  // Fetch active categories
+  // Fetch categories and customer list
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/api/v1/admin/clientCategory/active");
-        setCategories(res.data || []);
+        const [catRes, custRes] = await Promise.all([
+          api.get("/api/v1/admin/clientCategory/active"),
+          api.get("/api/v1/admin/client"), // assuming this returns all customers
+        ]);
+
+        console.log("cust-re", custRes);
+        setCategories(catRes.data || []);
+        setCustomerList(custRes.data.data || []);
       } catch (error) {
-        errorToast("Error loading categories");
+        errorToast("Error loading data");
       } finally {
         setLoading(false);
       }
     };
-    fetchCategories();
+    fetchData();
   }, []);
 
-  // Fetch subcategories when category changes
-  const handleCategoryChange = async (e) => {
-    const categoryId = e.target.value;
-    handleChange(e);
-    setFieldValue("client_sub_category_id", ""); // clear previous selection
-    setSubCategories([]);
-
-    if (categoryId) {
-      try {
-        const res = await api.get(
-          `/api/v1/admin/clientSubCategory/by-category/${categoryId}`
-        );
-        setSubCategories(res.data || []);
-      } catch (error) {
-        errorToast("Error loading subcategories");
-      }
-    }
-  };
-
-  // Auto generate Client ID
+  // ✅ Auto-generate next Client ID
   useEffect(() => {
-    const generateClientId = () => {
-      const randomNum = Math.floor(Math.random() * 1000);
-      formik.setFieldValue(
-        "client_id",
-        `CUSTO${String(randomNum).padStart(3, "0")}`
-      );
-    };
-    generateClientId();
-  }, []);
+    if (customerList && customerList.length > 0) {
+      // Extract numeric parts from all client_id values
+      const nums = customerList.map((c) => {
+        const num = parseInt(c.client_id?.replace("CUSTO", ""), 10);
+        return isNaN(num) ? 0 : num;
+      });
+      console.log("list of ", customerList);
+      // Find maximum number
+      const maxNum = Math.max(...nums);
+
+      // Generate next ID
+      const nextId = "CUSTO" + String(maxNum + 1).padStart(3, "0");
+
+      setFieldValue("client_id", nextId);
+
+      console.log("Last max client_id number:", maxNum, " → Next:", nextId);
+    } else {
+      // First customer
+      setFieldValue("client_id", "CUSTO001");
+    }
+  }, [customerList, setFieldValue]);
 
   if (loading) {
     return (
@@ -200,7 +196,7 @@ const AddCustomer = () => {
                 touched={touched.salutation}
                 required
                 valueName="value"
-                lableName="label"
+                lableName="salutation"
               />
             </Col>
             <Col md={4}>
@@ -337,9 +333,9 @@ const AddCustomer = () => {
             </Col>
           </Row>
 
-          {/* Row 5 {photo, category, subcategory} */}
+          {/* Row 5 {photo, category} */}
           <Row className="mt-3 mb-4">
-            <Col md={4}>
+            <Col md={6}>
               <CustomFileInput
                 label="Profile Picture"
                 name="photo"
@@ -352,12 +348,12 @@ const AddCustomer = () => {
                 error={errors.photo}
               />
             </Col>
-            <Col md={4}>
+            <Col md={6}>
               <CustomSelect
                 label="Client Category"
                 name="client_category_id"
                 value={values.client_category_id}
-                onChange={handleCategoryChange}
+                onChange={handleChange}
                 onBlur={handleBlur}
                 options={categories}
                 placeholder="--"
@@ -366,25 +362,6 @@ const AddCustomer = () => {
                 required
                 valueName="id"
                 lableName="category"
-              />
-            </Col>
-            <Col md={4}>
-              <CustomSelect
-                label="Client Sub Category"
-                name="client_sub_category_id"
-                value={values.client_sub_category_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={subCategories}
-                placeholder={
-                  values.client_category_id ? "--" : "Select category first"
-                }
-                error={errors.client_sub_category_id}
-                touched={touched.client_sub_category_id}
-                required
-                valueName="id"
-                lableName="sub_category"
-                disabled={!values.client_category_id}
               />
             </Col>
           </Row>
@@ -397,7 +374,7 @@ const AddCustomer = () => {
             <Button
               variant="secondary"
               className="ms-2"
-              onClick={() => navigate("/Customer-list")}
+              onClick={() => navigate("/Customerlist")}
             >
               Cancel
             </Button>

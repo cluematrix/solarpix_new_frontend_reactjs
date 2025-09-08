@@ -7,6 +7,7 @@ import {
   Form,
   Pagination,
   Spinner,
+  Table,
 } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -29,7 +30,7 @@ const EmployeeType = () => {
 
   // 🔹 Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
@@ -203,11 +204,8 @@ const EmployeeType = () => {
   //  Loader while checking permissions
   if (loading) {
     return (
-      <div
-       className="loader-div"
-    
-      >
-        <Spinner animation="border" className="spinner"/>
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
@@ -228,7 +226,7 @@ const EmployeeType = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Employee Type List</h4>
+              <h5 className="card-title fw-lighter">Employee Type</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -241,9 +239,9 @@ const EmployeeType = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Employee Type</th>
                       <th>Status</th>
@@ -301,7 +299,7 @@ const EmployeeType = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* 🔹 Pagination UI */}

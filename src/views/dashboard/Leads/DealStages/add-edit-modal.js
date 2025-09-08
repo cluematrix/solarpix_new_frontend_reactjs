@@ -19,7 +19,7 @@ const AddEditModal = ({
   };
 
   return (
-    <Modal show={show} onHide={handleClose} backdrop="static">
+    <Modal centered show={show} onHide={handleClose} backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>
           {editData ? "Edit Deal Stage" : "Add Deal Stage"}

@@ -1,0 +1,21 @@
+.sidebar.sidebar-mini {
+    --sidebar-width: 5.6rem;
+}
+
+.sidebar-font-size{
+    font-size: 14px;
+}
+
+.sidebar-base .nav-item .nav-link{
+  padding: 7px 5px;
+}
+
+/* .accordion .nav-item {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.accordion-item {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+} */

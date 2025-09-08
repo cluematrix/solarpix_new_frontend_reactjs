@@ -7,6 +7,7 @@ import {
   Form,
   Pagination,
   Spinner,
+  Table,
 } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -32,7 +33,7 @@ const ProjectCategory = () => {
 
   // 📌 Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // change per your need
+  const itemsPerPage = 10; // change per your need
 
   const [loading, setLoading] = useState(true);
 
@@ -221,7 +222,7 @@ const ProjectCategory = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Project Category List</h4>
+              <h5 className="card-title fw-lighter">Project Categories </h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -234,9 +235,9 @@ const ProjectCategory = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Category</th>
                       <th>Status</th>
@@ -292,7 +293,7 @@ const ProjectCategory = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* 📌 Pagination Controls */}

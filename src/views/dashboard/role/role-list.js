@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
+import { Card, Row, Col, Button, Form, Spinner, Table } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
@@ -179,7 +179,7 @@ const RoleList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Role List</h4>
+              <h4 className="card-title fw-bold">Roles </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -192,9 +192,9 @@ const RoleList = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive>
                   <thead>
-                    <tr className="ligth">
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Name</th>
                       <th>Status</th>
@@ -257,7 +257,7 @@ const RoleList = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
             </Card.Body>
           </Card>

@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Form,
+  Spinner,
+  Table,
+  Pagination,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import DeleteModal from "./deleteModal";
@@ -99,13 +108,19 @@ const EmployeeList = () => {
     }
   };
 
+  const handlePageChange = (page) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <>
       <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title">Employee List</h5>
+              <h5 className="card-title fw-lighter">Employees</h5>
               <Button
                 className="btn-primary fs-6"
                 onClick={() => navigate("/add-employee")}
@@ -121,9 +136,9 @@ const EmployeeList = () => {
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table">
+                  <Table hover responsive className="table">
                     <thead>
-                      <tr>
+                      <tr className="table-gray">
                         <th>Sr. No.</th>
                         <th>Emp ID</th>
                         <th>Name</th>
@@ -192,40 +207,30 @@ const EmployeeList = () => {
                         ))
                       )}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               )}
               {/* Pagination Controls */}
-              {totalPages > 1 && !loading && (
-                <div className="d-flex justify-content-end mt-3 me-3">
-                  <Button
-                    variant="secondary"
-                    size="sm"
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.Prev
+                    onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    Previous
-                  </Button>
+                  />
                   {[...Array(totalPages)].map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={currentPage === i + 1 ? "primary" : "light"}
-                      size="sm"
-                      className="mx-1"
-                      onClick={() => setCurrentPage(i + 1)}
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => handlePageChange(i + 1)}
                     >
                       {i + 1}
-                    </Button>
+                    </Pagination.Item>
                   ))}
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <Pagination.Next
+                    onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                  />
+                </Pagination>
               )}
             </Card.Body>
           </Card>

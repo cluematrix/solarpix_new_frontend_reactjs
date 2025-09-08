@@ -1,0 +1,26 @@
+.dashboard-header-img{
+  height: 150px;
+  object-fit: cover;
+}
+
+.iq-navbar-header {
+  height: 130px;         /* Custom height */
+  overflow: hidden;      /* Extra content ko hide karne ke liye */
+  position: relative;    /* Absolute positioned images ke liye */
+  margin-bottom: 65px;
+}
+.iq-header-img img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+}
+.iq-container {
+  position: relative;
+  z-index: 2;
+}
+
+.clock-in-row{
+margin-top: -42px;
+}

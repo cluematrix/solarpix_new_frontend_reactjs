@@ -190,7 +190,7 @@ const RolePermissionList = () => {
               Loading...
             </div>
           ) : (
-            <Table bordered hover responsive>
+            <Table hover responsive>
               <thead className="table-light">
                 <tr>
                   <th>Module</th>

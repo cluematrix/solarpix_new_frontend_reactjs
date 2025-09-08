@@ -1,7 +1,16 @@
 // Created by: Sufyan 03 Sep 2025
 
 import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Button, Spinner, Form } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Spinner,
+  Form,
+  Table,
+  Pagination,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
@@ -134,13 +143,19 @@ const ProjectList = () => {
     }
   };
 
+  const handlePageChange = (page) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <>
       <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Project List</h4>
+              <h5 className="card-title fw-lighter">Projects</h5>
               <Button
                 className="btn-primary"
                 onClick={() => {
@@ -159,9 +174,9 @@ const ProjectList = () => {
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table">
+                  <Table hover responsive className="table">
                     <thead>
-                      <tr>
+                      <tr className="table-gray">
                         <th>Sr. No.</th>
                         <th>Short Code</th>
                         <th>Project Name</th>
@@ -221,40 +236,30 @@ const ProjectList = () => {
                         ))
                       )}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               )}
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="d-flex justify-content-end mt-3 me-3">
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.Prev
+                    onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    Previous
-                  </Button>
+                  />
                   {[...Array(totalPages)].map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={currentPage === i + 1 ? "primary" : "light"}
-                      size="sm"
-                      className="mx-1"
-                      onClick={() => setCurrentPage(i + 1)}
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => handlePageChange(i + 1)}
                     >
                       {i + 1}
-                    </Button>
+                    </Pagination.Item>
                   ))}
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <Pagination.Next
+                    onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                  />
+                </Pagination>
               )}
             </Card.Body>
           </Card>

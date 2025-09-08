@@ -8,6 +8,7 @@ import {
   Form,
   Pagination,
   Spinner,
+  Table,
 } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -31,7 +32,7 @@ const LeadSourceList = () => {
 
   // 🔹 Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // change as needed
+  const itemsPerPage = 10; // change as needed
 
   const [loading, setLoading] = useState(true);
 
@@ -201,7 +202,7 @@ const LeadSourceList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Lead Source List</h4>
+              <h4 className="card-title fw-bold">Lead Sources </h4>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -218,9 +219,9 @@ const LeadSourceList = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Lead Source</th>
                       <th>Status</th>
@@ -275,7 +276,7 @@ const LeadSourceList = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* 🔹 Pagination Controls */}

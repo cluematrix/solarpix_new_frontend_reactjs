@@ -9,10 +9,12 @@ import topHeader2 from "../../../../assets/images/dashboard/top-header2.png";
 import topHeader3 from "../../../../assets/images/dashboard/top-header3.png";
 import topHeader4 from "../../../../assets/images/dashboard/top-header4.png";
 import topHeader5 from "../../../../assets/images/dashboard/top-header5.png";
-
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { errorToast } from "../../../Toast/errorToast";
+
+//import dashboard-header-style.css
+import "../../../../styles/dashboard-header.css";
 
 const SubHeader = memo(() => {
   const [time, setTime] = useState(new Date());
@@ -144,13 +146,13 @@ const SubHeader = memo(() => {
 
   return (
     <Fragment>
-      <div className="iq-navbar-header" style={{ height: "250px" }}>
+      <div className="iq-navbar-header" style={{ marginTop: "50px" }}>
         <Container fluid className="iq-container">
-          <Row>
+          <Row className="clock-in-row">
             <Col md="12">
               <div className="d-flex justify-content-between flex-wrap align-items-center">
                 <div>
-                  <h1>Hello! SolarPix Team</h1>
+                  <h1>Welcome</h1>
                   <p>Empower Your Energy, Sustainably Managed.</p>
                 </div>
                 <div

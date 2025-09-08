@@ -15,11 +15,11 @@ import Logo from "../../components/logo";
 // import { MdOutlineMenuOpen } from "react-icons/md";
 // import { ImCross } from "react-icons/im";
 // import SidebarDark from '../../components/settingoffcanvas'
-import { RxCross2 } from "react-icons/rx";
-import { GoArrowRight } from "react-icons/go";
-// export const SidebarDark =() =>{
-
-// }
+import { FiMenu, FiX } from "react-icons/fi";
+import { MdChevronRight, MdChevronLeft } from "react-icons/md";
+import { FaBars, FaTimes } from "react-icons/fa";
+//import sidebar.css
+import "../../../../styles/sidebar.css";
 
 const Sidebar = memo((props) => {
   const [toggle, setToggle] = React.useState(false);
@@ -92,10 +92,11 @@ const Sidebar = memo((props) => {
             <h4 className="logo-title">SolarPix</h4>
           </Link>
           <div
-            className="sidebar-toggle p-1"
+            className="sidebar-toggle"
             data-toggle="sidebar"
             data-active="true"
             onClick={minisidebar}
+            style={{ borderRadius: "50%", padding: "1px 4px" }}
           >
             {/* <i className="icon">
               <svg
@@ -122,10 +123,12 @@ const Sidebar = memo((props) => {
                 ></path>
               </svg>
             </i> */}
-            {toggle ? <GoArrowRight /> : <RxCross2 />}
+            {/* {toggle ? <FiMenu /> : <FiX />} */}
+            {/* {toggle ? <MdChevronRight /> : <MdChevronLeft />} */}
+            {toggle ? <FaBars /> : <FaTimes />}
           </div>
         </div>
-        <div
+        <div //localhost:3000/dashboard
           className="pt-0 sidebar-body data-scrollbar"
           data-scroll="1"
           id="my-scrollbar"

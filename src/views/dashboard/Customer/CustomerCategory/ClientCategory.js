@@ -7,6 +7,7 @@ import {
   Form,
   Pagination,
   Spinner,
+  Table,
 } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,7 +33,7 @@ const ClientCategory = () => {
 
   // ✅ Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
@@ -220,11 +221,11 @@ const ClientCategory = () => {
 
   return (
     <>
-      <Row>
+      <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title">Customer Category List</h4>
+              <h5 className="card-title fw-lighter">Customer Categories</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -237,9 +238,9 @@ const ClientCategory = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Category</th>
                       <th>Status</th>
@@ -269,7 +270,7 @@ const ClientCategory = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
+                              className="me-1"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
@@ -296,7 +297,7 @@ const ClientCategory = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* ✅ Pagination */}

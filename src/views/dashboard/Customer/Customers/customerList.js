@@ -1,48 +1,57 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Form,
+  Spinner,
+  Table,
+  Pagination,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteModal from "./deleteModal";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const CustomerList = () => {
-  // ✅ Renamed with uppercase C
   const navigate = useNavigate();
 
-  const [employee, setEmployee] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const rolesPerPage = 10;
-  const indexOfLastRole = currentPage * rolesPerPage;
-  const indexOfFirstRole = indexOfLastRole - rolesPerPage;
-  const totalPages = Math.ceil(employee.length / rolesPerPage);
-  const currentEmployees = employee.slice(indexOfFirstRole, indexOfLastRole);
+  const customersPerPage = 10;
+  const indexOfLast = currentPage * customersPerPage;
+  const indexOfFirst = indexOfLast - customersPerPage;
+  const totalPages = Math.ceil(customers.length / customersPerPage);
+  const currentCustomers = customers.slice(indexOfFirst, indexOfLast);
 
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // fetch employee
-  const fetchEmployee = async () => {
+  // fetch customers
+  const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/api/v1/admin/employee");
-      setEmployee(res.data.data || []);
+      const res = await api.get("/api/v1/admin/client");
+      setCustomers(res.data.data || []);
     } catch (err) {
-      console.error("Error fetching employee:", err);
+      console.error("Error fetching customers:", err);
+      errorToast("Failed to fetch customers");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEmployee();
+    fetchCustomers();
   }, []);
 
   // navigate to edit page
@@ -52,7 +61,7 @@ const CustomerList = () => {
 
   // navigate to view page
   const handleView = (id) => {
-    navigate(`/view-customer/${id}`);
+    navigate(`/CustomeProfile/${id}`);
   };
 
   // delete modal
@@ -65,50 +74,48 @@ const CustomerList = () => {
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/employee/${deleteId}`)
+      .delete(`/api/v1/admin/client/${deleteId}`)
       .then(() => {
-        successToast("Employee Deleted Successfully");
-        setEmployee((prev) => prev.filter((emp) => emp.id !== deleteId));
+        successToast("Customer deleted successfully");
+        setCustomers((prev) => prev.filter((c) => c.id !== deleteId));
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting department:", err);
-        errorToast(err.response?.data?.message || "Failed to delete employee");
+        console.error("Error deleting customer:", err);
+        errorToast(err.response?.data?.message || "Failed to delete customer");
       });
   };
 
   const handleToggleActive = async (id, status) => {
     const newStatus = !status;
     try {
-      const res = await api.put(`/api/v1/admin/employee/${id}`, {
+      const res = await api.put(`/api/v1/admin/client/${id}`, {
         isActive: newStatus,
       });
       if (res.status === 200) {
-        successToast("Employee status updated successfully");
-        setEmployee((prev) =>
-          prev.map((emp) =>
-            emp.id === id ? { ...emp, isActive: newStatus } : emp
-          )
+        successToast("Customer status updated successfully");
+        setCustomers((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, isActive: newStatus } : c))
         );
       }
     } catch (err) {
-      console.error("Error employee status:", err);
+      console.error("Error updating customer status:", err);
       errorToast(
-        err.response?.data?.message || "Failed to update employee status"
+        err.response?.data?.message || "Failed to update customer status"
       );
     }
   };
 
   return (
     <>
-      <Row>
+      <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title">Customer List</h5>
+              <h5 className="card-title fw-lighter">Customers</h5>
               <Button
-                className="btn-primary fs-6"
-                onClick={() => navigate("/add-Customer")}
+                className="btn-primary"
+                onClick={() => navigate("/add-customer")}
               >
                 + Add Customer
               </Button>
@@ -121,31 +128,31 @@ const CustomerList = () => {
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table">
+                  <Table hover responsive className="table">
                     <thead>
-                      <tr>
+                      <tr className="table-gray">
                         <th>Sr. No.</th>
                         <th>Cust ID</th>
                         <th>Name</th>
-                        <th>Reporting To</th>
+                        <th>Email</th>
                         <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {currentEmployees.length === 0 ? (
+                      {currentCustomers.length === 0 ? (
                         <tr>
                           <td colSpan="6" className="text-center">
-                            No Employee available
+                            No customers available
                           </td>
                         </tr>
                       ) : (
-                        currentEmployees.map((item, idx) => (
+                        currentCustomers.map((item, idx) => (
                           <tr key={item.id}>
-                            <td>{indexOfFirstRole + idx + 1}</td>
-                            <td>{item.emp_id}</td>
+                            <td>{indexOfFirst + idx + 1}</td>
+                            <td>{item.client_id}</td>
                             <td>{item.name}</td>
-                            <td>{item?.manager?.name || "N/A"}</td>
+                            <td>{item.email}</td>
                             <td>
                               <span
                                 className={`status-dot ${
@@ -172,7 +179,9 @@ const CustomerList = () => {
                                 }}
                               />
                               <DeleteRoundedIcon
-                                onClick={() => openDeleteModal(item.id, idx)}
+                                onClick={() =>
+                                  openDeleteModal(item.id, indexOfFirst + idx)
+                                }
                                 color="error"
                                 style={{
                                   cursor: "pointer",
@@ -192,40 +201,42 @@ const CustomerList = () => {
                         ))
                       )}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               )}
               {/* Pagination Controls */}
-              {totalPages > 1 && !loading && (
-                <div className="d-flex justify-content-end mt-3 me-3">
-                  <Button
-                    variant="secondary"
-                    size="sm"
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    Previous
-                  </Button>
+                  />
+                  <Pagination.Prev
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
                   {[...Array(totalPages)].map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={currentPage === i + 1 ? "primary" : "light"}
-                      size="sm"
-                      className="mx-1"
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
                       onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
-                    </Button>
+                    </Pagination.Item>
                   ))}
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
               )}
             </Card.Body>
           </Card>
@@ -242,8 +253,8 @@ const CustomerList = () => {
         onConfirm={handleDeleteConfirm}
         modalTitle="Delete Customer"
         modalMessage={
-          deleteIndex !== null && employee[deleteIndex]
-            ? `Are you sure you want to delete the employee ${employee[deleteIndex].name}?`
+          deleteIndex !== null && customers[deleteIndex]
+            ? `Are you sure you want to delete the customer ${customers[deleteIndex].name}?`
             : ""
         }
       />
@@ -251,4 +262,4 @@ const CustomerList = () => {
   );
 };
 
-export default CustomerList; // ✅ Also updated export
+export default CustomerList;
