@@ -7,6 +7,8 @@ import {
   Form,
   Pagination,
   Spinner,
+  Tab,
+  Table,
 } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -38,7 +40,7 @@ const AwardList = () => {
 
   // 🔑 Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
@@ -230,7 +232,7 @@ const AwardList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Awards </h4>
+              <h5 className="card-title fw-lighter">Awards</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -242,9 +244,9 @@ const AwardList = () => {
             </Card.Header>
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr className="ligth">
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Title</th>
                       <th>Icon</th>
@@ -319,7 +321,7 @@ const AwardList = () => {
                       })
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* Pagination */}

@@ -146,7 +146,7 @@ const SubHeader = memo(() => {
 
   return (
     <Fragment>
-      <div className="iq-navbar-header" style={{ marginTop: "68px" }}>
+      <div className="iq-navbar-header" style={{ marginTop: "50px" }}>
         <Container fluid className="iq-container">
           <Row className="clock-in-row">
             <Col md="12">

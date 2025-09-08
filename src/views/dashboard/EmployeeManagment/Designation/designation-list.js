@@ -7,6 +7,7 @@ import {
   Form,
   Pagination,
   Spinner,
+  Table,
 } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -33,7 +34,7 @@ const RoleList = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const rowsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
@@ -244,7 +245,7 @@ const RoleList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Designations </h4>
+              <h5 className="card-title fw-lighter">Designations</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -257,9 +258,9 @@ const RoleList = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr className="ligth">
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Name</th>
                       <th>Status</th>
@@ -313,7 +314,7 @@ const RoleList = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* Pagination Controls */}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, Row, Col, Button } from "react-bootstrap";
+import { Card, Row, Col, Button, Table } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
@@ -105,7 +105,7 @@ const LeadsList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Leads Contact </h4>
+              <h5 className="card-title fw-lighter">Leads Contact</h5>
               <Button
                 className="btn-primary"
                 onClick={() => {
@@ -119,9 +119,9 @@ const LeadsList = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Name</th>
                       <th>Email</th>
@@ -167,7 +167,7 @@ const LeadsList = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
             </Card.Body>
           </Card>
