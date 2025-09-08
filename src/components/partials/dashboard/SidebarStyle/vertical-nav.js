@@ -57,6 +57,12 @@ const VerticalNav = memo((props) => {
   return (
     <Fragment>
       <Accordion as="ul" className="navbar-nav iq-main-menu">
+        {/* <li className="nav-item static-item">
+          <Link className="nav-link static-item disabled" to="#" tabIndex="-1">
+            <span className="default-icon">Home</span>
+            <span className="mini-icon">-</span>
+          </Link>
+        </li> */}
         <li
           className={`${
             location.pathname === "/dashboard" ? "active" : ""
@@ -97,6 +103,12 @@ const VerticalNav = memo((props) => {
         <li>
           <hr className="hr-horizontal" />
         </li>
+        {/* <li className="nav-item static-item">
+          <Link className="nav-link static-item disabled" to="#" tabIndex="-1">
+            <span className="default-icon">Admin</span>
+            <span className="mini-icon">-</span>
+          </Link>
+        </li> */}
 
         {/* admin */}
         <Accordion.Item

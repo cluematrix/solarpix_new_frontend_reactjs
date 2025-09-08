@@ -221,7 +221,7 @@ const ClientCategory = () => {
 
   return (
     <>
-      <Row>
+      <Row className="mt-4">
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
@@ -270,7 +270,7 @@ const ClientCategory = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
+                              className="me-1"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon

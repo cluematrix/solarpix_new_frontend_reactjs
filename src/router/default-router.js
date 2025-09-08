@@ -86,6 +86,7 @@ import UpdateEmployee from "../views/dashboard/Employees/AddEmployee/updateEmplo
 import EmpProfileTab from "../views/dashboard/Employees/EmployeeProfile/empProfileTab";
 import UpdateCustomer from "../views/dashboard/Customer/Customers/updateCustomer";
 import AddCustomer from "../views/dashboard/Customer/Customers/addCustomer";
+import CustomerProfile from "../views/dashboard/Customer/Customers/customerProfile";
 
 // employee profile 01 Sep
 
@@ -224,6 +225,11 @@ export const DefaultRouter = [
       {
         path: "/CustomerList",
         element: <CustomerList />,
+      },
+
+      {
+        path: "/CustomeProfile/:id",
+        element: <CustomerProfile />,
       },
 
       {

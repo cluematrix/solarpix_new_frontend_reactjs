@@ -6,26 +6,21 @@ import {
   Card,
   Table,
   Image,
-  Badge,
   Spinner,
 } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import api from "../../../../api/axios";
 
 const CustomerProfile = () => {
-  const { id } = useParams(); // Get ID from URL
-  const [emp, setEmp] = useState({});
+  const { id } = useParams(); // Get customer ID from URL
+  const [customer, setCustomer] = useState({});
   const [loading, setLoading] = useState(false);
 
-  console.log("Component Mounted, ID:", id);
-
-  const fetchEmpById = async () => {
-    console.log("fetchEmpById called with ID:", id);
+  const fetchCustomerById = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/api/v1/admin/employee/${id}`);
-      console.log("API Response:", res);
-      setEmp(res.data.data || []);
+      const res = await api.get(`/api/v1/admin/client/${id}`);
+      setCustomer(res.data.data || {});
     } catch (error) {
       console.error("Fetch Error:", error);
     } finally {
@@ -34,11 +29,8 @@ const CustomerProfile = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect running...");
     if (id) {
-      fetchEmpById();
-    } else {
-      console.warn("ID is missing, cannot fetch");
+      fetchCustomerById();
     }
   }, [id]);
 
@@ -49,150 +41,77 @@ const CustomerProfile = () => {
       </div>
     );
   }
-  console.log("Employee Data:", emp);
 
   return (
     <Container fluid className="p-0">
       <Row className="mt-4">
         {/* Left Section */}
-        <Col md={8}>
+        <Col md={12}>
           {/* Profile Card */}
           <Card className="mb-4">
             <Card.Body className="d-flex align-items-center flex-wrap">
               <Image
-                src={emp?.photo}
+                src={customer?.photo || "https://via.placeholder.com/80"}
                 roundedCircle
-                width={80}
-                height={80}
+                width={150}
+                height={150}
                 className="me-3"
               />
               <div>
-                <div className="mb-3">
-                  <h5>{emp?.name || "--"}</h5>
-                  <p className="mb-1 small">
-                    {emp?.designation?.name || "--"} •{" "}
-                    {emp?.department?.name || "--"} | User Role:{" "}
-                    {emp?.role?.name || "--"}
-                  </p>
-                  <small className="text-muted">
-                    Last login: {emp?.lastLogin || "--"}
-                  </small>
-                </div>
-                <div className="d-flex gap-4 text-center">
-                  <div>
-                    <h6>{emp?.openTasks || "--"}</h6>
-                    <small>Open Tasks</small>
-                  </div>
-                  <div>
-                    <h6>{emp?.projects || "--"}</h6>
-                    <small>Projects</small>
-                  </div>
-                  <div>
-                    <h6>{emp?.hoursLogged || "--"}</h6>
-                    <small>Hours Logged</small>
-                  </div>
-                  <div>
-                    <h6>{emp?.tickets || "--"}</h6>
-                    <small>Tickets</small>
-                  </div>
-                </div>
+                <h5>{customer?.name || "--"}</h5>
+                <p className="mb-1 small">
+                  {customer?.client_category?.name || "Customer"}
+                </p>
+                <small className="text-muted">{customer?.email || "--"}</small>
               </div>
             </Card.Body>
           </Card>
 
           {/* About Section */}
-          <Card className="mb-4">
+          {/* <Card className="mb-4">
             <Card.Body>
               <h5>About</h5>
-              <p>{emp?.about || "No description available"}</p>
+              <p>{customer?.about || "No description available"}</p>
             </Card.Body>
-          </Card>
+          </Card> */}
 
           {/* Profile Info Section */}
           <Card>
             <Card.Body>
-              <h5>Profile Info</h5>
+              <h5>Customer Info</h5>
               <Table borderless className="mt-3">
                 <tbody>
                   <tr>
-                    <td>Employee ID</td>
-                    <td>{emp?.emp_id || "--"}</td>
+                    <td>Customer ID</td>
+                    <td>{customer?.client_id || "--"}</td>
                   </tr>
                   <tr>
                     <td>Full Name</td>
-                    <td>
-                      {emp?.salutation}. {emp?.name || "--"}
-                    </td>
+                    <td>{customer?.name || "--"}</td>
                   </tr>
                   <tr>
                     <td>Email</td>
-                    <td>{emp?.email || "--"}</td>
+                    <td>{customer?.email || "--"}</td>
                   </tr>
                   <tr>
-                    <td>Mobile</td>
-                    <td>{emp?.contact || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Designation</td>
-                    <td>{emp?.designation?.name || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Department</td>
-                    <td>{emp?.department?.name || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Gender</td>
-                    <td>{emp?.gender || "--"}</td>
-                  </tr>
-                  {/* <tr>
-                    <td>Work Anniversary</td>
-                    <td>{emp?.workAnniversary || "--"}</td>
-                  </tr> */}
-                  <tr>
-                    <td>Date of Birth</td>
-                    <td>{emp?.dob?.split("T")[0] || "--"}</td>
+                    <td>Contact</td>
+                    <td>{customer?.contact || "--"}</td>
                   </tr>
                   <tr>
                     <td>Address</td>
-                    <td>
-                      {emp?.address}, {emp?.city}, {emp?.state}
-                    </td>
+                    <td>{customer?.address || "--"}</td>
+                  </tr>
+                  {/* <tr>
+                    <td>GST No</td>
+                    <td>{customer?.gst_no || "--"}</td>
                   </tr>
                   <tr>
-                    <td>Skills</td>
-                    <td>{emp?.skill || "--"}</td>
-                  </tr>
+                    <td>PAN No</td>
+                    <td>{customer?.pan_no || "--"}</td>
+                  </tr> */}
                   <tr>
-                    <td>Language</td>
-                    <td>{emp?.language || "English"}</td>
-                  </tr>
-                  <tr>
-                    <td>Probation End Date</td>
-                    <td>{emp?.probation_end_date?.split("T")[0] || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Notice Period Start Date</td>
-                    <td>{emp?.notice_start_date?.split("T")[0] || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Notice Period End Date</td>
-                    <td>{emp?.notice_end_date?.split("T")[0] || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Marital Status</td>
-                    <td>{emp?.maritial_status || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Employment Type</td>
-                    <td>{emp?.employmentType?.emp_type || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Joining Date</td>
-                    <td>{emp?.joining_date?.split("T")[0] || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td>Exit Date</td>
-                    <td>{emp?.notice_end_date?.split("T")[0] || "--"}</td>
+                    <td>Status</td>
+                    <td>{customer?.isActive ? "Active" : "Inactive"}</td>
                   </tr>
                 </tbody>
               </Table>
@@ -202,96 +121,32 @@ const CustomerProfile = () => {
 
         {/* Right Section */}
         <Col md={4}>
-          <Card className="mb-4">
+          {/* Bank Details */}
+          {/* <Card>
             <Card.Body>
-              <h6>Appreciation</h6>
-              <div className="text-center">
-                <Badge bg="secondary" pill>
-                  0
-                </Badge>
-              </div>
-            </Card.Body>
-          </Card>
-
-          <Card className="mb-4">
-            <Card.Body>
-              <p>
-                <strong>Reporting To:</strong> {emp?.manager?.name || "--"}
-              </p>
-              <p>
-                <strong>Reporting Team:</strong> --
-              </p>
-            </Card.Body>
-          </Card>
-
-          <Row className="mb-4">
-            <Col>
-              <Card>
-                <Card.Body className="text-center">
-                  <p>Late Attendance</p>
-                  <h5>0</h5>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col>
-              <Card>
-                <Card.Body className="text-center">
-                  <p>Leaves Taken</p>
-                  <h5>0</h5>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          {/* Tasks Pie Chart (Placeholder for now) */}
-          <Card className="mb-4">
-            <Card.Body>
-              <h6>Tasks</h6>
-              <div
-                style={{
-                  width: "100%",
-                  height: "200px",
-                  background: "#f4f4f4",
-                }}
-                className="d-flex justify-content-center align-items-center"
-              >
-                <p>Pie Chart Here</p>
-              </div>
-            </Card.Body>
-          </Card>
-
-          <Card>
-            <Card.Body className="text-center">
-              <p>Tickets</p>
-              <p>- Not enough data -</p>
-            </Card.Body>
-          </Card>
-
-          <Card>
-            <Card.Body className="">
               <h6>Bank Details</h6>
               <Table borderless className="mt-3">
                 <tbody>
                   <tr>
                     <td className="ps-0">Bank Name</td>
-                    <td  className="ps-0">{emp?.bank_name || "--"}</td>
+                    <td className="ps-0">{customer?.bank_name || "--"}</td>
                   </tr>
                   <tr>
                     <td className="ps-0">Account No</td>
-                    <td  className="ps-0">{emp?.account_no || "--"}</td>
+                    <td className="ps-0">{customer?.account_no || "--"}</td>
                   </tr>
                   <tr>
                     <td className="ps-0">IFSC Code</td>
-                    <td  className="ps-0">{emp?.ifsc_code || "--"}</td>
+                    <td className="ps-0">{customer?.ifsc_code || "--"}</td>
                   </tr>
                   <tr>
                     <td className="ps-0">Branch Name</td>
-                    <td  className="ps-0">{emp?.branch_name || "--"}</td>
+                    <td className="ps-0">{customer?.branch_name || "--"}</td>
                   </tr>
                 </tbody>
               </Table>
             </Card.Body>
-          </Card>
+          </Card> */}
         </Col>
       </Row>
     </Container>
