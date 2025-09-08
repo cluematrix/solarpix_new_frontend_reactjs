@@ -1,0 +1,20 @@
+.iq-navbar {
+  height: 48px !important;      /* Fix height */
+  min-height: 48px !important;
+  display: flex;
+  align-items: center;
+
+}
+.navbar-inner {
+  height: 48px !important;
+  min-height: 48px !important;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-header{
+    height: 49px !important;
+    min-height: 49px !important;
+    padding: 2px 0px 2px 11px !important;
+
+}

@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Form,
+  Spinner,
+  Table,
+  Pagination,
+} from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -214,7 +223,7 @@ const ExpenseCategory = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Expense Categories </h4>
+              <h5 className="card-title fw-lighter">Expense Categories</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -227,9 +236,9 @@ const ExpenseCategory = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Category</th>
                       <th>Status</th>
@@ -285,28 +294,42 @@ const ExpenseCategory = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="d-flex justify-content-between align-items-center px-3 py-2">
-                  <Button
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    Previous
-                  </Button>
-                  <span>
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
+                  />
+                  <Pagination.Prev
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
               )}
             </Card.Body>
           </Card>

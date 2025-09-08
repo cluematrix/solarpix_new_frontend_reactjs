@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Row, Col, Button, Form, Spinner } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Form,
+  Spinner,
+  Table,
+  Pagination,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import DeleteModal from "./deleteModal";
@@ -105,7 +114,7 @@ const CustomerList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title fw-bold">Customers </h5>
+              <h5 className="card-title fw-lighter">Customers</h5>
               <Button
                 className="btn-primary fs-6"
                 onClick={() => navigate("/add-Customer")}
@@ -121,9 +130,9 @@ const CustomerList = () => {
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table">
+                  <Table hover responsive className="table">
                     <thead>
-                      <tr>
+                      <tr className="table-gray">
                         <th>Sr. No.</th>
                         <th>Cust ID</th>
                         <th>Name</th>
@@ -192,40 +201,42 @@ const CustomerList = () => {
                         ))
                       )}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               )}
               {/* Pagination Controls */}
-              {totalPages > 1 && !loading && (
-                <div className="d-flex justify-content-end mt-3 me-3">
-                  <Button
-                    variant="secondary"
-                    size="sm"
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    Previous
-                  </Button>
+                  />
+                  <Pagination.Prev
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  />
                   {[...Array(totalPages)].map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={currentPage === i + 1 ? "primary" : "light"}
-                      size="sm"
-                      className="mx-1"
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
                       onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
-                    </Button>
+                    </Pagination.Item>
                   ))}
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
               )}
             </Card.Body>
           </Card>

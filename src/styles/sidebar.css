@@ -6,6 +6,10 @@
     font-size: 14px;
 }
 
+.sidebar-base .nav-item .nav-link{
+  padding: 7px 5px;
+}
+
 /* .accordion .nav-item {
   padding: 0 !important;
   margin: 0 !important;

@@ -4,12 +4,6 @@ import { Link } from "react-router-dom";
 import CustomToggle from "../../../dropdowns";
 import { useNavigate } from "react-router-dom";
 //img
-import flag1 from "../../../../assets/images/Flag/flag001.png";
-import flag2 from "../../../../assets/images/Flag/flag-02.png";
-import flag3 from "../../../../assets/images/Flag/flag-03.png";
-import flag4 from "../../../../assets/images/Flag/flag-04.png";
-import flag5 from "../../../../assets/images/Flag/flag-05.png";
-import flag6 from "../../../../assets/images/Flag/flag-06.png";
 import shapes1 from "../../../../assets/images/shapes/01.png";
 import shapes2 from "../../../../assets/images/shapes/02.png";
 import shapes3 from "../../../../assets/images/shapes/03.png";
@@ -24,6 +18,8 @@ import avatars6 from "../../../../assets/images/avatars/avtar_5.png";
 // logo
 import Logo from "../../components/logo";
 
+//import "./header.css";
+import "../../../../styles/header.css";
 // Redux Selector / Action
 import { useSelector } from "react-redux";
 
@@ -69,6 +65,7 @@ const Header = memo((props) => {
         className={`nav iq-navbar fixed-top ${headerNavbar} ${navbarHide.join(
           " "
         )}`}
+        style={{ padding: "2px 0px", marginTop: "0px" }}
       >
         <Container fluid className="navbar-inner">
           <Link to="/dashboard" className="navbar-brand">
@@ -90,7 +87,7 @@ const Header = memo((props) => {
               </svg>
             </i>
           </div>
-          <div className="input-group search-input">
+          {/* <div className="input-group search-input">
             <span className="input-group-text" id="search-input">
               <svg
                 width="18"
@@ -121,7 +118,7 @@ const Header = memo((props) => {
               className="form-control"
               placeholder="Search..."
             />
-          </div>
+          </div> */}
           <Navbar.Toggle aria-controls="navbarSupportedContent">
             <span className="navbar-toggler-icon">
               <span className="mt-2 navbar-toggler-bar bar1"></span>
@@ -134,25 +131,6 @@ const Header = memo((props) => {
               as="ul"
               className="mb-2 ms-auto navbar-list mb-lg-0 align-items-center"
             >
-              {/* <Dropdown as="li" className="nav-item">
-                                <Dropdown.Toggle as={CustomToggle}   variant="search-toggle nav-link">
-                                    <img src={flag1} className="img-fluid rounded-circle" alt="user" style={{height: "30px", minWidth: "30px", width: "30px",}}/>
-                                    <span className="bg-primary"></span>
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="p-0 sub-drop dropdown-menu-end">
-                                    <div className="m-0 border-0 shadow-none card">
-                                        <div className="p-0 ">
-                                            <ul className="list-group list-group-flush">
-                                                <li className="iq-sub-card list-group-item"><Link className="p-0" to="#"><img src={flag3} alt="img-flaf" className="img-fluid me-2" style={{width: "15px", height: "15px", minWidth: "15px",}}/>Italian</Link></li>
-                                                <li className="iq-sub-card list-group-item"><Link className="p-0" to="#"><img src={flag4} alt="img-flaf" className="img-fluid me-2" style={{width: "15px", height: "15px", minWidth: "15px",}}/>French</Link></li>
-                                                <li className="iq-sub-card list-group-item"><Link className="p-0" to="#"><img src={flag2} alt="img-flaf" className="img-fluid me-2" style={{width: "15px", height: "15px", minWidth: "15px",}}/>German</Link></li>
-                                                <li className="iq-sub-card list-group-item"><Link className="p-0" to="#"><img src={flag5} alt="img-flaf" className="img-fluid me-2" style={{width: "15px", height: "15px", minWidth: "15px",}}/>Spanish</Link></li>
-                                                <li className="iq-sub-card list-group-item"><Link className="p-0" to="#"><img src={flag6} alt="img-flaf" className="img-fluid me-2" style={{width: "15px", height: "15px", minWidth: "15px",}}/>Japanese</Link></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </Dropdown.Menu>
-                            </Dropdown> */}
               <Dropdown as="li" className="nav-item">
                 <Dropdown.Toggle
                   as={CustomToggle}
@@ -162,7 +140,7 @@ const Header = memo((props) => {
                   data-bs-toggle="dropdown"
                 >
                   <svg
-                    width="24"
+                    width="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -186,7 +164,7 @@ const Header = memo((props) => {
                   <div className="m-0 shadow-none card">
                     <div className="py-3 card-header d-flex justify-content-between bg-primary">
                       <div className="header-title">
-                        <h5 className="mb-0 text-white">All Notifications</h5>
+                        <h6 className="mb-0 text-white">All Notifications</h6>
                       </div>
                     </div>
                     <div className="p-0 card-body">
@@ -268,6 +246,7 @@ const Header = memo((props) => {
                   </div>
                 </Dropdown.Menu>
               </Dropdown>
+
               <Dropdown as="li" className="nav-item">
                 <Dropdown.Toggle
                   as={CustomToggle}
@@ -279,7 +258,7 @@ const Header = memo((props) => {
                   aria-expanded="false"
                 >
                   <svg
-                    width="24"
+                    width="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -409,36 +388,39 @@ const Header = memo((props) => {
                   <img
                     src={avatars1}
                     alt="User-Profile"
-                    className="theme-color-default-img img-fluid avatar avatar-50 avatar-rounded"
+                    className="theme-color-default-img img-fluid avatar avatar-40 avatar-rounded"
                   />
                   <img
                     src={avatars2}
                     alt="User-Profile"
-                    className="theme-color-purple-img img-fluid avatar avatar-50 avatar-rounded"
+                    className="theme-color-purple-img img-fluid avatar avatar-40 avatar-rounded"
                   />
                   <img
                     src={avatars3}
                     alt="User-Profile"
-                    className="theme-color-blue-img img-fluid avatar avatar-50 avatar-rounded"
+                    className="theme-color-blue-img img-fluid avatar avatar-40 avatar-rounded"
                   />
                   <img
                     src={avatars5}
                     alt="User-Profile"
-                    className="theme-color-green-img img-fluid avatar avatar-50 avatar-rounded"
+                    className="theme-color-green-img img-fluid avatar avatar-40 avatar-rounded"
                   />
                   <img
                     src={avatars6}
                     alt="User-Profile"
-                    className="theme-color-yellow-img img-fluid avatar avatar-50 avatar-rounded"
+                    className="theme-color-yellow-img img-fluid avatar avatar-40 avatar-rounded"
                   />
                   <img
                     src={avatars4}
                     alt="User-Profile"
-                    className="theme-color-pink-img img-fluid avatar avatar-50 avatar-rounded"
+                    className="theme-color-pink-img img-fluid avatar avatar-40 avatar-rounded"
                   />
-                  <div className="caption ms-3 d-none d-md-block ">
+                  <div className="caption ms-2 d-none d-md-block ">
                     <h6 className="mb-0 caption-title">Austin Robertson</h6>
-                    <p className="mb-0 caption-sub-title">
+                    <p
+                      className="mb-0 caption-sub-title"
+                      style={{ fontSize: "12px" }}
+                    >
                       Marketing Administrator
                     </p>
                   </div>
