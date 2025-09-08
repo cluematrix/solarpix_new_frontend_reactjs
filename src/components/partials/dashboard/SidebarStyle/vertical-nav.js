@@ -57,15 +57,6 @@ const VerticalNav = memo((props) => {
   return (
     <Fragment>
       <Accordion as="ul" className="navbar-nav iq-main-menu">
-<<<<<<< HEAD
-        {/* <li className="nav-item static-item">
-          <Link className="nav-link static-item disabled" to="#" tabIndex="-1">
-            <span className="default-icon">Home</span>
-            <span className="mini-icon">-</span>
-          </Link>
-        </li> */}
-=======
->>>>>>> 7cd603b1a721889fb11ed39ea2df3d2c5c0cb0dc
         <li
           className={`${
             location.pathname === "/dashboard" ? "active" : ""
@@ -106,15 +97,6 @@ const VerticalNav = memo((props) => {
         <li>
           <hr className="hr-horizontal" />
         </li>
-<<<<<<< HEAD
-        {/* <li className="nav-item static-item">
-          <Link className="nav-link static-item disabled" to="#" tabIndex="-1">
-            <span className="default-icon">Admin</span>
-            <span className="mini-icon">-</span>
-          </Link>
-        </li> */}
-=======
->>>>>>> 7cd603b1a721889fb11ed39ea2df3d2c5c0cb0dc
 
         {/* admin */}
         <Accordion.Item
@@ -791,31 +773,11 @@ const VerticalNav = memo((props) => {
                     <AccountTreeIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon"> C </i>
-<<<<<<< HEAD
-                  <span className="item-name">Customer Category</span>
-                </Link>
-              </li>
-              {/* <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/clientSubCategory-list"
-                      ? "active"
-                      : ""
-                  } nav-link`}
-                  to="/clientSubCategory-list"
-                >
-                  <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon"> CS </i>
-                  <span className="item-name">Customer Sub Category</span>
-=======
                   <span className="item-name sidebar-font-size">
                     Customer Category
                   </span>
->>>>>>> 7cd603b1a721889fb11ed39ea2df3d2c5c0cb0dc
                 </Link>
-              </li> */}
+              </li> 
               <li className="nav-item">
                 <Link
                   className={`${

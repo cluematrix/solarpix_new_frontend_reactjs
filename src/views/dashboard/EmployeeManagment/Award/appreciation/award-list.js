@@ -16,6 +16,7 @@ import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../../api/axios";
 import { useLocation } from "react-router";
+import * as FaIcons from "react-icons/fa";
 
 const AwardList = () => {
   const [awards, setAwards] = useState([]);
@@ -98,6 +99,7 @@ const AwardList = () => {
           : [];
         setAwards(data);
       })
+
       .catch((err) => {
         console.error(err);
         toast.error("Failed to fetch awards");
@@ -260,57 +262,61 @@ const AwardList = () => {
                         </td>
                       </tr>
                     ) : (
-                      currentAwards.map((item, idx) => (
-                        <tr key={item.id || item._id}>
-                          <td>{indexOfFirstItem + idx + 1}</td>
-                          <td>{item.title}</td>
-                          <td>{item.icon}</td>
-                          <td>
-                            <div
-                              style={{
-                                width: "20px",
-                                height: "20px",
-                                backgroundColor: item.color || "#000",
-                                borderRadius: "50%",
-                              }}
-                            ></div>
-                          </td>
-                          <td>{item.description}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
-                          <td className="d-flex align-items-center">
-                            <Form.Check
-                              type="switch"
-                              id={`active-switch-${item.id}`}
-                              checked={item.isActive}
-                              onChange={() =>
-                                handleToggleActive(item.id, item.isActive)
-                              }
-                              className="me-3"
-                            />
-                            {permissions.edit && (
-                              <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() =>
-                                  handleEdit(indexOfFirstItem + idx)
-                                }
-                                color="primary"
-                                style={{ cursor: "pointer" }}
-                              />
-                            )}
-                            {permissions.del && (
-                              <DeleteRoundedIcon
-                                onClick={() => {
-                                  setDeleteIndex(indexOfFirstItem + idx);
-                                  setDeleteId(item.id || item._id);
-                                  setShowDelete(true);
+                      currentAwards.map((item, idx) => {
+                        return (
+                          <tr key={item.id || item._id}>
+                            <td>{indexOfFirstItem + idx + 1}</td>
+                            <td>{item.title}</td>
+                            <td>
+                              <i className={item.icon}></i>
+                            </td>
+                            <td>
+                              <div
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  backgroundColor: item.color || "#000",
+                                  borderRadius: "50%",
                                 }}
-                                color="error"
-                                style={{ cursor: "pointer" }}
+                              ></div>
+                            </td>
+                            <td>{item.description}</td>
+                            <td>{item.isActive ? "Active" : "Inactive"}</td>
+                            <td className="d-flex align-items-center">
+                              <Form.Check
+                                type="switch"
+                                id={`active-switch-${item.id}`}
+                                checked={item.isActive}
+                                onChange={() =>
+                                  handleToggleActive(item.id, item.isActive)
+                                }
+                                className="me-3"
                               />
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                              {permissions.edit && (
+                                <CreateTwoToneIcon
+                                  className="me-2"
+                                  onClick={() =>
+                                    handleEdit(indexOfFirstItem + idx)
+                                  }
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                              {permissions.del && (
+                                <DeleteRoundedIcon
+                                  onClick={() => {
+                                    setDeleteIndex(indexOfFirstItem + idx);
+                                    setDeleteId(item.id || item._id);
+                                    setShowDelete(true);
+                                  }}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
