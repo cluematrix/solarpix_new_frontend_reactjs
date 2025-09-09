@@ -188,28 +188,6 @@ const LeadsList = () => {
               </Button>
             </Card.Header>
 
-<<<<<<< HEAD
-            <Card.Body className="px-0 pt-3">
-              <div className="table-responsive">
-                <Table hover responsive className="table">
-                  <thead>
-                    <tr className="table-gray">
-                      <th>Sr. No.</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Lead Source</th>
-                      <th>Deal Name</th>
-                      <th>Deal Stage</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leadList.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="text-center">
-                          No leads available
-                        </td>
-=======
             <Card.Body className="px-0">
               {loading ? (
                 <div className="text-center py-3">
@@ -228,7 +206,6 @@ const LeadsList = () => {
                         <th>Added By</th>
                         <th>Lead Owner</th>
                         <th>Action</th>
->>>>>>> f117f7c0f4425ec16caf41a0868c6158a29be1cd
                       </tr>
                     </thead>
                     <tbody>
