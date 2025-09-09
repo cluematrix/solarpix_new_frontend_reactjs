@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import AddProject from "./addProject";
 import UpdateProjectForm from "./updateProjectForm";
+import api from "../../../../api/axios";
 
 const AddEditProjectModal = ({
   show,
@@ -13,16 +14,24 @@ const AddEditProjectModal = ({
   openEditModal,
 }) => {
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [employee, setEmployee] = useState([]);
 
-  const membersList = [
-    { id: "1", name: "Rohit Sharma" },
-    { id: "2", name: "Priya Singh" },
-    { id: "3", name: "Amit Verma" },
-    { id: "4", name: "Neha Gupta" },
-  ];
+  // fetch employee
+  const fetchEmployee = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/employee");
+      console.log(res.data, "test");
+      setEmployee(res.data.data || []);
+    } catch (err) {
+      console.error("Error fetching employee:", err);
+    }
+  };
 
   // const currencyOptions = ["USD", "EUR", "INR", "GBP"];
 
+  useEffect(() => {
+    fetchEmployee();
+  }, []);
   useEffect(() => {
     if (!editData) {
       setFormData((prev) => ({ ...prev, file: null, projectMembers: [] }));
@@ -45,7 +54,7 @@ const AddEditProjectModal = ({
   console.log("formData.projectMembersModal", formData.projectMembers);
 
   // Helper to get selected member names
-  const selectedMemberNames = membersList
+  const selectedMemberNames = employee
     .filter((member) => formData.projectMembers?.includes(member.id))
     .map((member) => member.name);
 
@@ -81,7 +90,7 @@ const AddEditProjectModal = ({
           <Modal.Title>Select Project Members</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {membersList.map((member) => (
+          {employee.map((member) => (
             <Form.Check
               key={member.id}
               type="checkbox"

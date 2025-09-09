@@ -1,47 +1,32 @@
-import React, { useState } from "react";
-import { Card, Row, Col, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Card, Row, Col, Button, Table, Spinner } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
+import api from "../../../../api/axios";
 
 const LeadsList = () => {
-  const [leadList, setLeadList] = useState([
-    {
-      salutation: "Mr.",
-      name: "John Doe",
-      email: "john@example.com",
-      leadSource: "Website",
-      addedBy: "Admin",
-      leadOwner: "Rohit Sharma",
-      dealName: "Website Redesign",
-      pipeline: "Sales Pipeline",
-      dealStage: "Negotiation",
-      dealValue: "5000",
-      closeDate: "2025-09-11",
-      dealCategory: "Software",
-      dealAgent: "Priya Singh",
-      products: "Web Development",
-      dealWatcher: "Amit Verma",
-    },
-  ]);
+  const [leadList, setLeadList] = useState([]);
+  const [leadSources, setLeadSources] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     salutation: "",
     name: "",
     email: "",
+    contact: "",
     leadSource: "",
     addedBy: "",
     leadOwner: "",
-    dealName: "",
-    pipeline: "",
-    dealStage: "",
-    dealValue: "",
-    closeDate: "",
-    dealCategory: "",
-    dealAgent: "",
-    products: "",
-    dealWatcher: "",
+    city: "",
+    state: "",
+    pincode: "",
+    description: "",
+    address: "",
+    isActive: true,
+    isDelete: false,
   });
 
   const [editIndex, setEditIndex] = useState(null);
@@ -49,51 +34,123 @@ const LeadsList = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
+  // ✅ Fetch dropdowns once
+  const fetchDropdowns = async () => {
+    try {
+      const [leadRes, empRes] = await Promise.all([
+        api.get("/api/v1/admin/leadSource/active"),
+        api.get("/api/v1/admin/employee/active"),
+      ]);
+      if (leadRes.data?.success) setLeadSources(leadRes.data.data || []);
+      if (empRes.data?.success) setEmployees(empRes.data.data || []);
+    } catch (err) {
+      console.error("Error fetching dropdowns:", err);
+    }
+  };
+
+  // ✅ Fetch Leads List
+  const fetchLeads = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/v1/admin/lead");
+      if (res.data?.success) {
+        setLeadList(res.data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching leads:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDropdowns();
+    fetchLeads();
+  }, []);
+
   const resetForm = () => {
     setFormData({
       salutation: "",
       name: "",
       email: "",
+      contact: "",
       leadSource: "",
       addedBy: "",
       leadOwner: "",
-      dealName: "",
-      pipeline: "",
-      dealStage: "",
-      dealValue: "",
-      closeDate: "",
-      dealCategory: "",
-      dealAgent: "",
-      products: "",
-      dealWatcher: "",
+      city: "",
+      state: "",
+      pincode: "",
+      description: "",
+      address: "",
+      isActive: true,
+      isDelete: false,
     });
     setEditIndex(null);
   };
 
-  const handleAddOrUpdateLead = (data) => {
-    if (!data.name.trim()) return;
+  // ✅ Save lead (POST/PUT)
+  const handleAddOrUpdateLead = async (data) => {
+    const payload = {
+      salutation: data.salutation,
+      name: data.name,
+      email: data.email,
+      contact: data.contact,
+      lead_source: data.leadSource,
+      added_by: data.addedBy,
+      lead_owner: data.leadOwner,
+      city: data.city,
+      state: data.state,
+      pincode: data.pincode,
+      description: data.description,
+      address: data.address,
+      isActive: data.isActive,
+      isDelete: data.isDelete,
+    };
 
-    if (editIndex !== null) {
-      const updatedList = [...leadList];
-      updatedList[editIndex] = data;
-      setLeadList(updatedList);
-    } else {
-      setLeadList([...leadList, data]);
+    try {
+      if (editIndex !== null) {
+        await api.put(`/api/v1/admin/lead/${leadList[editIndex].id}`, payload);
+      } else {
+        await api.post("/api/v1/admin/lead", payload);
+      }
+      fetchLeads();
+      setShowAddEdit(false);
+      resetForm();
+    } catch (err) {
+      console.error("Error saving lead:", err);
     }
-
-    setShowAddEdit(false);
-    resetForm();
   };
 
   const handleEdit = (index) => {
-    setFormData(leadList[index]);
+    const lead = leadList[index];
+    setFormData({
+      salutation: lead.salutation,
+      name: lead.name,
+      email: lead.email,
+      contact: lead.contact,
+      leadSource: lead.lead_source,
+      addedBy: lead.added_by,
+      leadOwner: lead.lead_owner,
+      city: lead.city,
+      state: lead.state,
+      pincode: lead.pincode,
+      description: lead.description,
+      address: lead.address,
+      isActive: lead.isActive,
+      isDelete: lead.isDelete,
+    });
     setEditIndex(index);
     setShowAddEdit(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (deleteIndex !== null) {
-      setLeadList(leadList.filter((_, i) => i !== deleteIndex));
+      try {
+        await api.delete(`/api/v1/admin/lead/${leadList[deleteIndex].id}`);
+        fetchLeads();
+      } catch (err) {
+        console.error("Error deleting lead:", err);
+      }
     }
     setShowDelete(false);
     setDeleteIndex(null);
@@ -105,7 +162,7 @@ const LeadsList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Leads Contact </h4>
+              <h5 className="card-title fw-lighter">Leads Contact</h5>
               <Button
                 className="btn-primary"
                 onClick={() => {
@@ -118,57 +175,76 @@ const LeadsList = () => {
             </Card.Header>
 
             <Card.Body className="px-0">
-              <div className="table-responsive">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Sr. No.</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Lead Source</th>
-                      <th>Deal Name</th>
-                      <th>Deal Stage</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leadList.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="text-center">
-                          No leads available
-                        </td>
+              {loading ? (
+                <div className="text-center py-3">
+                  <Spinner animation="border" />
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <Table hover responsive className="table">
+                    <thead>
+                      <tr className="table-gray">
+                        <th>Sr. No.</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Contact</th>
+                        <th>Lead Source</th>
+                        <th>Added By</th>
+                        <th>Lead Owner</th>
+                        <th>Action</th>
                       </tr>
-                    ) : (
-                      leadList.map((item, idx) => (
-                        <tr key={idx}>
-                          <td>{idx + 1}</td>
-                          <td>{item.name}</td>
-                          <td>{item.email}</td>
-                          <td>{item.leadSource}</td>
-                          <td>{item.dealName}</td>
-                          <td>{item.dealStage}</td>
-                          <td>
-                            <CreateTwoToneIcon
-                              className="me-2"
-                              onClick={() => handleEdit(idx)}
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                            <DeleteRoundedIcon
-                              onClick={() => {
-                                setDeleteIndex(idx);
-                                setShowDelete(true);
-                              }}
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                            />
+                    </thead>
+                    <tbody>
+                      {leadList.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center">
+                            No leads available
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ) : (
+                        leadList.map((item, idx) => (
+                          <tr key={idx}>
+                            <td>{idx + 1}</td>
+                            <td>{item.name}</td>
+                            <td>{item.email}</td>
+                            <td>{item.contact}</td>
+                            <td>
+                              {leadSources.find(
+                                (src) => src.id === item.lead_source
+                              )?.lead_source || "-"}
+                            </td>
+                            <td>
+                              {employees.find((emp) => emp.id === item.added_by)
+                                ?.name || "-"}
+                            </td>
+                            <td>
+                              {employees.find(
+                                (emp) => emp.id === item.lead_owner
+                              )?.name || "-"}
+                            </td>
+                            <td>
+                              <CreateTwoToneIcon
+                                className="me-2"
+                                onClick={() => handleEdit(idx)}
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                              <DeleteRoundedIcon
+                                onClick={() => {
+                                  setDeleteIndex(idx);
+                                  setShowDelete(true);
+                                }}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>

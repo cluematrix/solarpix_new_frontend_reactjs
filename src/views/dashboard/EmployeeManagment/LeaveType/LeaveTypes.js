@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Spinner } from "react-bootstrap";
+import { Card, Row, Col, Button, Spinner, Table } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -208,7 +208,7 @@ const LeaveType = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Leave Type </h4>
+              <h5 className="card-title fw-lighter">Leave Type</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -221,9 +221,9 @@ const LeaveType = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Leave Type</th>
                       <th>No. of Leaves</th>
@@ -284,7 +284,7 @@ const LeaveType = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* Pagination Controls */}

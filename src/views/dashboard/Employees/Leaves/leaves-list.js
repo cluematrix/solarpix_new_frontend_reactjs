@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Spinner, Form } from "react-bootstrap";
+import { Card, Row, Col, Button, Spinner, Form, Table } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -91,7 +91,7 @@ const LeaveList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Leave Requests</h4>
+              <h5 className="card-title fw-lighter">Leave Requests</h5>
               <Button
                 className="btn-primary"
                 onClick={() => setShowAddEdit(true)}
@@ -107,9 +107,9 @@ const LeaveList = () => {
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table">
+                  <Table hover responsive className="table">
                     <thead>
-                      <tr>
+                      <tr className="table-gray">
                         <th>Sr. No.</th>
                         <th>Employee</th>
                         <th>Leave Type</th>
@@ -178,7 +178,7 @@ const LeaveList = () => {
                         ))
                       )}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               )}
             </Card.Body>

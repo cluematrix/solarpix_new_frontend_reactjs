@@ -126,14 +126,13 @@ const SignIn = ({ swal }) => {
 
   return (
     <section className="login-content">
-      <Row className="m-0 align-items-center bg-white vh-100">
-        <Col md="6" lg="5">
-          <Row className="justify-content-center">
-            <Col md="10">
+      <Row className="m-0 bg-white vh-100">
+        <Col md="6" lg="5" xl="5" xxl="5" className="border">
+          <Row className="justify-content-center align-items-center">
+            <Col xxl="12" xl="10" lg="10" md="10">
               <Card className="card-transparent shadow-none d-flex justify-content-center mb-0 auth-card">
                 <Card.Body>
                   <center>
-                    {/* <h1 className="logo-title ms-3">SolarPix</h1> */}
                     <img src={logoImg} alt="Logo" width={80} height={80} />
                   </center>
                   <br />
@@ -151,7 +150,7 @@ const SignIn = ({ swal }) => {
 
                     <Row>
                       {/* Email Field */}
-                      <Col lg="12">
+                      <Col xxl="12" xl="12" lg="12" md="12">
                         <Form.Group className="form-group">
                           <FormControl
                             variant="outlined"
@@ -178,7 +177,7 @@ const SignIn = ({ swal }) => {
                       </Col>
 
                       {/* Password Field */}
-                      <Col lg="12">
+                      <Col xxl="12" xl="12" lg="12" md="12">
                         <Form.Group className="form-group">
                           <FormControl
                             variant="outlined"
@@ -225,7 +224,10 @@ const SignIn = ({ swal }) => {
                       </Col>
 
                       <Col
+                        xxl="12"
+                        xl="12"
                         lg="12"
+                        md="12"
                         className="d-flex"
                         style={{ marginTop: "-10px", fontSize: "12px" }}
                       >
@@ -254,6 +256,8 @@ const SignIn = ({ swal }) => {
         <Col
           md="6"
           lg="7"
+          xl="7"
+          xxl="7"
           className="d-md-block d-none bg-primary p-0 mt-n1 vh-100 overflow-hidden"
         >
           <Image

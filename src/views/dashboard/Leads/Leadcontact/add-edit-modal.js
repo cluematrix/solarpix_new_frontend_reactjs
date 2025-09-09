@@ -1,5 +1,6 @@
-import React from "react";
-import { Modal, Form, Button, Row, Col } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Modal, Form, Button, Row, Col, Spinner } from "react-bootstrap";
+import api from "../../../../api/axios";
 
 const AddEditModal = ({
   show,
@@ -9,6 +10,31 @@ const AddEditModal = ({
   setFormData,
   editData,
 }) => {
+  const [leadSources, setLeadSources] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchDropdowns = async () => {
+    try {
+      setLoading(true);
+      const [leadRes, empRes] = await Promise.all([
+        api.get("/api/v1/admin/leadSource/active"),
+        api.get("/api/v1/admin/employee/active"),
+      ]);
+
+      if (leadRes.data?.success) setLeadSources(leadRes.data.data || []);
+      if (empRes.data?.success) setEmployees(empRes.data.data || []);
+    } catch (err) {
+      console.error("Error fetching dropdown data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (show) fetchDropdowns();
+  }, [show]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -20,12 +46,16 @@ const AddEditModal = ({
   };
 
   return (
-    <>
-      <Modal show={show} onHide={handleClose} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{editData ? "Edit Lead" : "Add Lead"}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+    <Modal show={show} onHide={handleClose} size="lg" backdrop="static">
+      <Modal.Header closeButton>
+        <Modal.Title>{editData ? "Edit Lead" : "Add Lead"}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {loading ? (
+          <div className="text-center py-3">
+            <Spinner animation="border" />
+          </div>
+        ) : (
           <Form onSubmit={handleSubmit}>
             {/* Row 1 */}
             <Row>
@@ -68,6 +98,7 @@ const AddEditModal = ({
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Email will be used to send proposals"
+                    required
                   />
                 </Form.Group>
               </Col>
@@ -77,74 +108,79 @@ const AddEditModal = ({
             <Row className="mt-2">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Lead Source</Form.Label>
+                  <Form.Label className="pt-4">Contact</Form.Label>
                   <Form.Control
                     type="text"
+                    name="contact"
+                    value={formData.contact}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="pt-4">Lead Source</Form.Label>
+                  <Form.Select
                     name="leadSource"
                     value={formData.leadSource}
                     onChange={handleChange}
-                  />
+                  >
+                    <option value="">Select Lead Source</option>
+                    {leadSources.map((src) => (
+                      <option key={src.id} value={src.id}>
+                        {src.lead_source}
+                      </option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={4}>
                 <Form.Group>
                   <Form.Label className="pt-4">Added By</Form.Label>
-                  <Form.Control
-                    type="text"
+                  <Form.Select
                     name="addedBy"
                     value={formData.addedBy}
                     onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Lead Owner</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="leadOwner"
-                    value={formData.leadOwner}
-                    onChange={handleChange}
-                  />
+                  >
+                    <option value="">Select Employee</option>
+                    {employees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name}
+                      </option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
 
             {/* Row 3 */}
             <Row className="mt-2">
-              <Col md={4}>
+              <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Deal Name *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="dealName"
-                    value={formData.dealName}
+                  <Form.Label className="pt-4">Lead Owner</Form.Label>
+                  <Form.Select
+                    name="leadOwner"
+                    value={formData.leadOwner}
                     onChange={handleChange}
-                    required
-                  />
+                  >
+                    <option value="">Select Owner</option>
+                    {employees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name}
+                      </option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Col>
-              <Col md={4}>
+              <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Pipeline *</Form.Label>
+                  <Form.Label className="pt-4">City</Form.Label>
                   <Form.Control
                     type="text"
-                    name="pipeline"
-                    value={formData.pipeline}
+                    name="city"
+                    value={formData.city}
                     onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Deal Stage *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="dealStage"
-                    value={formData.dealStage}
-                    onChange={handleChange}
-                    required
                   />
                 </Form.Group>
               </Col>
@@ -154,34 +190,33 @@ const AddEditModal = ({
             <Row className="mt-2">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Deal Value (INR)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="dealValue"
-                    value={formData.dealValue}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Close Date *</Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="closeDate"
-                    value={formData.closeDate}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Deal Category</Form.Label>
+                  <Form.Label className="pt-4">State</Form.Label>
                   <Form.Control
                     type="text"
-                    name="dealCategory"
-                    value={formData.dealCategory}
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="pt-4">Pincode</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="pincode"
+                    value={formData.pincode}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="pt-4">Address</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="address"
+                    value={formData.address}
                     onChange={handleChange}
                   />
                 </Form.Group>
@@ -190,35 +225,14 @@ const AddEditModal = ({
 
             {/* Row 5 */}
             <Row className="mt-2">
-              <Col md={4}>
+              <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Deal Agent</Form.Label>
+                  <Form.Label className="pt-4">Description</Form.Label>
                   <Form.Control
-                    type="text"
-                    name="dealAgent"
-                    value={formData.dealAgent}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Products</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="products"
-                    value={formData.products}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Deal Watcher</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="dealWatcher"
-                    value={formData.dealWatcher}
+                    as="textarea"
+                    rows={3}
+                    name="description"
+                    value={formData.description}
                     onChange={handleChange}
                   />
                 </Form.Group>
@@ -234,9 +248,9 @@ const AddEditModal = ({
               </Button>
             </div>
           </Form>
-        </Modal.Body>
-      </Modal>
-    </>
+        )}
+      </Modal.Body>
+    </Modal>
   );
 };
 

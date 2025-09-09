@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Spinner } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Spinner,
+  Table,
+  Pagination,
+} from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -25,7 +33,7 @@ const DefaultHoliday = () => {
 
   // 🔄 Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 5;
+  const recordsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
@@ -205,7 +213,7 @@ const DefaultHoliday = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h4 className="card-title fw-bold">Default Holiday </h4>
+              <h5 className="card-title fw-lighter">Default Holiday </h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -218,9 +226,9 @@ const DefaultHoliday = () => {
 
             <Card.Body className="px-0">
               <div className="table-responsive">
-                <table className="table">
+                <Table hover responsive className="table">
                   <thead>
-                    <tr>
+                    <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Day</th>
                       <th>Occasion</th>
@@ -269,32 +277,30 @@ const DefaultHoliday = () => {
                       ))
                     )}
                   </tbody>
-                </table>
+                </Table>
               </div>
 
               {/* Pagination Controls */}
-              {holidayList.length > recordsPerPage && (
-                <div className="d-flex justify-content-between align-items-center px-3 pb-3">
-                  <Button
-                    variant="secondary"
-                    size="sm"
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.Prev
+                    onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    Previous
-                  </Button>
-                  <span>
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={currentPage === totalPages}
+                  />
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage((prev) => prev - 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
                     onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
               )}
             </Card.Body>
           </Card>

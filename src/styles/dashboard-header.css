@@ -7,7 +7,7 @@
   height: 130px;         /* Custom height */
   overflow: hidden;      /* Extra content ko hide karne ke liye */
   position: relative;    /* Absolute positioned images ke liye */
-  margin-bottom: 80px;
+  margin-bottom: 65px;
 }
 .iq-header-img img {
   position: absolute;
