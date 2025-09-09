@@ -21,9 +21,18 @@ const LeaveList = () => {
     try {
       setLoading(true);
       const res = await api.get("/api/v1/admin/employeeLeave");
-      setLeaveList(res.data);
+
+      // Adjust based on API response structure
+      if (Array.isArray(res.data)) {
+        setLeaveList(res.data);
+      } else if (Array.isArray(res.data.data)) {
+        setLeaveList(res.data.data);
+      } else {
+        setLeaveList([]);
+      }
     } catch (error) {
       console.error("Error fetching leaves:", error);
+      setLeaveList([]); // prevent crash
     } finally {
       setLoading(false);
     }

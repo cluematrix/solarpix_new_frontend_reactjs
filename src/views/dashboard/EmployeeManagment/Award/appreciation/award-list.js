@@ -4,11 +4,10 @@ import {
   Row,
   Col,
   Button,
+  Table,
   Form,
   Pagination,
   Spinner,
-  Tab,
-  Table,
 } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,7 +16,7 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../../api/axios";
-import { useLocation } from "react-router";
+import * as FaIcons from "react-icons/fa";
 
 const AwardList = () => {
   const [awards, setAwards] = useState([]);
@@ -28,65 +27,15 @@ const AwardList = () => {
     description: "",
   });
   const [editId, setEditId] = useState(null);
-
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-
-  const { pathname } = useLocation();
-  const [permissions, setPermissions] = useState(null);
-
-  // 🔑 Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
   const [loading, setLoading] = useState(true);
 
-  // Permission check
-  const FETCHPERMISSION = async () => {
-    try {
-      const res = await api.get("/api/v1/admin/rolePermission");
-
-      let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
-
-      const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
-
-      // ✅ Match current role + route
-      const matchedPermission = data.find(
-        (perm) =>
-          String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
-      );
-
-      if (matchedPermission) {
-        setPermissions({
-          view: matchedPermission.view === true || matchedPermission.view === 1,
-          add: matchedPermission.add === true || matchedPermission.add === 1,
-          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
-          del: matchedPermission.del === true || matchedPermission.del === 1,
-        });
-      } else {
-        setPermissions(null);
-      }
-    } catch (err) {
-      console.error("Error fetching roles:", err);
-      setPermissions(null);
-    } finally {
-      setLoading(false); //  Stop loader after API call
-    }
-  };
-  useEffect(() => {
-    setLoading(true);
-    FETCHPERMISSION();
-  }, [pathname]);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch Awards
   const fetchAwards = () => {
@@ -103,36 +52,14 @@ const AwardList = () => {
       .catch((err) => {
         console.error(err);
         toast.error("Failed to fetch awards");
-        setAwards([]);
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
     fetchAwards();
   }, []);
 
-  // Toggle Active/Inactive
-  const handleToggleActive = (id, currentStatus) => {
-    const newStatus = !currentStatus;
-    setAwards((prev) =>
-      prev.map((award) =>
-        award.id === id ? { ...award, isActive: newStatus } : award
-      )
-    );
-    api
-      .put(`/api/v1/admin/award/${id}`, { isActive: newStatus })
-      .then(() => toast.success("Status updated successfully"))
-      .catch((err) => {
-        toast.error(err.response?.data?.message || "Failed to update status");
-        setAwards((prev) =>
-          prev.map((award) =>
-            award.id === id ? { ...award, isActive: currentStatus } : award
-          )
-        );
-      });
-  };
-
-  // Add or Update Award
   const handleAddOrUpdateAward = () => {
     if (!formData.title.trim()) {
       toast.warning("Award title is required");
@@ -147,9 +74,7 @@ const AwardList = () => {
           fetchAwards();
           resetForm();
         })
-        .catch((err) =>
-          toast.error(err.response?.data?.message || "Failed to update award")
-        );
+        .catch(() => toast.error("Failed to update award"));
     } else {
       api
         .post("/api/v1/admin/award", formData)
@@ -158,13 +83,10 @@ const AwardList = () => {
           fetchAwards();
           resetForm();
         })
-        .catch((err) =>
-          toast.error(err.response?.data?.message || "Failed to add award")
-        );
+        .catch(() => toast.error("Failed to add award"));
     }
   };
 
-  // Edit Award
   const handleEdit = (index) => {
     const award = awards[index];
     setFormData({
@@ -177,7 +99,6 @@ const AwardList = () => {
     setShowAddEdit(true);
   };
 
-  // Delete Award
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
@@ -187,40 +108,25 @@ const AwardList = () => {
         fetchAwards();
         setShowDelete(false);
       })
-      .catch((err) =>
-        toast.error(err.response?.data?.message || "Failed to delete award")
-      );
+      .catch(() => toast.error("Failed to delete award"));
   };
 
-  // Reset form
   const resetForm = () => {
     setShowAddEdit(false);
     setFormData({ title: "", icon: "", color: "#000000", description: "" });
     setEditId(null);
   };
 
-  // Pagination logic
+  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentAwards = awards.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(awards.length / itemsPerPage);
 
-  // Permission block
-  //  Loader while checking permissions
-  if (loading) {
+  if (loading)
     return (
       <div className="loader-div">
         <Spinner animation="border" className="spinner" />
-      </div>
-    );
-  }
-  if (!permissions.view)
-    return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "70vh" }}
-      >
-        <h4>You don’t have permission to view this page.</h4>
       </div>
     );
 
@@ -234,14 +140,12 @@ const AwardList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Awards</h5>
-              {permissions.add && (
-                <Button
-                  className="btn-primary"
-                  onClick={() => setShowAddEdit(true)}
-                >
-                  + New Award
-                </Button>
-              )}
+              <Button
+                className="btn-primary"
+                onClick={() => setShowAddEdit(true)}
+              >
+                + New Award
+              </Button>
             </Card.Header>
             <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
@@ -251,48 +155,38 @@ const AwardList = () => {
                       <th>Sr. No.</th>
                       <th>Title</th>
                       <th>Icon</th>
-                      <th>Color</th>
+                      {/* <th>Color</th> */}
                       <th>Description</th>
-                      <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentAwards.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center">
+                        <td colSpan="6" className="text-center">
                           No awards available
                         </td>
                       </tr>
                     ) : (
-                      currentAwards.map((item, idx) => (
-                        <tr key={item.id || item._id}>
-                          <td>{indexOfFirstItem + idx + 1}</td>
-                          <td>{item.title}</td>
-                          <td>{item.icon}</td>
-                          <td>
-                            <div
-                              style={{
-                                width: "20px",
-                                height: "20px",
-                                backgroundColor: item.color || "#000",
-                                borderRadius: "50%",
-                              }}
-                            ></div>
-                          </td>
-                          <td>{item.description}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
-                          <td className="d-flex align-items-center">
-                            <Form.Check
-                              type="switch"
-                              id={`active-switch-${item.id}`}
-                              checked={item.isActive}
-                              onChange={() =>
-                                handleToggleActive(item.id, item.isActive)
-                              }
-                              className="me-3"
-                            />
-                            {permissions.edit && (
+                      currentAwards.map((item, idx) => {
+                        const IconComp = FaIcons[item.icon];
+                        return (
+                          <tr key={item.id || item._id}>
+                            <td>{indexOfFirstItem + idx + 1}</td>
+                            <td>{item.title}</td>
+                            <td>{IconComp ? <IconComp size={24} /> : "-"}</td>
+                            {/* <td>
+                              <div
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  backgroundColor: item.color || "#000",
+                                  borderRadius: "50%",
+                                }}
+                              ></div>
+                            </td> */}
+                            <td>{item.description}</td>
+                            <td className="d-flex align-items-center">
                               <CreateTwoToneIcon
                                 className="me-2"
                                 onClick={() =>
@@ -301,8 +195,6 @@ const AwardList = () => {
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
-                            )}
-                            {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
                                   setDeleteIndex(indexOfFirstItem + idx);
@@ -312,10 +204,10 @@ const AwardList = () => {
                                 color="error"
                                 style={{ cursor: "pointer" }}
                               />
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </Table>

@@ -33,6 +33,9 @@ const AddEditProjectModal = ({
   }, []);
 
   useEffect(() => {
+    fetchEmployee();
+  }, []);
+  useEffect(() => {
     if (!editData) {
       setFormData((prev) => ({ ...prev, file: null, projectMembers: [] }));
     }

@@ -19,7 +19,6 @@ import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { useNavigate } from "react-router-dom";
 import ProjectProfile from "./projectProfile";
 
 const ProjectList = () => {

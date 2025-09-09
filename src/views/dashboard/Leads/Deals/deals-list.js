@@ -1,45 +1,74 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Button, Table } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
+import api from "../../../../api/axios"; // axios instance
 
 const DealList = () => {
-  const [dealList, setDealList] = useState([
-    {
-      id: 1,
-      dealName: "Project 123",
-      client: "ABC Corp",
-      amount: 5000,
-      stage: "Proposal",
-    },
-    {
-      id: 2,
-      dealName: "Project 456",
-      client: "XYZ Ltd",
-      amount: 2000,
-      stage: "Negotiation",
-    },
-  ]);
+  const [dealList, setDealList] = useState([]);
+
+  const [dealStages, setDealStages] = useState([]);
+  const [leads, setLeads] = useState([]);
+  const [clients, setClients] = useState([]); // 👈 NEW state for clients
 
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editData, setEditData] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  const handleSave = (formData) => {
-    if (editData) {
-      setDealList((prev) =>
-        prev.map((deal) =>
-          deal.id === editData.id ? { ...formData, id: editData.id } : deal
-        )
-      );
-    } else {
-      setDealList((prev) => [...prev, { ...formData, id: Date.now() }]);
+  // 🔹 fetch deals, stages, leads & clients
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [dealsRes, stagesRes, leadsRes, clientsRes] = await Promise.all([
+          api.get("/api/v1/admin/deal"),
+          api.get("/api/v1/admin/dealStages/active"),
+          api.get("/api/v1/admin/lead/active"),
+          api.get("/api/v1/admin/client/active"), // 👈 fetch clients
+        ]);
+        setDealList(dealsRes.data || []);
+        setDealStages(stagesRes.data || []);
+        setLeads(leadsRes.data || []);
+        setClients(clientsRes.data?.data || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // 🔹 save (add or update)
+  const handleSave = async (formData) => {
+    try {
+      if (editData) {
+        await api.put(`/api/v1/admin/deal/${editData.id}`, formData);
+      } else {
+        await api.post("/api/v1/admin/deal", formData);
+      }
+
+      // 🔹 Refetch fresh list after save
+      const dealsRes = await api.get("/api/v1/admin/deal");
+      setDealList(dealsRes.data || []);
+
+      setShowModal(false);
+      setEditData(null);
+    } catch (error) {
+      console.error("Error saving deal:", error);
     }
-    setShowModal(false);
-    setEditData(null);
+  };
+
+  // 🔹 delete deal
+  const handleDeleteConfirm = async () => {
+    try {
+      await api.delete(`/api/v1/admin/deal/${deleteId}`);
+      setDealList((prev) => prev.filter((deal) => deal.id !== deleteId));
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Error deleting deal:", error);
+    }
   };
 
   const handleEdit = (deal) => {
@@ -47,10 +76,7 @@ const DealList = () => {
     setShowModal(true);
   };
 
-  const handleDeleteConfirm = () => {
-    setDealList((prev) => prev.filter((deal) => deal.id !== deleteId));
-    setShowDeleteModal(false);
-  };
+  console.log("list", dealList);
 
   return (
     <>
@@ -80,7 +106,7 @@ const DealList = () => {
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Deal Name</th>
-                      <th>Client</th>
+                      <th>Customer</th>
                       <th>Amount</th>
                       <th>Stage</th>
                       <th>Actions</th>
@@ -96,11 +122,12 @@ const DealList = () => {
                     ) : (
                       dealList.map((deal, index) => (
                         <tr key={deal.id}>
-                          <td>{index + 1}</td> {/* Sr. No. */}
-                          <td>{deal.dealName}</td>
-                          <td>{deal.client}</td>
-                          <td>${deal.amount}</td>
-                          <td>{deal.stage}</td>
+                          <td>{index + 1}</td>
+                          <td>{deal.deal_name}</td>
+                          <td>{deal.client?.name || "---"}</td>{" "}
+                          {/* 👈 client name */}
+                          <td>₹{deal.deal_value}</td>
+                          <td>{deal.dealStage?.deal_stages || "---"}</td>
                           <td>
                             <CreateTwoToneIcon
                               className="me-2"
@@ -137,6 +164,9 @@ const DealList = () => {
         }}
         onSave={handleSave}
         editData={editData}
+        dealStages={dealStages}
+        leads={leads}
+        clients={clients} // 👈 pass clients to modal
       />
 
       {/* Delete Modal */}
