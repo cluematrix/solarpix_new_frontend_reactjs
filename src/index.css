@@ -37,6 +37,7 @@ input{
 
 .form-select {
   font-size: 0.875rem;
+  color: black;
   /* 14px */
 }
 
@@ -72,6 +73,6 @@ input{
 
 .btn{
   font-size: 14px;
-  padding: .2rem
+  padding: .3rem
 }
 

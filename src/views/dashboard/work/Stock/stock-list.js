@@ -248,7 +248,10 @@ const StockList = () => {
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
+            <Card.Header
+              className="d-flex justify-content-between"
+              style={{ padding: "15px 15px 0px 15px" }}
+            >
               <h5 className="card-title fw-lighter">Stocks</h5>
               {permissions.add && (
                 <Button
@@ -263,7 +266,7 @@ const StockList = () => {
               )}
             </Card.Header>
 
-            <Card.Body className="px-0">
+            <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
                 <Table hover responsive className="table">
                   <thead>
