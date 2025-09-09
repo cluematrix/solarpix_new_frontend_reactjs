@@ -1,10 +1,12 @@
-body{
+body {
   font-family: sans-serif;
 }
 
 .form-control::placeholder {
-  font-size: 13px; /* adjust as needed */
-  color: #888; /* optional for better UI */
+  font-size: 13px;
+  /* adjust as needed */
+  color: #888;
+  /* optional for better UI */
 }
 
 .form-label {
@@ -14,7 +16,7 @@ body{
 
 .form-check-label {
   font-size: 0.875rem;
-   color: black;
+  color: black;
 }
 
 .form-check-input {
@@ -31,12 +33,13 @@ body{
   color: black;
 }
 
-input{
+input {
   color: black !important;
 }
 
 .form-select {
   font-size: 0.875rem;
+  color: black;
   /* 14px */
 }
 
@@ -59,19 +62,19 @@ input{
   /* Red for inactive */
 }
 
-.loader-div{
+.loader-div {
   height: 50vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
- 
-.spinner{
+
+.spinner {
   color: blue;
 }
 
-.btn{
+.btn {
   font-size: 14px;
-  padding: .2rem
+  padding: .3rem
 }
 

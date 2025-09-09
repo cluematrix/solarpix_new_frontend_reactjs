@@ -7,7 +7,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import { genderData, maritialStatusData } from "../../../../mockData";
+import { maritialStatusData } from "../../../../mockData";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomCheckbox from "../../../../components/Form/CustomCheckbox";
@@ -47,14 +47,33 @@ const UpdateProjectForm = ({
     short_code: Yup.string().required("Short Code is required"),
     project_name: Yup.string().required("Project Name is required"),
     start_date: Yup.date().required("Start Date is required"),
-    is_deadline: Yup.boolean(),
-    // end_date: Yup.date().when("is_deadline", {
-    //   is: false,
-    //   then: Yup.date().required("End Date is required"),
-    //   otherwise: Yup.date().nullable(),
-    // }),
-    project_category_id: Yup.string().nullable(),
-    // added_by: Yup.string().required("Project Members is required"),
+    is_deadline: Yup.boolean().default(false),
+    end_date: Yup.date()
+      .nullable()
+      .when("is_deadline", (is_deadline, schema) => {
+        return !is_deadline
+          ? schema
+              .required("End Date is required")
+              .min(
+                Yup.ref("start_date"),
+                "End Date cannot be before Start Date"
+              )
+          : schema.nullable(); // if is_deadline is true, end_date not required
+      }),
+    project_category_id: Yup.string().required("Project Category is required"),
+    client_id: Yup.string().required("Customer is required"),
+    project_summary: Yup.string().required("Project Summary is required"),
+    project_budget: Yup.number()
+      .typeError("Project Budget must be a number")
+      .positive("Project Budget must be positive")
+      .required("Project Budget is required"),
+    hour_estimate: Yup.number()
+      .typeError("Hour Estimate must be a number")
+      .positive("Hour Estimate must be positive")
+      .required("Hour Estimate is required"),
+    assign_to: Yup.array()
+      .min(1, "At least one project member must be selected")
+      .required("Project Members are required"),
   });
 
   const onSubmit = async (values, { resetForm }) => {
@@ -103,15 +122,13 @@ const UpdateProjectForm = ({
         console.log("Project Categories:", projectCatRes.data.data);
         setMetaData({
           projectCategory: projectCatRes.data.data.filter((d) => d.isActive),
-          clientList: clientRes.data.filter((d) => d.isActive),
+          clientList: clientRes.data.data.filter((d) => d.isActive),
           employeeList: empListRes.data.data.filter((e) => e.isActive),
           project: projectRes.data.data.filter((e) => e.isActive),
         });
       } catch (error) {
         errorToast("Error loading data");
         console.error(error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -127,27 +144,25 @@ const UpdateProjectForm = ({
   useEffect(() => {
     if (formData) {
       setValues({
-        ...values, // preserve other values if needed
-        ...formData, // overwrite with formData
+        ...formData,
+        // Project Category ID (agar nested object hai)
+        project_category_id:
+          formData.project_category_id || formData.category?.id || "",
+        // Client ID (agar nested object hai)
+        client_id: formData.client_id || formData.client?.id || "",
+        // Assign To (array of ids)
+        assign_to: Array.isArray(formData.assign_to_details)
+          ? formData.assign_to_details
+          : formData.assign_to_details
+          ? formData.assign_to_details.map((emp) => emp.id)
+          : [],
+        // Assign By (agar nested object hai)
+        assign_by: formData.assign_by || formData.assignedByEmployee?.id || "",
       });
     }
-  }, [formData]);
+  }, [formData, setValues]);
 
-  if (loading) {
-    return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
-      </div>
-    );
-  }
-
-  console.log(
-    "typeof values.is_deadline:",
-    typeof values.is_deadline,
-    values.is_deadline
-  );
-
-  console.log("formik values update:", values);
+  console.log("values.assign_to", values.project_category_id);
   return (
     <>
       <Card>
@@ -201,7 +216,7 @@ const UpdateProjectForm = ({
             </Row>
 
             {/* Row 2, {start_date, end_date, is_deadline } */}
-            <Row className="mt-3 d-flex align-items-center">
+            <Row className="mt-3 d-flex align-items-start">
               <Col md={4}>
                 <CustomInput
                   type="date"
@@ -230,15 +245,17 @@ const UpdateProjectForm = ({
                   errors={errors.end_date}
                   required={true}
                   min={new Date().toISOString().split("T")[0]}
+                  disabled={values.is_deadline ? true : false}
                 />
               </Col>
-              <Col md={4}>
+              <Col md={4} className="mt-4">
                 <CustomCheckbox
                   label="There is no project deadline"
                   name="is_deadline"
                   checked={!!values.is_deadline}
                   onChange={(e) => {
                     setFieldValue("is_deadline", e.target.checked); // always boolean
+                    setFieldValue("end_date", "");
                   }}
                   onBlur={handleBlur}
                   error={errors.is_deadline}
@@ -251,15 +268,16 @@ const UpdateProjectForm = ({
             <Row className="mt-3">
               <Col md={4}>
                 <CustomSelect
-                  label="Client"
+                  label="Customer"
                   name="client_id"
                   value={values.client_id}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  options={maritialStatusData}
+                  options={metaData.clientList}
                   placeholder="--"
                   error={errors.client_id}
                   touched={touched.client_id}
+                  required={true}
                 />
               </Col>
               <Col md={4}>
@@ -269,7 +287,7 @@ const UpdateProjectForm = ({
                   value={values.project_budget}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="eg: 10000"
+                  placeholder="eg: ₹10000"
                   touched={touched.project_budget}
                   errors={errors.project_budget}
                   required={true}
@@ -282,7 +300,7 @@ const UpdateProjectForm = ({
                   value={values.hour_estimate}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="eg: 100"
+                  placeholder="eg: ₹100"
                   touched={touched.hour_estimate}
                   errors={errors.hour_estimate}
                   required={true}
@@ -298,16 +316,22 @@ const UpdateProjectForm = ({
                   <div>
                     {selectedMemberNames?.length > 0 ? (
                       selectedMemberNames?.map((m) => (
-                        <Badge bg="info" text="dark" className="me-2" key={m}>
+                        <Badge
+                          bg="light"
+                          text="dark"
+                          className="me-2 p-1"
+                          key={m}
+                        >
                           {m}
                         </Badge>
                       ))
                     ) : (
-                      <p className="text-muted">No members selected</p>
+                      <p className="text-muted" style={{ fontSize: "13px" }}>
+                        No members selected
+                      </p>
                     )}
                   </div>
                   <Button
-                    variant="outline-primary"
                     size="sm"
                     className="mt-2"
                     onClick={() => setShowMembersModal(true)}
@@ -315,6 +339,14 @@ const UpdateProjectForm = ({
                     Select Members
                   </Button>
                 </Form.Group>
+                {touched.assign_to && errors.assign_to && (
+                  <div
+                    className="text-danger mt-1"
+                    style={{ fontSize: "11px" }}
+                  >
+                    {errors.assign_to}
+                  </div>
+                )}
               </Col>
             </Row>
 

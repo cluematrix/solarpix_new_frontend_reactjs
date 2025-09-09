@@ -18,9 +18,13 @@ import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import ProjectProfile from "./projectProfile";
 
 const ProjectList = () => {
   const [projectData, setProjectData] = useState([]);
+  const [navigateId, setNavigateId] = useState(false);
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const rolesPerPage = 10;
@@ -68,7 +72,7 @@ const ProjectList = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [openEditModalData, setOpenEditModalData] = useState(false);
-
+  const [viewProjectData, setViewProjectData] = useState(null);
   const handleAddOrUpdateProject = (data) => {
     if (!data.projectName.trim()) return; // basic validation
 
@@ -149,122 +153,151 @@ const ProjectList = () => {
     }
   };
 
+  // navigate to view page
+  const handleView = (item) => {
+    setNavigateId(!navigateId);
+    setViewProjectData(item);
+  };
+
   return (
     <>
-      <Row className="mt-4">
-        <Col sm="12">
-          <Card>
-            <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title fw-lighter">Projects</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => {
-                  setShowAddEdit(true);
-                  setOpenEditModalData(false);
-                }}
+      {navigateId ? (
+        <ProjectProfile viewProjectData={viewProjectData} />
+      ) : (
+        <Row className="mt-4">
+          <Col sm="12">
+            <Card>
+              <Card.Header
+                className="d-flex justify-content-between"
+                style={{ padding: "15px 15px 0px 15px" }}
               >
-                + Add Project
-              </Button>
-            </Card.Header>
+                <h5 className="card-title fw-lighter">Projects</h5>
+                <Button
+                  className="btn-primary"
+                  onClick={() => {
+                    setShowAddEdit(true);
+                    setOpenEditModalData(false);
+                  }}
+                >
+                  + Add Project
+                </Button>
+              </Card.Header>
 
-            <Card.Body className="px-0">
-              {loading ? (
-                <div className="loader-div">
-                  <Spinner animation="border" className="spinner" />
-                </div>
-              ) : (
-                <div className="table-responsive">
-                  <Table hover responsive className="table">
-                    <thead>
-                      <tr className="table-gray">
-                        <th>Sr. No.</th>
-                        <th>Short Code</th>
-                        <th>Project Name</th>
-                        <th>Member</th>
-                        <th>Start Date</th>
-                        <th>Deadline</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {projectData.length === 0 ? (
-                        <tr>
-                          <td colSpan="7" className="text-center">
-                            No projects available
-                          </td>
+              <Card.Body className="px-0 pt-3">
+                {loading ? (
+                  <div className="loader-div">
+                    <Spinner animation="border" className="spinner" />
+                  </div>
+                ) : (
+                  <div className="table-responsive">
+                    <Table hover responsive className="table">
+                      <thead>
+                        <tr className="table-gray">
+                          <th>Sr. No.</th>
+                          <th>Short Code</th>
+                          <th>Project Name</th>
+                          <th>Member</th>
+                          <th>Start Date</th>
+                          <th>End Date</th>
+                          <th>Deadline</th>
+                          <th>Status</th>
+                          <th>Action</th>
                         </tr>
-                      ) : (
-                        projectData.map((item, idx) => (
-                          <tr key={idx}>
-                            <td>{idx + 1}</td>
-                            <td>{item.short_code || "--"}</td>
-                            <td>{item.project_name || "--"}</td>
-                            <td>{item.start_date || "--"}</td>
-                            <td>{item.end_date || "--"}</td>
-                            <td>{item.assignTo || "--"}</td>
-                            <td>
-                              <span
-                                className={`status-dot ${
-                                  item.isActive ? "active" : "inactive"
-                                }`}
-                              ></span>
-                              {item.isActive ? "Active" : "Inactive"}
-                            </td>
-                            <td className="d-flex align-items-center">
-                              <Form.Check
-                                type="switch"
-                                id={`active-switch-${item.id}`}
-                                checked={item.isActive}
-                                onChange={() =>
-                                  handleToggleActive(item.id, item.isActive)
-                                }
-                              />
-                              <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(idx, item)}
-                                color="primary"
-                                style={{ cursor: "pointer" }}
-                              />
-                              <DeleteRoundedIcon
-                                onClick={() => openDeleteModal(item.id, idx)}
-                                color="error"
-                                style={{ cursor: "pointer" }}
-                              />
+                      </thead>
+                      <tbody>
+                        {projectData.length === 0 ? (
+                          <tr>
+                            <td colSpan="8" className="text-center">
+                              No projects available
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
-              )}
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <Pagination className="justify-content-center mt-3">
-                  <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  />
-                  {[...Array(totalPages)].map((_, i) => (
-                    <Pagination.Item
-                      key={i + 1}
-                      active={i + 1 === currentPage}
-                      onClick={() => handlePageChange(i + 1)}
-                    >
-                      {i + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  />
-                </Pagination>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+                        ) : (
+                          projectData.map((item, idx) => (
+                            <tr key={idx}>
+                              <td>{idx + 1}</td>
+                              <td>{item.short_code || "--"}</td>
+                              <td>{item.project_name || "--"}</td>
+                              <td>
+                                {item.assign_to_details.map(
+                                  (ass) => ass.name
+                                ) || "--"}
+                              </td>
+                              <td>{item.start_date || "--"}</td>
+                              <td>{item.end_date || "--"}</td>
+                              <td className="text-center">
+                                {item.is_deadline || "--"}
+                              </td>
+                              <td>
+                                <span
+                                  className={`status-dot ${
+                                    item.isActive ? "active" : "inactive"
+                                  }`}
+                                ></span>
+                                {item.isActive ? "Active" : "Inactive"}
+                              </td>
+                              <td className="d-flex align-items-center">
+                                <Form.Check
+                                  type="switch"
+                                  id={`active-switch-${item.id}`}
+                                  checked={item.isActive}
+                                  onChange={() =>
+                                    handleToggleActive(item.id, item.isActive)
+                                  }
+                                />
+                                <CreateTwoToneIcon
+                                  className="me-1"
+                                  onClick={() => handleEdit(idx, item)}
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                />
+                                <DeleteRoundedIcon
+                                  onClick={() => openDeleteModal(item.id, idx)}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                                <VisibilityIcon
+                                  onClick={() => handleView(item)}
+                                  color="primary"
+                                  style={{
+                                    cursor: "pointer",
+                                    margin: "0px 5px",
+                                  }}
+                                />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </div>
+                )}
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <Pagination className="justify-content-center mt-3">
+                    <Pagination.Prev
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    />
+                    {[...Array(totalPages)].map((_, i) => (
+                      <Pagination.Item
+                        key={i + 1}
+                        active={i + 1 === currentPage}
+                        onClick={() => handlePageChange(i + 1)}
+                      >
+                        {i + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Next
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      )}
 
       {/* Add/Edit Modal */}
       <AddEditModal

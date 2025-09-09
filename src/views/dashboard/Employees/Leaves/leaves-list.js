@@ -21,9 +21,18 @@ const LeaveList = () => {
     try {
       setLoading(true);
       const res = await api.get("/api/v1/admin/employeeLeave");
-      setLeaveList(res.data);
+
+      // Adjust based on API response structure
+      if (Array.isArray(res.data)) {
+        setLeaveList(res.data);
+      } else if (Array.isArray(res.data.data)) {
+        setLeaveList(res.data.data);
+      } else {
+        setLeaveList([]);
+      }
     } catch (error) {
       console.error("Error fetching leaves:", error);
+      setLeaveList([]); // prevent crash
     } finally {
       setLoading(false);
     }
@@ -90,7 +99,10 @@ const LeaveList = () => {
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
+            <Card.Header
+              className="d-flex justify-content-between"
+              style={{ padding: "15px 15px 0px 15px" }}
+            >
               <h5 className="card-title fw-lighter">Leave Requests</h5>
               <Button
                 className="btn-primary"
@@ -100,7 +112,7 @@ const LeaveList = () => {
               </Button>
             </Card.Header>
 
-            <Card.Body className="px-0">
+            <Card.Body className="px-0 pt-3">
               {loading ? (
                 <div className="text-center p-4">
                   <Spinner animation="border" />

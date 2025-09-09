@@ -125,7 +125,7 @@ const UserList = () => {
                   <h4 className="card-title fw-bold">User </h4>
                 </div>
               </Card.Header>
-              <Card.Body className="px-0">
+              <Card.Body className="px-0 pt-3">
                 <div className="table-responsive">
                   <table
                     id="user-list-table"

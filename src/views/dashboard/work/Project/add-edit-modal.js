@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import AddProject from "./addProject";
 import UpdateProjectForm from "./updateProjectForm";
+import api from "../../../../api/axios";
 
 const AddEditProjectModal = ({
   show,
@@ -13,16 +14,27 @@ const AddEditProjectModal = ({
   openEditModal,
 }) => {
   const [showMembersModal, setShowMembersModal] = useState(false);
-
-  const membersList = [
-    { id: "1", name: "Rohit Sharma" },
-    { id: "2", name: "Priya Singh" },
-    { id: "3", name: "Amit Verma" },
-    { id: "4", name: "Neha Gupta" },
-  ];
+  const [employee, setEmployee] = useState([]);
 
   // const currencyOptions = ["USD", "EUR", "INR", "GBP"];
 
+  // fetch employee
+  const fetchEmployee = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/employee");
+      setEmployee(res.data.data || []);
+    } catch (err) {
+      console.error("Error fetching employee:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployee();
+  }, []);
+
+  useEffect(() => {
+    fetchEmployee();
+  }, []);
   useEffect(() => {
     if (!editData) {
       setFormData((prev) => ({ ...prev, file: null, projectMembers: [] }));
@@ -31,7 +43,7 @@ const AddEditProjectModal = ({
 
   const toggleMemberSelection = (id) => {
     setFormData((prev) => {
-      const alreadySelected = prev.projectMembers.includes(id);
+      const alreadySelected = prev?.projectMembers?.includes(id);
       return {
         ...prev,
         projectMembers: alreadySelected
@@ -45,8 +57,8 @@ const AddEditProjectModal = ({
   console.log("formData.projectMembersModal", formData.projectMembers);
 
   // Helper to get selected member names
-  const selectedMemberNames = membersList
-    .filter((member) => formData.projectMembers?.includes(member.id))
+  const selectedMemberNames = employee
+    .filter((member) => formData?.projectMembers?.includes(member?.id))
     .map((member) => member.name);
 
   console.log("Selected Members:", selectedMemberNames);
@@ -81,13 +93,13 @@ const AddEditProjectModal = ({
           <Modal.Title>Select Project Members</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {membersList.map((member) => (
+          {employee.map((member) => (
             <Form.Check
               key={member.id}
               type="checkbox"
               label={member.name}
               checked={formData.projectMembers?.includes(member.id)}
-              onChange={() => toggleMemberSelection(member.id)}
+              onChange={() => toggleMemberSelection(member?.id)}
             />
           ))}
         </Modal.Body>
