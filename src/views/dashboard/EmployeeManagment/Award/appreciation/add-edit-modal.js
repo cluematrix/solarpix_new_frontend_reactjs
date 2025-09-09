@@ -1,5 +1,17 @@
 import React from "react";
-import { Modal, Form, Button } from "react-bootstrap";
+import { Modal, Form, Button, Row, Col } from "react-bootstrap";
+import * as FaIcons from "react-icons/fa";
+
+const iconOptions = [
+  "FaHome",
+  "FaStar",
+  "FaHeart",
+  "FaTrophy",
+  "FaAward",
+  "FaUser",
+  "FaMedal",
+  "FaGem",
+];
 
 const AddEditModal = ({
   show,
@@ -31,17 +43,35 @@ const AddEditModal = ({
 
           <Form.Group className="mb-3" controlId="formIcon">
             <Form.Label>Icon</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter Icon Name"
-              value={formData.icon}
-              onChange={(e) =>
-                setFormData({ ...formData, icon: e.target.value })
-              }
-            />
+            <Row>
+              {iconOptions.map((iconName) => {
+                const IconComponent = FaIcons[iconName];
+                return (
+                  <Col xs={3} key={iconName} className="mb-2">
+                    <div
+                      onClick={() =>
+                        setFormData({ ...formData, icon: iconName })
+                      }
+                      style={{
+                        cursor: "pointer",
+                        border:
+                          formData.icon === iconName
+                            ? "2px solid #0d6efd"
+                            : "1px solid #ddd",
+                        borderRadius: "5px",
+                        padding: "10px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <IconComponent size={24} />
+                    </div>
+                  </Col>
+                );
+              })}
+            </Row>
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="formColor">
+          {/* <Form.Group className="mb-3" controlId="formColor">
             <Form.Label>Color</Form.Label>
             <Form.Control
               type="color"
@@ -50,7 +80,7 @@ const AddEditModal = ({
                 setFormData({ ...formData, color: e.target.value })
               }
             />
-          </Form.Group>
+          </Form.Group> */}
 
           <Form.Group className="mb-3" controlId="formDescription">
             <Form.Label>Description</Form.Label>

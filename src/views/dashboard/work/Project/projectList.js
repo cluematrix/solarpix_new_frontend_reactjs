@@ -167,7 +167,7 @@ const ProjectList = () => {
               </Button>
             </Card.Header>
 
-            <Card.Body className="px-0">
+            <Card.Body className="px-0 pt-3">
               {loading ? (
                 <div className="loader-div">
                   <Spinner animation="border" className="spinner" />
