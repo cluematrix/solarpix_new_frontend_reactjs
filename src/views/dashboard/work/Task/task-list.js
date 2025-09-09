@@ -56,8 +56,9 @@ const TaskList = () => {
   // Add or Update Task
   const handleAddOrUpdateTask = async (data) => {
     try {
-      const loggedInUser = JSON.parse(localStorage.getItem("user"));
-      const assignById = loggedInUser?.id || 1;
+      const loggedInUser = JSON.parse(sessionStorage.getItem("employee_id"));
+      alert(loggedInUser);
+      const assignById = loggedInUser;
 
       const payload = {
         title: data.title,

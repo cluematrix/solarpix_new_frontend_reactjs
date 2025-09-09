@@ -18,7 +18,7 @@ import AccountBalanceWalletSharpIcon from "@mui/icons-material/AccountBalanceWal
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import ContactEmergencyIcon from "@mui/icons-material/ContactEmergency";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-
+import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import {
   Accordion,
   useAccordionButton,
@@ -826,6 +826,61 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">
                     Expense Category
                   </span>
+                </Link>
+              </li>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* Notice Board */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-notice"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-notice"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <TextSnippetIcon fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">Notice Board</span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-notice">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/notice-board" ? "active" : ""
+                  } nav-link`}
+                  to="/notice-board"
+                >
+                  <i className="icon">
+                    <TextSnippetIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <TextSnippetIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Notice</span>
                 </Link>
               </li>
             </ul>

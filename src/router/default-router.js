@@ -87,6 +87,7 @@ import EmpProfileTab from "../views/dashboard/Employees/EmployeeProfile/empProfi
 import UpdateCustomer from "../views/dashboard/Customer/Customers/updateCustomer";
 import AddCustomer from "../views/dashboard/Customer/Customers/addCustomer";
 import CustomerProfile from "../views/dashboard/Customer/Customers/customerProfile";
+import NoticeBoard from "../views/dashboard/Notices/Notice/notice-list";
 
 // employee profile 01 Sep
 
@@ -220,6 +221,13 @@ export const DefaultRouter = [
       {
         path: "/leaves-list",
         element: <LeavesList />,
+      },
+
+      // notice
+
+      {
+        path: "/notice-board",
+        element: <NoticeBoard />,
       },
 
       {

@@ -22,8 +22,8 @@ const AddEditModal = ({
         api.get("/api/v1/admin/employee/active"),
       ]);
 
-      if (leadRes.data?.success) setLeadSources(leadRes.data.data || []);
-      if (empRes.data?.success) setEmployees(empRes.data.data || []);
+      setLeadSources(leadRes.data || []);
+      if (Array.isArray(empRes.data?.data)) setEmployees(empRes.data.data);
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
     } finally {
