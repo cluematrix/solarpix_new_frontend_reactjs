@@ -41,7 +41,9 @@ const LeadsList = () => {
         api.get("/api/v1/admin/leadSource/active"),
         api.get("/api/v1/admin/employee/active"),
       ]);
-      if (leadRes.data?.success) setLeadSources(leadRes.data.data || []);
+
+      console.log("lead response", leadRes);
+      setLeadSources(leadRes.data || []);
       if (empRes.data?.success) setEmployees(empRes.data.data || []);
     } catch (err) {
       console.error("Error fetching dropdowns:", err);
@@ -53,8 +55,14 @@ const LeadsList = () => {
     try {
       setLoading(true);
       const res = await api.get("/api/v1/admin/lead");
-      if (res.data?.success) {
-        setLeadList(res.data.data || []);
+      console.log("Leads soruce API Response:", res);
+
+      if (Array.isArray(res.data?.data)) {
+        setLeadList(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setLeadList(res.data);
+      } else {
+        setLeadList([]);
       }
     } catch (err) {
       console.error("Error fetching leads:", err);
@@ -63,6 +71,7 @@ const LeadsList = () => {
     }
   };
 
+  console.log("getting all", leadList);
   useEffect(() => {
     fetchDropdowns();
     fetchLeads();
@@ -95,9 +104,9 @@ const LeadsList = () => {
       name: data.name,
       email: data.email,
       contact: data.contact,
-      lead_source: data.leadSource,
-      added_by: data.addedBy,
-      lead_owner: data.leadOwner,
+      lead_source: Number(data.leadSource),
+      added_by: Number(data.addedBy),
+      lead_owner: Number(data.leadOwner),
       city: data.city,
       state: data.state,
       pincode: data.pincode,
@@ -123,19 +132,20 @@ const LeadsList = () => {
 
   const handleEdit = (index) => {
     const lead = leadList[index];
+    console.log("getting lead data", lead);
     setFormData({
-      salutation: lead.salutation,
-      name: lead.name,
-      email: lead.email,
-      contact: lead.contact,
-      leadSource: lead.lead_source,
-      addedBy: lead.added_by,
-      leadOwner: lead.lead_owner,
-      city: lead.city,
-      state: lead.state,
-      pincode: lead.pincode,
-      description: lead.description,
-      address: lead.address,
+      salutation: lead.salutation || "",
+      name: lead.name || "",
+      email: lead.email || "",
+      contact: lead.contact || "",
+      leadSource: lead.lead_source?.id || lead.lead_source || "",
+      addedBy: lead.added_by?.id || lead.added_by || "",
+      leadOwner: lead.lead_owner?.id || lead.lead_owner || "",
+      city: lead.city || "",
+      state: lead.state || "",
+      pincode: lead.pincode || "",
+      description: lead.description || "",
+      address: lead.address || "",
       isActive: lead.isActive,
       isDelete: lead.isDelete,
     });
@@ -156,6 +166,7 @@ const LeadsList = () => {
     setDeleteIndex(null);
   };
 
+  console.log("lead resonse 22", leadSources);
   return (
     <>
       <Row className="mt-4">
@@ -210,16 +221,24 @@ const LeadsList = () => {
                             <td>{item.contact}</td>
                             <td>
                               {leadSources.find(
-                                (src) => src.id === item.lead_source
+                                (src) =>
+                                  src.id ===
+                                  (item.lead_source?.id || item.lead_source)
                               )?.lead_source || "-"}
                             </td>
+
                             <td>
-                              {employees.find((emp) => emp.id === item.added_by)
-                                ?.name || "-"}
+                              {employees.find(
+                                (emp) =>
+                                  emp.id ===
+                                  (item.added_by?.id || item.added_by)
+                              )?.name || "-"}
                             </td>
                             <td>
                               {employees.find(
-                                (emp) => emp.id === item.lead_owner
+                                (emp) =>
+                                  emp.id ===
+                                  (item.lead_owner?.id || item.lead_owner)
                               )?.name || "-"}
                             </td>
                             <td>
