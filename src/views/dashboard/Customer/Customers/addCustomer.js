@@ -11,20 +11,25 @@ import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import CustomFileInput from "../../../../components/Form/CustomFileInput";
+import { useLocation } from "react-router-dom";
 
 const AddCustomer = () => {
+  const location = useLocation();
+  const leadData = location.state?.leadData || null;
+
   const initialValues = {
     client_id: "",
-    salutation: "",
-    name: "",
-    email: "",
-    password: "",
-    contact: "",
-    address: "",
-    gender: "",
-    city: "",
-    state: "",
-    pincode: "",
+    lead_id: leadData?.id || "",
+    salutation: leadData?.salutation || "",
+    name: leadData?.name || "",
+    email: leadData?.email || "",
+    password: "", // keep blank
+    contact: leadData?.contact || "",
+    address: leadData?.address || "",
+    gender: "", // lead may not have gender
+    city: leadData?.city || "",
+    state: leadData?.state || "",
+    pincode: leadData?.pincode || "",
     photo: null,
     client_category_id: "",
   };
@@ -159,6 +164,7 @@ const AddCustomer = () => {
     );
   }
 
+  console.log("lead_id", values.lead_id);
   return (
     <Card>
       <Card.Header>

@@ -134,9 +134,9 @@ const AddEditModal = ({
             </Col>
           </Row>
           <div className="d-flex justify-content-end">
-            <Button variant="secondary" onClick={handleClose} className="me-2">
+            {/* <Button variant="secondary" onClick={handleClose} className="me-2">
               Cancel
-            </Button>
+            </Button> */}
             <Button type="submit" variant="primary" disabled={loading}>
               {loading ? <Spinner size="sm" animation="border" /> : "Save"}
             </Button>

@@ -55,6 +55,7 @@ const TaskList = ({ onActiveTab }) => {
     try {
       setLoading(true);
       const res = await api.get("/api/v1/admin/task");
+
       if (res.data.success) {
         setTaskList(res.data.data || []);
       }
@@ -82,7 +83,7 @@ const TaskList = ({ onActiveTab }) => {
         start_date: data.startDate,
         end_date: data.withoutDueDate ? null : data.dueDate,
         project_id: data.project,
-        category_id: data.category,
+        task_category_id: data.category,
         status: data.status,
         assign_to: data.projectMembers,
         assign_by: assignById,
@@ -127,7 +128,7 @@ const TaskList = ({ onActiveTab }) => {
   const handleEdit = (task) => {
     setFormData({
       title: task.title,
-      category: task.category?.id || "",
+      category: task.task_category_id || "",
       project: task.project?.id || "",
       startDate: task.start_date?.split("T")[0] || "",
       dueDate: task.end_date?.split("T")[0] || "",
@@ -155,8 +156,10 @@ const TaskList = ({ onActiveTab }) => {
   };
 
   // Open Task Details modal
+
   const handleViewTask = (task) => {
     setSelectedTask(task);
+
     setShowTaskDetails(true);
   };
 
@@ -360,7 +363,7 @@ const TaskList = ({ onActiveTab }) => {
               </p>
               <p>
                 <strong>Category:</strong>{" "}
-                {selectedTask.category?.category || "-"}
+                {selectedTask.taskCategory?.category || "-"}
               </p>
               <p>
                 <strong>Status:</strong> {selectedTask.status}
