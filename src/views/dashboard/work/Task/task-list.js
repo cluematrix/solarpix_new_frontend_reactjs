@@ -1,15 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Button, Table, Spinner, Modal } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Table,
+  Spinner,
+  Modal,
+  Form,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility"; // 👁 eye icon
 import AddEditTaskModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
+import avatarPic from "../../../../assets/images/avatars/avatar-pic.jpg";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
+import { statusOptions } from "../../../../mockData";
+import "../../../../styles/hoverMembersImg.css";
+import { useNavigate } from "react-router-dom";
 
-const TaskList = () => {
+const TaskList = ({ onActiveTab }) => {
   const [taskList, setTaskList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -58,7 +74,7 @@ const TaskList = () => {
   const handleAddOrUpdateTask = async (data) => {
     try {
       const loggedInUser = JSON.parse(sessionStorage.getItem("employee_id"));
-
+      // alert(loggedInUser);
       const assignById = loggedInUser;
 
       const payload = {
@@ -77,14 +93,34 @@ const TaskList = () => {
         await api.put(`/api/v1/admin/task/${editTask.id}`, payload);
       } else {
         await api.post("/api/v1/admin/task", payload);
+        successToast("Task created successfully");
       }
 
       fetchTasks();
     } catch (err) {
       console.error("Error saving task:", err.response?.data || err);
+      successToast("Task created successfully");
     } finally {
       setShowAddEdit(false);
       setEditTask(null);
+    }
+  };
+
+  // Update Task Status
+  const handleUpdateStatus = async (task, newStatus) => {
+    try {
+      const payload = {
+        ...task,
+        status: newStatus,
+      };
+
+      await api.put(`/api/v1/admin/task/${task.id}`, payload);
+
+      successToast("Status updated successfully");
+      fetchTasks();
+    } catch (err) {
+      console.error("Error saving task:", err.response?.data || err);
+      errorToast(err.response?.data || "Failed to update status");
     }
   };
 
@@ -127,10 +163,16 @@ const TaskList = () => {
     setShowTaskDetails(true);
   };
 
-  // Open Members Only modal
-  const handleShowMembers = (members) => {
-    setSelectedMembers(members || []);
-    setShowMembersOnly(true);
+  // // Open Members Only modal
+  // const handleShowMembers = (members) => {
+  //   setSelectedMembers(members || []);
+  //   setShowMembersOnly(true);
+  // };
+
+  // navigate to employee profile tab
+  const handleNavigateToProfile = (item) => {
+    navigate(`/view-employee/${item.id}`);
+    console.log("itemEmp", item);
   };
 
   return (
@@ -179,8 +221,8 @@ const TaskList = () => {
                         <th>Title</th>
                         <th>Project</th>
                         {/* <th>Category</th> */}
-                        <th>Status</th>
                         <th>Assigned To</th>
+                        <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -197,21 +239,71 @@ const TaskList = () => {
                             <td>{idx + 1}</td>
                             <td>{item.title}</td>
                             <td>{item.project?.project_name || "-"}</td>
-                            {/* <td>{item.category?.category || "-"}</td> */}
-                            <td>{item.status}</td>
-                            <td>
-                              {item.assign_to_details?.length > 0 ? (
-                                <VisibilityIcon
-                                  style={{ cursor: "pointer" }}
-                                  color="primary"
-                                  onClick={() =>
-                                    handleShowMembers(item.assign_to_details)
-                                  }
-                                />
-                              ) : (
-                                "-"
-                              )}
+                            <td className="text-center">
+                              <div className="d-flex align-items-center justify-content-center">
+                                {item.assign_to_details
+                                  .slice(0, 3)
+                                  .map((ass, index) => (
+                                    <img
+                                      key={index}
+                                      src={ass.photo || avatarPic}
+                                      alt={ass.name}
+                                      title={ass.name}
+                                      className="rounded-circle me-1 avatar-hover"
+                                      style={{
+                                        width: "25px",
+                                        height: "25px",
+                                        objectFit: "cover",
+                                        border: "1px solid #ccc",
+                                        cursor: "pointer",
+                                        zIndex: 10 - index,
+                                        marginLeft: "-15px",
+                                      }}
+                                      onClick={() =>
+                                        handleNavigateToProfile(ass)
+                                      }
+                                    />
+                                  ))}
+
+                                {item.assign_to_details.length > 3 && (
+                                  <div
+                                    className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark"
+                                    style={{
+                                      width: "25px",
+                                      height: "25px",
+                                      fontSize: "12px",
+                                      border: "1px solid #ccc",
+                                      cursor: "pointer",
+                                    }}
+                                    onClick={() =>
+                                      handleNavigateToProfile(
+                                        item.assign_to_details
+                                      )
+                                    }
+                                  >
+                                    +{item.assign_to_details.length - 3}
+                                  </div>
+                                )}
+                              </div>
                             </td>
+                            <td>
+                              <Form.Select
+                                size="sm"
+                                name="status"
+                                value={item.status || ""}
+                                onChange={(e) =>
+                                  handleUpdateStatus(item, e.target.value)
+                                }
+                                className="w-75"
+                              >
+                                {statusOptions.map((status) => (
+                                  <option key={status.name} value={status.name}>
+                                    {status.icon} {status.name}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            </td>
+
                             <td>
                               {item.assign_to_details?.length > 0 ? (
                                 <VisibilityIcon

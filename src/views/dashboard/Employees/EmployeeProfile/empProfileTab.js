@@ -7,16 +7,23 @@ import TaskList from "../../work/Task/task-list";
 const EmpProfileTab = () => {
   // Track active tab
   const [activeTab, setActiveTab] = useState("profile");
+  const [empProfileId, setEmpProfileId] = useState();
+
+  const handleActiveTab = (tabName, empData) => {
+    console.log("empDataTask", empData);
+    setActiveTab(tabName);
+    setEmpProfileId(empData);
+  };
 
   // Tab content render function
   const renderTabContent = () => {
     switch (activeTab) {
       case "profile":
-        return <EmployeeProfile />;
+        return <EmployeeProfile empProfileId={empProfileId} />;
       case "projects":
-        return <ProjectList />;
+        return <ProjectList onActiveTab={handleActiveTab} />;
       case "tasks":
-        return <TaskList />;
+        return <TaskList onActiveTab={handleActiveTab} />;
       case "attendance":
         return (
           <Card>
