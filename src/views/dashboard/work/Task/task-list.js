@@ -138,7 +138,10 @@ const TaskList = () => {
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
+            <Card.Header
+              className="d-flex justify-content-between"
+              style={{ padding: "15px 15px 0px 15px" }}
+            >
               <h5 className="card-title fw-lighter">Tasks</h5>
               <Button
                 className="btn-primary"

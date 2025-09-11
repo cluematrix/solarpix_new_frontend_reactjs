@@ -16,20 +16,19 @@ import {
 import { GrStorage } from "react-icons/gr";
 import { FaClock } from "react-icons/fa";
 
-const ProjectProfile = () => {
+const ProjectProfile = ({ viewProjectData }) => {
   const { id } = useParams(); // Get ID from URL
-  const [project, setProject] = useState({});
+  const [client, setClient] = useState([]);
   const [loading, setLoading] = useState(false);
-
   console.log("Component Mounted, ID:", id);
+  console.log("viewProjectData", viewProjectData);
 
-  const projectEmpById = async () => {
-    console.log("projectEmpById called with ID:", id);
+  const getClient = async () => {
     try {
       // setLoading(true);
-      const res = await api.get(`/api/v1/admin/project/${id}`);
+      const res = await api.get(`/api/v1/admin/clientCategory`);
       console.log("API Response:", res);
-      setProject(res.data.data || []);
+      setClient(res.data || []);
     } catch (error) {
       console.error("Fetch Error:", error);
     } finally {
@@ -38,13 +37,23 @@ const ProjectProfile = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect running...");
     if (id) {
-      projectEmpById();
+      getClient();
     } else {
       console.warn("ID is missing, cannot fetch");
     }
   }, [id]);
+
+  console.log("client", client);
+
+  const filteredClientCategory =
+    client &&
+    client.filter((item) => {
+      console.log("filteredClientById", item.id, viewProjectData.category.id);
+      return item.id == Number(viewProjectData.category.id);
+    });
+
+  console.log("filteredClientCategory", filteredClientCategory);
 
   if (loading) {
     return (
@@ -53,7 +62,7 @@ const ProjectProfile = () => {
       </div>
     );
   }
-  console.log("Project Data:", project);
+  console.log("Project Data:", viewProjectData);
   const COLORS = ["#28a745", "#ffc107", "#dc3545"];
 
   const taskData = [
@@ -87,11 +96,17 @@ const ProjectProfile = () => {
               <div className="d-flex w-75 justify-content-around mt-2">
                 <div>
                   <p>Start Date:</p>
-                  <p> {project.start_date || "--"}</p>
+                  <p className="text-black">
+                    {" "}
+                    {viewProjectData.start_date || "--"}
+                  </p>
                 </div>
                 <div>
                   <p>End Date:</p>
-                  <p> {project.end_date || "--"}</p>
+                  <p className="text-black">
+                    {" "}
+                    {viewProjectData.end_date || "--"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -99,16 +114,18 @@ const ProjectProfile = () => {
         </Col>
         <Col md={6}>
           <Card className="p-3">
-            <h5>Client</h5>
+            <h5>Customer</h5>
             <div className="d-flex align-items-center">
               <img
-                src="https://via.placeholder.com/50"
-                alt="Client"
-                className="rounded-circle me-3"
+                src={viewProjectData.client.photo}
+                alt="Customer"
+                className="rounded-circle me-3 w-25 mt-2"
               />
               <div>
-                <h6>Myrtis O’Keefe</h6>
-                <p className="mb-0">Barton PLC</p>
+                <h6>{viewProjectData.client.name || "--"}</h6>
+                <p className="mb-0">
+                  {filteredClientCategory.map((item) => item.category)}
+                </p>
               </div>
             </div>
           </Card>
@@ -140,7 +157,7 @@ const ProjectProfile = () => {
                   <p className="text-black">Project Budget</p>
                   <div className="d-flex justify-content-between align-items-baseline">
                     <p className="text-primary">
-                      ${project.project_budget || "--"}
+                      ${viewProjectData.project_budget || "--"}
                     </p>
                     <GrStorage />
                   </div>
@@ -152,7 +169,9 @@ const ProjectProfile = () => {
                 <Card.Body className="pt-3 pb-0">
                   <p className="text-black">Hours Logged</p>
                   <div className="d-flex justify-content-between align-items-baseline">
-                    <p className="text-primary">5 Hours</p>
+                    <p className="text-primary">
+                      {viewProjectData.hour_estimate}
+                    </p>
                     <FaClock />
                   </div>
                 </Card.Body>
@@ -172,7 +191,7 @@ const ProjectProfile = () => {
             <Col xs={6} className="mb-1">
               <Card>
                 <Card.Body className="pt-3 pb-0">
-                  <p className="text-black">E Expenses</p>
+                  <p className="text-black">Expenses</p>
                   <div className="d-flex justify-content-between align-items-baseline">
                     <p className="text-primary">$0.00</p>
                     <GrStorage />
@@ -219,7 +238,9 @@ const ProjectProfile = () => {
         <Col>
           <Card className="p-3">
             <h5>Project Details</h5>
-            <p>{project.project_summary || "No summary available."}</p>
+            <p className="text-black mt-2" style={{ fontSize: "13px" }}>
+              {viewProjectData.project_summary || "No summary available."}
+            </p>
           </Card>
         </Col>
       </Row>

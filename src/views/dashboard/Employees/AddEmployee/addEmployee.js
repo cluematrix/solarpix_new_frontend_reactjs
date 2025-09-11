@@ -159,6 +159,7 @@ const AddEmployee = () => {
     isSubmitting,
   } = formik;
 
+  console.log("errors", errors);
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -249,6 +250,7 @@ const AddEmployee = () => {
                   touched={touched.emp_id}
                   errors={errors.emp_id}
                   required={true}
+                  readOnly={true}
                 />
               </Col>
 
@@ -370,7 +372,7 @@ const AddEmployee = () => {
               </Col>
             </Row>
 
-            {/* Row 6 {address, state, city}*/}
+            {/* Row 6 {address}*/}
             <Row className="mt-3">
               <Col md={12}>
                 <CustomInput
@@ -389,7 +391,7 @@ const AddEmployee = () => {
               </Col>
             </Row>
 
-            {/* Row 8 {pincode, photo, skill}*/}
+            {/* Row 8 {pincode, city, state}*/}
             <Row className="mt-3 mb-4">
               <Col md={4}>
                 <CustomInput
@@ -402,6 +404,51 @@ const AddEmployee = () => {
                   touched={touched.pincode}
                   errors={errors.pincode}
                   required={true}
+                />
+              </Col>
+
+              <Col md={4}>
+                <CustomInput
+                  label="City"
+                  name="city"
+                  value={values.city}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter City"
+                  touched={touched.city}
+                  errors={errors.city}
+                  required={true}
+                />
+              </Col>
+              <Col md={4}>
+                <CustomInput
+                  label="State"
+                  name="state"
+                  value={values.state}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter State"
+                  touched={touched.state}
+                  errors={errors.state}
+                  required={true}
+                />
+              </Col>
+            </Row>
+
+            {/* Row 8 {role_id, photo, skill}*/}
+            <Row className="mt-3 mb-4">
+              <Col md={4}>
+                <CustomSelect
+                  label="Role"
+                  name="role_id"
+                  value={values.role_id}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={metaData.employeeRoleList}
+                  placeholder="--"
+                  error={errors.role_id}
+                  touched={touched.role_id}
+                  required
                 />
               </Col>
               <Col md={4}>
@@ -427,24 +474,6 @@ const AddEmployee = () => {
                   onBlur={handleBlur}
                   placeholder="Enter Skill"
                   touched={touched.skill}
-                />
-              </Col>
-            </Row>
-
-            {/* Row 8 {role_id}*/}
-            <Row className="mt-3 mb-4">
-              <Col md={4}>
-                <CustomSelect
-                  label="Role"
-                  name="role_id"
-                  value={values.role_id}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  options={metaData.employeeRoleList}
-                  placeholder="--"
-                  error={errors.role_id}
-                  touched={touched.role_id}
-                  required
                 />
               </Col>
             </Row>

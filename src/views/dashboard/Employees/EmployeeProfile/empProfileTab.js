@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import EmployeeProfile from "../AddEmployee/employeeProfile";
 import { Card, Container, Nav } from "react-bootstrap";
-import ProjectProfile from "../../work/Project/projectProfile";
+import ProjectList from "../../work/Project/projectList";
+import TaskList from "../../work/Task/task-list";
 
 const EmpProfileTab = () => {
   // Track active tab
@@ -13,16 +14,9 @@ const EmpProfileTab = () => {
       case "profile":
         return <EmployeeProfile />;
       case "projects":
-        return <ProjectProfile />;
+        return <ProjectList />;
       case "tasks":
-        return (
-          <Card>
-            <Card.Body>
-              <h5>Tasks</h5>
-              <p>Tasks screen content here...</p>
-            </Card.Body>
-          </Card>
-        );
+        return <TaskList />;
       case "attendance":
         return (
           <Card>

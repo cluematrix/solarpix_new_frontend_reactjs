@@ -24,3 +24,10 @@
 .clock-in-row{
 margin-top: -42px;
 }
+
+@media screen and (max-width: 575.98px) {
+.iq-navbar-header{
+  height: 140px;
+}
+  
+}
