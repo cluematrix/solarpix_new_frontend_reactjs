@@ -15,7 +15,7 @@ import ShiftList from "../views/dashboard/EmployeeManagment/Shift/shift-list"; /
 import DesignationList from "../views/dashboard/EmployeeManagment/Designation/designation-list"; //10 Aug
 import EmployeeType from "../views/dashboard/EmployeeManagment/EmployeeType/EmployeeTypes";
 import LeaveType from "../views/dashboard/EmployeeManagment/LeaveType/LeaveTypes";
-import AwardList from "../views/dashboard/EmployeeManagment/Award/appreciation/award-list";
+import AwardList from "../views/dashboard/EmployeeManagment/Award/awards/award-list";
 import Holiday from "../views/dashboard/EmployeeManagment/Holidays/Holiday";
 import DefaultHoliday from "../views/dashboard/EmployeeManagment/DefaultHoliday/DefaultHoliday";
 
@@ -32,6 +32,7 @@ import ContractType from "../views/dashboard/Customer/ContractType/contracttype"
 import ClientSubCategory from "../views/dashboard/Customer/CustomerSubCategory/ClientSubCategory";
 // expense Category
 import ExpenseCategory from "../views/dashboard/Expense/ExpenseCategory/ExpenseCategory"; //26 Aug
+import Expensess from "../views/dashboard/Expense/Expenses/Expensess";
 // work
 import ProjectList from "../views/dashboard/work/Project/projectList"; //12 Aug
 import TaskList from "../views/dashboard/work/Task/task-list"; //12 Aug rusghu
@@ -88,6 +89,7 @@ import UpdateCustomer from "../views/dashboard/Customer/Customers/updateCustomer
 import AddCustomer from "../views/dashboard/Customer/Customers/addCustomer";
 import CustomerProfile from "../views/dashboard/Customer/Customers/customerProfile";
 import NoticeBoard from "../views/dashboard/Notices/Notice/notice-list";
+import AppreciationList from "../views/dashboard/EmployeeManagment/Award/Appreciations/Appreciation-list";
 
 // employee profile 01 Sep
 
@@ -185,6 +187,11 @@ export const DefaultRouter = [
       },
 
       {
+        path: "/Appreciation-list",
+        element: <AppreciationList />,
+      },
+
+      {
         path: "/holiday",
         element: <Holiday />,
       },
@@ -266,6 +273,11 @@ export const DefaultRouter = [
       {
         path: "/ExpenseCategory-list",
         element: <ExpenseCategory />,
+      },
+
+      {
+        path: "/Expensess-list",
+        element: <Expensess />,
       },
 
       // Work

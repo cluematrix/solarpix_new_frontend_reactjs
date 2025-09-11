@@ -19,6 +19,9 @@ import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import ContactEmergencyIcon from "@mui/icons-material/ContactEmergency";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
+import { BsAwardFill } from "react-icons/bs";
+import AddCardIcon from "@mui/icons-material/AddCard";
+
 import {
   Accordion,
   useAccordionButton,
@@ -469,6 +472,25 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">Award</span>
                 </Link>
               </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/Appreciation-list" ? "active" : ""
+                  } nav-link`}
+                  to="/Appreciation-list"
+                >
+                  <i className="icon">
+                    <BsAwardFill fontSize="large" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <BsAwardFill fontSize="large" />{" "}
+                    {/* <EmojiEventsIcon fontSize="small" />{" "} */}
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Appreciation
+                  </span>
+                </Link>
+              </li>
 
               <li className="nav-item">
                 <Link
@@ -508,9 +530,9 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/leaves-list" ? "active" : ""
+                    location.pathname === "/Attendance-list" ? "active" : ""
                   } nav-link`}
-                  to="/leaves-list"
+                  to="/Attendance-list"
                 >
                   <i className="icon">
                     <TimeToLeaveIcon fontSize="small" />
@@ -521,6 +543,23 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">
                     Attendance
                   </span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/Payroll" ? "active" : ""
+                  } nav-link`}
+                  to="/Payroll"
+                >
+                  <i className="icon">
+                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Payroll</span>
                 </Link>
               </li>
             </ul>
@@ -826,6 +865,22 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">
                     Expense Category
                   </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/Expensess-list" ? "active" : ""
+                  } nav-link`}
+                  to="/Expensess-list"
+                >
+                  <i className="icon">
+                    <AddCardIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <AddCardIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Expense</span>
                 </Link>
               </li>
             </ul>

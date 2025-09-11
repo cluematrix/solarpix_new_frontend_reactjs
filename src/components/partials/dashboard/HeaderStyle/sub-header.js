@@ -84,7 +84,6 @@ const SubHeader = memo(() => {
   }, [employeeId]);
 
   // 🚀 Handle Clock In
-  // 🚀 Handle Clock In
   const handleClockIn = async () => {
     const now = new Date();
     const todayDate = now.toISOString().split("T")[0];
@@ -148,54 +147,59 @@ const SubHeader = memo(() => {
     <Fragment>
       <div className="iq-navbar-header" style={{ marginTop: "50px" }}>
         <Container fluid className="iq-container">
-          <Row className="clock-in-row">
-            <Col md="12">
-              <div className="d-flex justify-content-between flex-wrap align-items-center">
-                <div>
-                  <h1>Welcome</h1>
-                  <p>Empower Your Energy, Sustainably Managed.</p>
-                </div>
-                <div
-                  className="text-end p-3 rounded shadow-sm"
-                  style={{ minWidth: "100px" }}
-                >
-                  <h5 className="mb-0 text-white">
-                    <b>{formattedTime}</b>
-                  </h5>
-                  <small className="d-block text-light">
-                    {isClockedIn && clockInTime ? (
-                      <>
-                        Clock In at - <b>{clockInTime}</b>
-                      </>
-                    ) : clockOutTime ? (
-                      <>
-                        Clock Out at - <b>{clockOutTime}</b>
-                      </>
-                    ) : (
-                      <span>Not Clocked In</span>
-                    )}
-                  </small>
-                  <Link
-                    to="#"
-                    className={`btn ${
-                      isClockedIn ? "btn-danger" : "btn-success"
-                    } w-100 mt-2`}
-                    onClick={() =>
-                      isClockedIn ? handleClockOut() : handleClockIn()
-                    }
-                  >
-                    {isClockedIn ? (
-                      <>
-                        <ExitToAppIcon className="me-1" /> Clock Out
-                      </>
-                    ) : (
-                      <>
-                        <ArrowForwardIcon className="me-1" /> Clock In
-                      </>
-                    )}
-                  </Link>
-                </div>
+          <Row className="clock-in-row d-flex flex-row justify-content-between align-items-center flex-wrap flex-md-nowrap">
+            <Col xxl={6} xl={6} lg={6} xs={6} md={6} className="mb-3 mb-md-0 ">
+              {/* <div
+                className="d-flex justify-content-between align-items-center"
+                style={{ border: "solid" }}
+              > */}
+              <div>
+                <h1>Welcome</h1>
+                <p>Empower Your Energy, Sustainably Managed.</p>
               </div>
+            </Col>
+            <Col xxl={6} xl={6} lg={6} xs={6} className="mb-3 mb-md-0">
+              <div
+                className="text-end p-3 rounded shadow-sm"
+                style={{ minWidth: "100px" }}
+              >
+                <h5 className="mb-0 text-white">
+                  <b>{formattedTime}</b>
+                </h5>
+                <small className="d-block text-light">
+                  {isClockedIn && clockInTime ? (
+                    <>
+                      Clock In at - <b>{clockInTime}</b>
+                    </>
+                  ) : clockOutTime ? (
+                    <>
+                      Clock Out at - <b>{clockOutTime}</b>
+                    </>
+                  ) : (
+                    <span>Not Clocked In</span>
+                  )}
+                </small>
+                <Link
+                  to="#"
+                  className={`btn ${
+                    isClockedIn ? "btn-danger" : "btn-success"
+                  }  mt-2`}
+                  onClick={() =>
+                    isClockedIn ? handleClockOut() : handleClockIn()
+                  }
+                >
+                  {isClockedIn ? (
+                    <>
+                      <ExitToAppIcon className="me-1" /> Clock Out
+                    </>
+                  ) : (
+                    <>
+                      <ArrowForwardIcon className="me-1" /> Clock In
+                    </>
+                  )}
+                </Link>
+              </div>
+              {/* </div> */}
             </Col>
           </Row>
         </Container>

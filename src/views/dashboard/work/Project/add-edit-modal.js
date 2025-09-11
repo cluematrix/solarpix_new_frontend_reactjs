@@ -16,18 +16,21 @@ const AddEditProjectModal = ({
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [employee, setEmployee] = useState([]);
 
+  // const currencyOptions = ["USD", "EUR", "INR", "GBP"];
+
   // fetch employee
   const fetchEmployee = async () => {
     try {
       const res = await api.get("/api/v1/admin/employee");
-      console.log(res.data, "test");
       setEmployee(res.data.data || []);
     } catch (err) {
       console.error("Error fetching employee:", err);
     }
   };
 
-  // const currencyOptions = ["USD", "EUR", "INR", "GBP"];
+  useEffect(() => {
+    fetchEmployee();
+  }, []);
 
   useEffect(() => {
     fetchEmployee();
@@ -40,7 +43,7 @@ const AddEditProjectModal = ({
 
   const toggleMemberSelection = (id) => {
     setFormData((prev) => {
-      const alreadySelected = prev.projectMembers.includes(id);
+      const alreadySelected = prev?.projectMembers?.includes(id);
       return {
         ...prev,
         projectMembers: alreadySelected
@@ -55,7 +58,7 @@ const AddEditProjectModal = ({
 
   // Helper to get selected member names
   const selectedMemberNames = employee
-    .filter((member) => formData.projectMembers?.includes(member.id))
+    .filter((member) => formData?.projectMembers?.includes(member?.id))
     .map((member) => member.name);
 
   console.log("Selected Members:", selectedMemberNames);
@@ -96,7 +99,7 @@ const AddEditProjectModal = ({
               type="checkbox"
               label={member.name}
               checked={formData.projectMembers?.includes(member.id)}
-              onChange={() => toggleMemberSelection(member.id)}
+              onChange={() => toggleMemberSelection(member?.id)}
             />
           ))}
         </Modal.Body>

@@ -201,7 +201,10 @@ const LeadSourceList = () => {
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
+            <Card.Header
+              className="d-flex justify-content-between"
+              style={{ padding: "15px 15px 0px 15px" }}
+            >
               <h4 className="card-title fw-bold">Lead Sources </h4>
               {permissions.add && (
                 <Button
@@ -217,7 +220,7 @@ const LeadSourceList = () => {
               )}
             </Card.Header>
 
-            <Card.Body className="px-0">
+            <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
                 <Table hover responsive className="table">
                   <thead>

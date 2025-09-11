@@ -39,6 +39,7 @@ const TaskList = () => {
     try {
       setLoading(true);
       const res = await api.get("/api/v1/admin/task");
+
       if (res.data.success) {
         setTaskList(res.data.data || []);
       }
@@ -57,7 +58,7 @@ const TaskList = () => {
   const handleAddOrUpdateTask = async (data) => {
     try {
       const loggedInUser = JSON.parse(sessionStorage.getItem("employee_id"));
-      alert(loggedInUser);
+
       const assignById = loggedInUser;
 
       const payload = {
@@ -66,7 +67,7 @@ const TaskList = () => {
         start_date: data.startDate,
         end_date: data.withoutDueDate ? null : data.dueDate,
         project_id: data.project,
-        category_id: data.category,
+        task_category_id: data.category,
         status: data.status,
         assign_to: data.projectMembers,
         assign_by: assignById,
@@ -91,7 +92,7 @@ const TaskList = () => {
   const handleEdit = (task) => {
     setFormData({
       title: task.title,
-      category: task.category?.id || "",
+      category: task.task_category_id || "",
       project: task.project?.id || "",
       startDate: task.start_date?.split("T")[0] || "",
       dueDate: task.end_date?.split("T")[0] || "",
@@ -119,8 +120,10 @@ const TaskList = () => {
   };
 
   // Open Task Details modal
+
   const handleViewTask = (task) => {
     setSelectedTask(task);
+
     setShowTaskDetails(true);
   };
 
@@ -135,7 +138,10 @@ const TaskList = () => {
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
+            <Card.Header
+              className="d-flex justify-content-between"
+              style={{ padding: "15px 15px 0px 15px" }}
+            >
               <h5 className="card-title fw-lighter">Tasks</h5>
               <Button
                 className="btn-primary"
@@ -265,7 +271,7 @@ const TaskList = () => {
               </p>
               <p>
                 <strong>Category:</strong>{" "}
-                {selectedTask.category?.category || "-"}
+                {selectedTask.taskCategory?.category || "-"}
               </p>
               <p>
                 <strong>Status:</strong> {selectedTask.status}

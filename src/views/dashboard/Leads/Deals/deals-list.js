@@ -8,10 +8,9 @@ import api from "../../../../api/axios"; // axios instance
 
 const DealList = () => {
   const [dealList, setDealList] = useState([]);
-
   const [dealStages, setDealStages] = useState([]);
   const [leads, setLeads] = useState([]);
-  const [clients, setClients] = useState([]); // 👈 NEW state for clients
+  const [clients, setClients] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -26,11 +25,12 @@ const DealList = () => {
           api.get("/api/v1/admin/deal"),
           api.get("/api/v1/admin/dealStages/active"),
           api.get("/api/v1/admin/lead/active"),
-          api.get("/api/v1/admin/client/active"), // 👈 fetch clients
+          api.get("/api/v1/admin/client/active"),
         ]);
-        setDealList(dealsRes.data || []);
+
+        setDealList(dealsRes.data?.data || dealsRes.data || []);
         setDealStages(stagesRes.data || []);
-        setLeads(leadsRes.data || []);
+        setLeads(leadsRes.data?.data || leadsRes.data || []);
         setClients(clientsRes.data?.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -49,9 +49,8 @@ const DealList = () => {
         await api.post("/api/v1/admin/deal", formData);
       }
 
-      // 🔹 Refetch fresh list after save
       const dealsRes = await api.get("/api/v1/admin/deal");
-      setDealList(dealsRes.data || []);
+      setDealList(dealsRes.data?.data || dealsRes.data || []);
 
       setShowModal(false);
       setEditData(null);
@@ -63,11 +62,17 @@ const DealList = () => {
   // 🔹 delete deal
   const handleDeleteConfirm = async () => {
     try {
-      await api.delete(`/api/v1/admin/deal/${deleteId}`);
+      console.log("Deleting deal id:", deleteId);
+
+      const res = await api.delete(`/api/v1/admin/deal/${deleteId}`);
+      console.log("Delete response:", res);
+
       setDealList((prev) => prev.filter((deal) => deal.id !== deleteId));
+
       setShowDeleteModal(false);
+      setDeleteId(null);
     } catch (error) {
-      console.error("Error deleting deal:", error);
+      console.error("Error deleting deal:", error.response || error);
     }
   };
 
@@ -76,14 +81,15 @@ const DealList = () => {
     setShowModal(true);
   };
 
-  console.log("list", dealList);
-
   return (
     <>
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
+            <Card.Header
+              className="d-flex justify-content-between"
+              style={{ padding: "15px 15px 0px 15px" }}
+            >
               <h5 className="card-title fw-lighter">Deals</h5>
               <Button
                 className="btn-primary"
@@ -96,14 +102,14 @@ const DealList = () => {
               </Button>
             </Card.Header>
 
-            <Card.Body className="px-0">
+            <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
                 <Table hover responsive className="table">
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Deal Name</th>
-                      <th>Customer</th>
+                      <th>Lead Name</th>
                       <th>Amount</th>
                       <th>Stage</th>
                       <th>Actions</th>
@@ -121,8 +127,7 @@ const DealList = () => {
                         <tr key={deal.id}>
                           <td>{index + 1}</td>
                           <td>{deal.deal_name}</td>
-                          <td>{deal.client?.name || "---"}</td>{" "}
-                          {/* 👈 client name */}
+                          <td>{deal.lead?.name || "---"}</td>
                           <td>₹{deal.deal_value}</td>
                           <td>{deal.dealStage?.deal_stages || "---"}</td>
                           <td>
@@ -163,7 +168,7 @@ const DealList = () => {
         editData={editData}
         dealStages={dealStages}
         leads={leads}
-        clients={clients} // 👈 pass clients to modal
+        clients={clients}
       />
 
       {/* Delete Modal */}
