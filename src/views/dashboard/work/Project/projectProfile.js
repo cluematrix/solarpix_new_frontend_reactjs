@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Spinner } from "react-bootstrap";
-import { useParams } from "react-router-dom";
 import api from "../../../../api/axios";
 import {
   PieChart,
@@ -17,10 +16,9 @@ import { GrStorage } from "react-icons/gr";
 import { FaClock } from "react-icons/fa";
 
 const ProjectProfile = ({ viewProjectData }) => {
-  const { id } = useParams(); // Get ID from URL
+  console.log("viewProjectData", viewProjectData);
   const [client, setClient] = useState([]);
   const [loading, setLoading] = useState(false);
-  console.log("Component Mounted, ID:", id);
   console.log("viewProjectData", viewProjectData);
 
   const getClient = async () => {
@@ -37,12 +35,8 @@ const ProjectProfile = ({ viewProjectData }) => {
   };
 
   useEffect(() => {
-    if (id) {
-      getClient();
-    } else {
-      console.warn("ID is missing, cannot fetch");
-    }
-  }, [id]);
+    getClient();
+  }, []);
 
   console.log("client", client);
 

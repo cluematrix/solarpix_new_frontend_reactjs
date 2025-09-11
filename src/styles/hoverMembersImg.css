@@ -1,0 +1,8 @@
+.avatar-hover {
+  transition: transform 0.2s ease-in-out; /* smooth effect */
+}
+
+.avatar-hover:hover {
+  transform: scale(1.3);  /* for hover zoom */
+  z-index: 20;            /* for top up */
+}
