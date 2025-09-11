@@ -20,10 +20,14 @@ import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ProjectProfile from "./projectProfile";
+import avatarPic from "../../../../assets/images/avatars/avatar-pic.jpg";
+import "../../../../styles/hoverMembersImg.css";
+import { useNavigate } from "react-router-dom";
 
-const ProjectList = () => {
+const ProjectList = ({ onActiveTab = () => {} }) => {
   const [projectData, setProjectData] = useState([]);
   const [navigateId, setNavigateId] = useState(false);
+  const navigate = useNavigate();
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,6 +163,12 @@ const ProjectList = () => {
     setViewProjectData(item);
   };
 
+  // navigate to employee profile tab
+  const handleNavigateToProfile = (item) => {
+    navigate(`/view-employee/${item.id}`);
+    console.log("itemEmp", item);
+  };
+
   return (
     <>
       {navigateId ? (
@@ -217,11 +227,59 @@ const ProjectList = () => {
                               <td>{idx + 1}</td>
                               <td>{item.short_code || "--"}</td>
                               <td>{item.project_name || "--"}</td>
-                              <td>
+                              {/* <td>
                                 {item.assign_to_details.map(
                                   (ass) => ass.name
                                 ) || "--"}
+                              </td> */}
+                              <td>
+                                <div className="d-flex align-items-center justify-content-center">
+                                  {item.assign_to_details
+                                    .slice(0, 3)
+                                    .map((ass, index) => (
+                                      <img
+                                        key={index}
+                                        src={ass.photo || avatarPic}
+                                        alt={ass.name}
+                                        title={ass.name}
+                                        className="rounded-circle me-1 avatar-hover"
+                                        style={{
+                                          width: "25px",
+                                          height: "25px",
+                                          objectFit: "cover",
+                                          border: "1px solid #ccc",
+                                          cursor: "pointer",
+                                          zIndex: 10 - index,
+                                          marginLeft: "-15px",
+                                        }}
+                                        onClick={() =>
+                                          handleNavigateToProfile(ass)
+                                        }
+                                      />
+                                    ))}
+
+                                  {item.assign_to_details.length > 3 && (
+                                    <div
+                                      className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark member-avatar"
+                                      style={{
+                                        width: "25px",
+                                        height: "25px",
+                                        fontSize: "12px",
+                                        border: "1px solid #ccc",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() =>
+                                        handleNavigateToProfile(
+                                          item.assign_to_details
+                                        )
+                                      }
+                                    >
+                                      +{item.assign_to_details.length - 3}
+                                    </div>
+                                  )}
+                                </div>
                               </td>
+
                               <td>{item.start_date || "--"}</td>
                               <td>{item.end_date || "--"}</td>
                               <td className="text-center">

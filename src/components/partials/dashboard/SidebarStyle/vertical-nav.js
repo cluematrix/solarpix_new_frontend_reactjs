@@ -57,6 +57,7 @@ const VerticalNav = memo((props) => {
 
   const roleIdsss = sessionStorage.getItem("roleId");
   console.log(roleIdsss);
+
   return (
     <Fragment>
       <Accordion as="ul" className="navbar-nav iq-main-menu">

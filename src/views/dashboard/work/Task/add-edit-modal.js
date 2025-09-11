@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Button, Row, Col, Spinner } from "react-bootstrap";
 import api from "../../../../api/axios";
+import { statusOptions } from "../../../../mockData";
 
 const AddEditTaskModal = ({
   show,
@@ -15,8 +16,6 @@ const AddEditTaskModal = ({
   const [membersList, setMembersList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
-
-  const statusOptions = ["Incomplete", "In Progress", "Completed"];
 
   // ✅ Fetch dropdown data when modal opens
   useEffect(() => {
@@ -125,11 +124,14 @@ const AddEditTaskModal = ({
                 {/* Category */}
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">Task Category</Form.Label>
+                    <Form.Label className="pt-4">
+                      Task Category <span className="text-danger">*</span>
+                    </Form.Label>
                     <Form.Select
                       name="category"
                       value={formData.category || ""}
                       onChange={handleChange}
+                      required
                     >
                       <option value="">Select Category</option>
                       {categoryOptions.map((cat) => (
@@ -146,11 +148,14 @@ const AddEditTaskModal = ({
                 {/* Project */}
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">Project</Form.Label>
+                    <Form.Label className="pt-4">
+                      Project <span className="text-danger">*</span>
+                    </Form.Label>
                     <Form.Select
                       name="project"
                       value={formData.project || ""}
                       onChange={handleChange}
+                      required
                     >
                       <option value="">Select Project</option>
                       {projectOptions.map((proj) => (
@@ -165,12 +170,15 @@ const AddEditTaskModal = ({
                 {/* Start Date */}
                 <Col md={3}>
                   <Form.Group>
-                    <Form.Label className="pt-4">Start Date</Form.Label>
+                    <Form.Label className="pt-4">
+                      Start Date <span className="text-danger">*</span>
+                    </Form.Label>
                     <Form.Control
                       type="date"
                       name="startDate"
                       value={formData.startDate || ""}
                       onChange={handleChange}
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -185,6 +193,7 @@ const AddEditTaskModal = ({
                       value={formData.dueDate || ""}
                       onChange={handleChange}
                       disabled={formData.withoutDueDate}
+                      required
                     />
                     <Form.Check
                       className="mt-1"
@@ -202,27 +211,29 @@ const AddEditTaskModal = ({
                 {/* Status */}
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">Status</Form.Label>
+                    <Form.Label className="pt-4">
+                      Status <span className="text-danger">*</span>
+                    </Form.Label>
+
                     <Form.Select
                       name="status"
                       value={formData.status || ""}
                       onChange={handleChange}
+                      required
                     >
                       {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
+                        <option key={status.name} value={status.name}>
+                          {status.icon} {status.name}
                         </option>
                       ))}
                     </Form.Select>
                   </Form.Group>
                 </Col>
-              </Row>
-
-              <Row className="mt-2">
-                {/* Assigned To */}
-                <Col md={12}>
+                <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">Assigned To</Form.Label>
+                    <Form.Label className="pt-4">
+                      Assigned To <span className="text-danger">*</span>
+                    </Form.Label>
                     <div className="d-flex align-items-center">
                       <Form.Control
                         type="text"
@@ -232,6 +243,7 @@ const AddEditTaskModal = ({
                             : "No members selected"
                         }
                         readOnly
+                        required
                       />
                       <Button
                         variant="outline-primary"
@@ -244,17 +256,22 @@ const AddEditTaskModal = ({
                   </Form.Group>
                 </Col>
               </Row>
+
               {/* Description */}
               <Row className="mt-2">
                 <Col md={12}>
                   <Form.Group>
-                    <Form.Label className="pt-4">Description</Form.Label>
+                    <Form.Label className="pt-4">
+                      Description <span className="text-danger">*</span>
+                    </Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={3}
                       name="description"
                       value={formData.description || ""}
                       onChange={handleChange}
+                      required
+                      style={{ color: "black" }}
                     />
                   </Form.Group>
                 </Col>
@@ -282,6 +299,7 @@ const AddEditTaskModal = ({
         <Modal.Body>
           {membersList.map((member) => (
             <Form.Check
+              id={member.id}
               key={member.id}
               type="checkbox"
               label={member.name}

@@ -9,21 +9,32 @@ import {
   Badge,
   Spinner,
 } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../../api/axios";
+import avatarImg from "../../../../assets/images/avatars/avatar-pic.jpg";
 
-const EmployeeProfile = () => {
+const EmployeeProfile = ({ empProfileId }) => {
+  console.log("outer empProfileId", empProfileId);
   const { id } = useParams(); // Get ID from URL
   const [emp, setEmp] = useState({});
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   console.log("Component Mounted, ID:", id);
+
+  useEffect(() => {
+    // if empProfileId is available and its different from current Id then navigate
+    if (empProfileId && empProfileId !== id) {
+      navigate(`/view-employee/${empProfileId}`, { replace: true });
+    }
+  }, [empProfileId, id, navigate]);
 
   const fetchEmpById = async () => {
     console.log("fetchEmpById called with ID:", id);
     try {
       setLoading(true);
-      const res = await api.get(`/api/v1/admin/employee/${id}`);
+      const apiId = empProfileId ? empProfileId : id;
+      console.log("apiId", apiId);
+      const res = await api.get(`/api/v1/admin/employee/${apiId}`);
       console.log("API Response:", res);
       setEmp(res.data.data || []);
     } catch (error) {
@@ -35,12 +46,12 @@ const EmployeeProfile = () => {
 
   useEffect(() => {
     console.log("useEffect running...");
-    if (id) {
+    if (id || empProfileId) {
       fetchEmpById();
     } else {
       console.warn("ID is missing, cannot fetch");
     }
-  }, [id]);
+  }, [empProfileId, id]);
 
   if (loading) {
     return (
@@ -60,7 +71,7 @@ const EmployeeProfile = () => {
           <Card className="mb-4">
             <Card.Body className="d-flex align-items-center flex-wrap">
               <Image
-                src={emp?.photo}
+                src={emp?.photo || avatarImg}
                 roundedCircle
                 width={80}
                 height={80}
