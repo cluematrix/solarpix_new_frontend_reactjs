@@ -17,7 +17,6 @@ const DealList = () => {
   const [editData, setEditData] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // 🔹 fetch deals, stages, leads & clients
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,11 +35,9 @@ const DealList = () => {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
   }, []);
 
-  // 🔹 save (add or update)
   const handleSave = async (formData) => {
     try {
       if (editData) {
@@ -48,10 +45,8 @@ const DealList = () => {
       } else {
         await api.post("/api/v1/admin/deal", formData);
       }
-
       const dealsRes = await api.get("/api/v1/admin/deal");
       setDealList(dealsRes.data?.data || dealsRes.data || []);
-
       setShowModal(false);
       setEditData(null);
     } catch (error) {
@@ -59,16 +54,10 @@ const DealList = () => {
     }
   };
 
-  // 🔹 delete deal
   const handleDeleteConfirm = async () => {
     try {
-      console.log("Deleting deal id:", deleteId);
-
-      const res = await api.delete(`/api/v1/admin/deal/${deleteId}`);
-      console.log("Delete response:", res);
-
+      await api.delete(`/api/v1/admin/deal/${deleteId}`);
       setDealList((prev) => prev.filter((deal) => deal.id !== deleteId));
-
       setShowDeleteModal(false);
       setDeleteId(null);
     } catch (error) {
@@ -112,13 +101,18 @@ const DealList = () => {
                       <th>Lead Name</th>
                       <th>Amount</th>
                       <th>Stage</th>
+                      <th>Capacity</th>
+                      <th>Site Visit</th>
+                      <th>Status</th>
+                      <th>Negotiable</th>
+                      <th>Attachment</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {dealList.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center">
+                        <td colSpan="11" className="text-center">
                           No deals available
                         </td>
                       </tr>
@@ -130,6 +124,23 @@ const DealList = () => {
                           <td>{deal.lead?.name || "---"}</td>
                           <td>₹{deal.deal_value}</td>
                           <td>{deal.dealStage?.deal_stages || "---"}</td>
+                          <td>{deal.capacity || "---"}</td>
+                          <td>{deal.site_visit_date || "---"}</td>
+                          <td>{deal.status || "---"}</td>
+                          <td>{deal.negotiable || "---"}</td>
+                          <td>
+                            {deal.attachment ? (
+                              <a
+                                href={deal.attachment}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                View PDF
+                              </a>
+                            ) : (
+                              "---"
+                            )}
+                          </td>
                           <td>
                             <CreateTwoToneIcon
                               className="me-2"

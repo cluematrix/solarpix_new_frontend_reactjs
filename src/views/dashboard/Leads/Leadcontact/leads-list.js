@@ -13,7 +13,7 @@ const LeadsList = () => {
   const [leadList, setLeadList] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [clients, setClients] = useState([]); // ✅ store clients
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -25,6 +25,7 @@ const LeadsList = () => {
   const [formData, setFormData] = useState({
     salutation: "",
     name: "",
+    amount: "",
     email: "",
     contact: "",
     leadSource: "",
@@ -35,6 +36,9 @@ const LeadsList = () => {
     pincode: "",
     description: "",
     address: "",
+    requirementType: "",
+    capacity: "",
+    status: "",
     isActive: true,
     isDelete: false,
   });
@@ -44,7 +48,7 @@ const LeadsList = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
-  // ✅ Fetch dropdowns once
+  // Fetch dropdowns once
   const fetchDropdowns = async () => {
     try {
       const [leadRes, empRes, cliRes] = await Promise.all([
@@ -55,13 +59,13 @@ const LeadsList = () => {
 
       setLeadSources(leadRes.data || []);
       if (empRes.data?.success) setEmployees(empRes.data.data || []);
-      if (cliRes.data?.success) setClients(cliRes.data.data || []); // ✅ store clients
+      if (cliRes.data?.success) setClients(cliRes.data.data || []);
     } catch (err) {
       console.error("Error fetching dropdowns:", err);
     }
   };
 
-  // ✅ Fetch Leads List
+  // Fetch Leads List
   const fetchLeads = async () => {
     try {
       setLoading(true);
@@ -89,6 +93,7 @@ const LeadsList = () => {
     setFormData({
       salutation: "",
       name: "",
+      amount: "",
       email: "",
       contact: "",
       leadSource: "",
@@ -99,13 +104,16 @@ const LeadsList = () => {
       pincode: "",
       description: "",
       address: "",
+      requirementType: "",
+      capacity: "",
+      status: "",
       isActive: true,
       isDelete: false,
     });
     setEditIndex(null);
   };
 
-  // ✅ Save lead (POST/PUT)
+  // Save lead (POST/PUT)
   const handleAddOrUpdateLead = async (data) => {
     const payload = {
       salutation: data.salutation,
@@ -117,9 +125,13 @@ const LeadsList = () => {
       lead_owner: Number(data.leadOwner),
       city: data.city,
       state: data.state,
+      amount: data.amount,
       pincode: data.pincode,
       description: data.description,
       address: data.address,
+      requirement_type_id: Number(data.requirementType),
+      capacity: data.capacity,
+      status: data.status,
       isActive: data.isActive,
       isDelete: data.isDelete,
     };
@@ -142,6 +154,7 @@ const LeadsList = () => {
     const lead = leadList[index];
     setFormData({
       salutation: lead.salutation || "",
+      amount: lead.amount || "",
       name: lead.name || "",
       email: lead.email || "",
       contact: lead.contact || "",
@@ -153,6 +166,10 @@ const LeadsList = () => {
       pincode: lead.pincode || "",
       description: lead.description || "",
       address: lead.address || "",
+      requirementType:
+        lead.requirement_type_id?.id || lead.requirement_type_id || "",
+      capacity: lead.capacity || "",
+      status: lead.status || "",
       isActive: lead.isActive,
       isDelete: lead.isDelete,
     });
@@ -235,7 +252,6 @@ const LeadsList = () => {
                                   (item.lead_source?.id || item.lead_source)
                               )?.lead_source || "-"}
                             </td>
-
                             <td>
                               {employees.find(
                                 (emp) =>
@@ -265,7 +281,6 @@ const LeadsList = () => {
                                 color="error"
                                 style={{ cursor: "pointer" }}
                               />
-                              {/* ✅ Hide Add-to-Customer if lead is already client */}
                               {clients.some(
                                 (client) => client.lead_id === item.id
                               ) ? (

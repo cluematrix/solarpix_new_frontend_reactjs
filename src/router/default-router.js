@@ -90,6 +90,7 @@ import AddCustomer from "../views/dashboard/Customer/Customers/addCustomer";
 import CustomerProfile from "../views/dashboard/Customer/Customers/customerProfile";
 import NoticeBoard from "../views/dashboard/Notices/Notice/notice-list";
 import AppreciationList from "../views/dashboard/EmployeeManagment/Award/Appreciations/Appreciation-list";
+import RequirementList from "../views/dashboard/Leads/requirementType/requirement-list";
 
 // employee profile 01 Sep
 
@@ -308,6 +309,11 @@ export const DefaultRouter = [
       {
         path: "/leads-list",
         element: <LeadsList />,
+      },
+
+            {
+        path: "/requirement-list",
+        element: <RequirementList />,
       },
 
       {
