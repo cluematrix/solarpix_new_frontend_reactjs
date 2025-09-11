@@ -5,12 +5,22 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
+import { useNavigate } from "react-router-dom";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import Tooltip from "@mui/material/Tooltip";
 
 const LeadsList = () => {
   const [leadList, setLeadList] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [clients, setClients] = useState([]); // ✅ store clients
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Convert Lead to Customer
+  const handleConvertToCustomer = (lead) => {
+    navigate("/add-customer", { state: { leadData: lead } });
+  };
 
   const [formData, setFormData] = useState({
     salutation: "",
@@ -37,14 +47,15 @@ const LeadsList = () => {
   // ✅ Fetch dropdowns once
   const fetchDropdowns = async () => {
     try {
-      const [leadRes, empRes] = await Promise.all([
+      const [leadRes, empRes, cliRes] = await Promise.all([
         api.get("/api/v1/admin/leadSource/active"),
         api.get("/api/v1/admin/employee/active"),
+        api.get("/api/v1/admin/client/active"),
       ]);
 
-      console.log("lead response", leadRes);
       setLeadSources(leadRes.data || []);
       if (empRes.data?.success) setEmployees(empRes.data.data || []);
+      if (cliRes.data?.success) setClients(cliRes.data.data || []); // ✅ store clients
     } catch (err) {
       console.error("Error fetching dropdowns:", err);
     }
@@ -55,8 +66,6 @@ const LeadsList = () => {
     try {
       setLoading(true);
       const res = await api.get("/api/v1/admin/lead");
-      console.log("Leads soruce API Response:", res);
-
       if (Array.isArray(res.data?.data)) {
         setLeadList(res.data.data);
       } else if (Array.isArray(res.data)) {
@@ -71,7 +80,6 @@ const LeadsList = () => {
     }
   };
 
-  console.log("getting all", leadList);
   useEffect(() => {
     fetchDropdowns();
     fetchLeads();
@@ -132,7 +140,6 @@ const LeadsList = () => {
 
   const handleEdit = (index) => {
     const lead = leadList[index];
-    console.log("getting lead data", lead);
     setFormData({
       salutation: lead.salutation || "",
       name: lead.name || "",
@@ -166,7 +173,6 @@ const LeadsList = () => {
     setDeleteIndex(null);
   };
 
-  console.log("lead resonse 22", leadSources);
   return (
     <>
       <Row className="mt-4">
@@ -256,6 +262,34 @@ const LeadsList = () => {
                                 color="error"
                                 style={{ cursor: "pointer" }}
                               />
+                              {/* ✅ Hide Add-to-Customer if lead is already client */}
+                              {clients.some(
+                                (client) => client.lead_id === item.id
+                              ) ? (
+                                <Tooltip title="Already Customer">
+                                  <span>
+                                    <PersonAddIcon
+                                      size="sm"
+                                      className="ms-2"
+                                      style={{
+                                        cursor: "not-allowed",
+                                        color: "gray",
+                                      }}
+                                    />
+                                  </span>
+                                </Tooltip>
+                              ) : (
+                                <Tooltip title="Add to Customer">
+                                  <PersonAddIcon
+                                    size="sm"
+                                    className="ms-2"
+                                    style={{ cursor: "pointer", color: "blue" }}
+                                    onClick={() =>
+                                      handleConvertToCustomer(item)
+                                    }
+                                  />
+                                </Tooltip>
+                              )}
                             </td>
                           </tr>
                         ))

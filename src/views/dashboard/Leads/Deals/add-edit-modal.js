@@ -47,7 +47,7 @@ const AddEditModal = ({
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+    <Modal show={show} onHide={handleClose} centered backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>{editData ? "Edit Deal" : "Add Deal"}</Modal.Title>
       </Modal.Header>
@@ -68,7 +68,7 @@ const AddEditModal = ({
             </Col>
           </Row>
 
-          <Row className="mb-3">
+          {/* <Row className="mb-3">
             <Col md={12}>
               <Form.Group>
                 <Form.Label className="pt-2">Customer *</Form.Label>
@@ -88,7 +88,7 @@ const AddEditModal = ({
                 </Form.Select>
               </Form.Group>
             </Col>
-          </Row>
+          </Row> */}
 
           <Row className="mb-3">
             <Col md={6}>

@@ -37,7 +37,7 @@ const AddEditTaskModal = ({
       }
       // If backend wraps in { success, data }
       else if (categoryRes.data.success) {
-        setCategoryOptions(categoryRes.data.data || []);
+        setCategoryOptions(categoryRes.data.data || categoryRes.data || []);
       }
 
       // Projects
