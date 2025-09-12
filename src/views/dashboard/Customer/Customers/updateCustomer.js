@@ -6,7 +6,11 @@ import * as Yup from "yup";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import { genderData, salutationData } from "../../../../mockData";
+import {
+  docTypeOptions,
+  genderData,
+  salutationData,
+} from "../../../../mockData";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
@@ -57,18 +61,26 @@ const UpdateCustomer = () => {
       .required("Pincode is required")
       .matches(/^\d{6}$/, "Enter a valid 6-digit pincode"),
     client_category_id: Yup.string().required("Client Category is required"),
-    photo: Yup.mixed()
+    // photo: Yup.mixed()
+    //   .nullable()
+    //   .test(
+    //     "fileType",
+    //     "Only JPG, JPEG, PNG, or GIF files are allowed",
+    //     (value) => {
+    //       if (!value) return true;
+    //       return ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(
+    //         value.type
+    //       );
+    //     }
+    //   ),
+    docSelect: Yup.string().required("Document Type is required"),
+    doc_no: Yup.string().required("Document number is required"),
+    doc_upload: Yup.mixed()
       .nullable()
-      .test(
-        "fileType",
-        "Only JPG, JPEG, PNG, or GIF files are allowed",
-        (value) => {
-          if (!value) return true;
-          return ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(
-            value.type
-          );
-        }
-      ),
+      .test("fileType", "Only Pdf files are allowed", (value) => {
+        if (!value) return true;
+        return ["application/pdf"].includes(value.type);
+      }),
   });
 
   const formik = useFormik({
@@ -357,6 +369,79 @@ const UpdateCustomer = () => {
                 touched={touched.client_category_id}
                 valueName="id"
                 lableName="category"
+              />
+            </Col>
+          </Row>
+
+          <hr />
+          <Card.Header className="p-0 pb-2">
+            <h5 className="mb-0">Document Details</h5>
+          </Card.Header>
+
+          {/* Row 5 {docSelect} */}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomRadioGroup
+                label="Select Document"
+                name="docSelect"
+                options={docTypeOptions}
+                value={values.docSelect}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.docSelect}
+                error={errors.docSelect}
+                required
+              />
+            </Col>
+          </Row>
+
+          {/* Row 5 {doc_no} */}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomInput
+                label={`Enter ${values.docSelect} No`}
+                name="doc_no"
+                value={values.doc_no}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder={`Enter ${values.docSelect} No`}
+                touched={touched.doc_no}
+                errors={errors.doc_no}
+                disabled={!values.docSelect}
+                required
+                title={!values.docSelect && `Choose doc type first`}
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomFileInput
+                label={`Upload ${values.docSelect} (Pdf)`}
+                name="doc_upload"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("doc_upload", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.doc_upload}
+                error={errors.doc_upload}
+                disabled={!values.docSelect}
+                required
+                title={!values.docSelect && `Choose doc type first`}
+              />
+            </Col>
+          </Row>
+          <Row className="mt-3 mb-4">
+            <Col md={12}>
+              <CustomInput
+                as="textarea"
+                label="Enter Notes / Remarks"
+                name="description"
+                value={values.description}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Notes / Remarks"
+                touched={touched.description}
+                errors={errors.description}
               />
             </Col>
           </Row>

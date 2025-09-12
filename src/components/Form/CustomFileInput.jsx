@@ -11,6 +11,8 @@ const CustomFileInput = ({
   accept = "image/*",
   required = false,
   size = "md", // optional size
+  disabled = false,
+  title
 }) => {
   return (
     <Form.Group>
@@ -27,6 +29,8 @@ const CustomFileInput = ({
         onChange={onChange}
         onBlur={onBlur}
         className={touched && error ? "is-invalid" : ""}
+        disabled={disabled}
+        title={title}
       />
       {touched && error && (
         <div className="invalid-feedback" style={{ fontSize: "11px" }}>

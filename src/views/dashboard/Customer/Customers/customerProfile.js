@@ -45,7 +45,7 @@ const CustomerProfile = () => {
   return (
     <Container fluid className="p-0">
       <Row className="mt-4">
-        {/* Left Section */}
+        {/* profile img */}
         <Col md={12}>
           {/* Profile Card */}
           <Card className="mb-4">
@@ -53,8 +53,8 @@ const CustomerProfile = () => {
               <Image
                 src={customer?.photo || "https://via.placeholder.com/80"}
                 roundedCircle
-                width={150}
-                height={150}
+                width={100}
+                height={100}
                 className="me-3"
               />
               <div>
@@ -62,7 +62,6 @@ const CustomerProfile = () => {
                 <p className="mb-1 small">
                   {customer?.client_category?.name || "Customer"}
                 </p>
-                <small className="text-muted">{customer?.email || "--"}</small>
               </div>
             </Card.Body>
           </Card>
@@ -74,8 +73,12 @@ const CustomerProfile = () => {
               <p>{customer?.about || "No description available"}</p>
             </Card.Body>
           </Card> */}
+        </Col>
+      </Row>
 
-          {/* Profile Info Section */}
+      <Row className="mt-4">
+        {/* Profile Info Section */}
+        <Col lg={8}>
           <Card>
             <Card.Body>
               <h5>Customer Info</h5>
@@ -98,20 +101,25 @@ const CustomerProfile = () => {
                     <td>{customer?.contact || "--"}</td>
                   </tr>
                   <tr>
-                    <td>Address</td>
-                    <td>{customer?.address || "--"}</td>
-                  </tr>
-                  {/* <tr>
-                    <td>GST No</td>
-                    <td>{customer?.gst_no || "--"}</td>
+                    <td>Full Address</td>
+                    <td>
+                      {`${customer?.address} - ${customer?.pincode}, ${customer?.city}, ${customer?.state}` ||
+                        ""}
+                    </td>
                   </tr>
                   <tr>
-                    <td>PAN No</td>
-                    <td>{customer?.pan_no || "--"}</td>
-                  </tr> */}
+                    <td>Category</td>
+                    <td>{customer?.category?.category}</td>
+                  </tr>
                   <tr>
                     <td>Status</td>
-                    <td>{customer?.isActive ? "Active" : "Inactive"}</td>
+                    <td
+                      className={`${
+                        customer.isActive ? "text-success" : "text-danger"
+                      }`}
+                    >
+                      {customer?.isActive ? "Active" : "Inactive"}
+                    </td>
                   </tr>
                 </tbody>
               </Table>
@@ -122,31 +130,39 @@ const CustomerProfile = () => {
         {/* Right Section */}
         <Col md={4}>
           {/* Bank Details */}
-          {/* <Card>
+          <Card>
             <Card.Body>
-              <h6>Bank Details</h6>
+              <h6>Document Details</h6>
               <Table borderless className="mt-3">
                 <tbody>
                   <tr>
-                    <td className="ps-0">Bank Name</td>
-                    <td className="ps-0">{customer?.bank_name || "--"}</td>
+                    <td className="ps-0">Document No</td>
+                    <td className="ps-0">{customer?.doc_no || "--"}</td>
                   </tr>
                   <tr>
-                    <td className="ps-0">Account No</td>
-                    <td className="ps-0">{customer?.account_no || "--"}</td>
+                    <td className="ps-0">View Document</td>
+                    {customer.doc_upload ? (
+                      <td className="ps-0">
+                        <a
+                          href={customer.doc_upload}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View PDF
+                        </a>
+                      </td>
+                    ) : (
+                      "--"
+                    )}
                   </tr>
                   <tr>
-                    <td className="ps-0">IFSC Code</td>
-                    <td className="ps-0">{customer?.ifsc_code || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td className="ps-0">Branch Name</td>
-                    <td className="ps-0">{customer?.branch_name || "--"}</td>
+                    <td className="ps-0">Kyc Status</td>
+                    <td className="ps-0">{customer?.kycStatus || "--"}</td>
                   </tr>
                 </tbody>
               </Table>
             </Card.Body>
-          </Card> */}
+          </Card>
         </Col>
       </Row>
     </Container>

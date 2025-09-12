@@ -24,3 +24,8 @@ export const statusOptions = [
   { icon: "🟡", name: "To Do" },
   { icon: "🔵", name: "Doing" },
 ];
+
+export const docTypeOptions = [
+  { id: "1", name: "Aadhaar Card" },
+  { id: "2", name: "Pan Card" },
+];

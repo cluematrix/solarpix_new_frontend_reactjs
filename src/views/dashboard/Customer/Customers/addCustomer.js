@@ -6,7 +6,11 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import { genderData, salutationData } from "../../../../mockData";
+import {
+  docTypeOptions,
+  genderData,
+  salutationData,
+} from "../../../../mockData";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
@@ -17,6 +21,7 @@ const AddCustomer = () => {
   const location = useLocation();
   const leadData = location.state?.leadData || null;
 
+  console.log("leadData", leadData);
   const initialValues = {
     client_id: "",
     lead_id: leadData?.id || "",
@@ -30,8 +35,12 @@ const AddCustomer = () => {
     city: leadData?.city || "",
     state: leadData?.state || "",
     pincode: leadData?.pincode || "",
-    photo: null,
-    client_category_id: "",
+    photo: leadData.photo || null,
+    client_category_id: leadData.client_category_id || "",
+    docSelect: leadData.docSelect || "",
+    doc_no: leadData.doc_no || "",
+    doc_upload: leadData.doc_upload || "",
+    description: leadData.description || "",
   };
 
   const navigate = useNavigate();
@@ -72,6 +81,15 @@ const AddCustomer = () => {
           );
         }
       ),
+    docSelect: Yup.string().required("Document Type is required"),
+    doc_no: Yup.string().required("Document number is required"),
+    doc_upload: Yup.mixed()
+      .nullable()
+      .test("fileType", "Only Pdf files are allowed", (value) => {
+        if (!value) return true;
+        return ["application/pdf"].includes(value.type);
+      })
+      .required("Upload doc is required"),
   });
 
   const onSubmit = async (values, { resetForm }) => {
@@ -372,6 +390,78 @@ const AddCustomer = () => {
             </Col>
           </Row>
 
+          <hr />
+          <Card.Header className="p-0 pb-2">
+            <h5 className="mb-0">Document Details</h5>
+          </Card.Header>
+
+          {/* Row 5 {docSelect} */}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomRadioGroup
+                label="Select Document"
+                name="docSelect"
+                options={docTypeOptions}
+                value={values.docSelect}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.docSelect}
+                error={errors.docSelect}
+                required
+              />
+            </Col>
+          </Row>
+
+          {/* Row 5 {doc_no} */}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomInput
+                label={`Enter ${values.docSelect} No`}
+                name="doc_no"
+                value={values.doc_no}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder={`Enter ${values.docSelect} No`}
+                touched={touched.doc_no}
+                errors={errors.doc_no}
+                disabled={!values.docSelect}
+                required
+                title={!values.docSelect && `Choose doc type first`}
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomFileInput
+                label={`Upload ${values.docSelect} (Pdf)`}
+                name="doc_upload"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("doc_upload", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.doc_upload}
+                error={errors.doc_upload}
+                disabled={!values.docSelect}
+                required
+                title={!values.docSelect && `Choose doc type first`}
+              />
+            </Col>
+          </Row>
+          <Row className="mt-3 mb-4">
+            <Col md={12}>
+              <CustomInput
+                as="textarea"
+                label="Enter Notes / Remarks"
+                name="description"
+                value={values.description}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Notes / Remarks"
+                touched={touched.description}
+                errors={errors.description}
+              />
+            </Col>
+          </Row>
           {/* Submit + Cancel */}
           <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>

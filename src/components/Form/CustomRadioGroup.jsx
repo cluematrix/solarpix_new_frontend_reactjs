@@ -12,6 +12,7 @@ const CustomRadioGroup = ({
   touched,
   required = false,
 }) => {
+  const showError = touched && error; 
   return (
     <Form.Group>
       {label && (
@@ -35,8 +36,8 @@ const CustomRadioGroup = ({
           />
         ))}
       </div>
-      {touched && error && (
-        <div className="invalid-feedback" style={{ fontSize: "11px" }}>
+        {showError && (
+        <div className="invalid-feedback d-block" style={{ fontSize: "11px" }}>
           {error}
         </div>
       )}

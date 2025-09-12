@@ -19,6 +19,7 @@ const CustomInput = ({
   min,
   readOnly = false,
   disabled = false,
+  title
 }) => {
   return (
     <Form.Group>
@@ -41,6 +42,7 @@ const CustomInput = ({
         readOnly={readOnly}
         disabled={disabled}
         style={{ color: "black" }}
+        title={title}
       />
       {touched && errors && (
         <div className="invalid-feedback" style={{ fontSize: "11px" }}>
