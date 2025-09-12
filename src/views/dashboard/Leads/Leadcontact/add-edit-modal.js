@@ -12,18 +12,21 @@ const AddEditModal = ({
 }) => {
   const [leadSources, setLeadSources] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [requirementTypes, setRequirementTypes] = useState([]); // ✅ new
   const [loading, setLoading] = useState(false);
 
   const fetchDropdowns = async () => {
     try {
       setLoading(true);
-      const [leadRes, empRes] = await Promise.all([
+      const [leadRes, empRes, reqRes] = await Promise.all([
         api.get("/api/v1/admin/leadSource/active"),
         api.get("/api/v1/admin/employee/active"),
+        api.get("/api/v1/admin/requirementType/active"), // ✅ new
       ]);
 
       setLeadSources(leadRes.data || []);
       if (Array.isArray(empRes.data?.data)) setEmployees(empRes.data.data);
+      if (Array.isArray(reqRes.data)) setRequirementTypes(reqRes.data); // ✅ store requirement types
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
     } finally {
@@ -44,6 +47,8 @@ const AddEditModal = ({
     e.preventDefault();
     onSave(formData);
   };
+
+  console.log(formData);
 
   return (
     <Modal show={show} onHide={handleClose} size="lg" backdrop="static">
@@ -156,7 +161,7 @@ const AddEditModal = ({
 
             {/* Row 3 */}
             <Row className="mt-2">
-              <Col md={6}>
+              <Col md={4}>
                 <Form.Group>
                   <Form.Label className="pt-4">Lead Owner</Form.Label>
                   <Form.Select
@@ -173,14 +178,40 @@ const AddEditModal = ({
                   </Form.Select>
                 </Form.Group>
               </Col>
-              <Col md={6}>
+
+              {/* New Requirement Type */}
+              <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">City</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="city"
-                    value={formData.city}
+                  <Form.Label className="pt-4">Requirement Type</Form.Label>
+                  <Form.Select
+                    name="requirementType"
+                    value={formData.requirementType}
                     onChange={handleChange}
+                  >
+                    <option value="">Select Requirement Type</option>
+                    {requirementTypes.map((req) => (
+                      <option key={req.id} value={req.id}>
+                        {req.requirement_type}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+
+              {/*  New Capacity */}
+              {/* Capacity as Number Input */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="pt-4">
+                    Approximate Capacity (kW)
+                  </Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="capacity"
+                    value={formData.capacity}
+                    onChange={handleChange}
+                    placeholder="Enter capacity in kW"
+                    min="0"
                   />
                 </Form.Group>
               </Col>
@@ -221,11 +252,22 @@ const AddEditModal = ({
                   />
                 </Form.Group>
               </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="pt-4">City</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
             </Row>
 
             {/* Row 5 */}
             <Row className="mt-2">
-              <Col md={12}>
+              <Col md={4}>
                 <Form.Group>
                   <Form.Label className="pt-4">Description</Form.Label>
                   <Form.Control
@@ -235,6 +277,36 @@ const AddEditModal = ({
                     value={formData.description}
                     onChange={handleChange}
                   />
+                </Form.Group>
+              </Col>
+              {/* Amount */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="pt-4">Amount (₹) *</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              {/* ✅ New Status */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="pt-4">Status</Form.Label>
+                  <Form.Select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Status</option>
+                    <option value="New">New</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Converted">Converted</option>
+                    <option value="Lost">Lost</option>
+                  </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
