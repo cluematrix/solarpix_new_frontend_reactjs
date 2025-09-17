@@ -1,21 +1,52 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Table } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { Card, Row, Col, Button, Table, Form } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
-import api from "../../../../api/axios"; // axios instance
+import ViewModal from "./ViewModal";
+import QuotationModal from "./QuotationModal";
+
+import api from "../../../../api/axios";
 
 const DealList = () => {
+  const navigate = useNavigate();
   const [dealList, setDealList] = useState([]);
   const [dealStages, setDealStages] = useState([]);
   const [leads, setLeads] = useState([]);
   const [clients, setClients] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editData, setEditData] = useState(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewData, setViewData] = useState(null);
+
+  const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [quotationDeal, setQuotationDeal] = useState(null);
+
+  // Stage color helper
+  const getStageColor = (stageName) => {
+    switch (stageName) {
+      case "New":
+        return "#e3f2fd"; // light blue
+      case "In Progress":
+        return "#fff3cd"; // light yellow
+      case "Win":
+        return "#d4edda"; // light green
+      case "Lost":
+        return "#f8d7da"; // light red
+      default:
+        return "#f0f0f0"; // default gray
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,11 +96,6 @@ const DealList = () => {
     }
   };
 
-  const handleEdit = (deal) => {
-    setEditData(deal);
-    setShowModal(true);
-  };
-
   return (
     <>
       <Row className="mt-4">
@@ -82,10 +108,7 @@ const DealList = () => {
               <h5 className="card-title fw-lighter">Deals</h5>
               <Button
                 className="btn-primary"
-                onClick={() => {
-                  setEditData(null);
-                  setShowModal(true);
-                }}
+                onClick={() => navigate("/AddDeals")}
               >
                 + Add Deal
               </Button>
@@ -99,13 +122,9 @@ const DealList = () => {
                       <th>Sr. No.</th>
                       <th>Deal Name</th>
                       <th>Lead Name</th>
-                      <th>Amount</th>
-                      <th>Stage</th>
-                      <th>Capacity</th>
-                      <th>Site Visit</th>
-                      <th>Status</th>
-                      <th>Negotiable</th>
-                      <th>Attachment</th>
+                      <th>Site Visit Date</th>
+                      {/* <th>Negotiable</th> */}
+                      <th>Deal Stage</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -122,29 +141,75 @@ const DealList = () => {
                           <td>{index + 1}</td>
                           <td>{deal.deal_name}</td>
                           <td>{deal.lead?.name || "---"}</td>
-                          <td>₹{deal.deal_value}</td>
-                          <td>{deal.dealStage?.deal_stages || "---"}</td>
-                          <td>{deal.capacity || "---"}</td>
-                          <td>{deal.site_visit_date || "---"}</td>
-                          <td>{deal.status || "---"}</td>
-                          <td>{deal.negotiable || "---"}</td>
                           <td>
-                            {deal.attachment ? (
-                              <a
-                                href={deal.attachment}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                View PDF
-                              </a>
-                            ) : (
-                              "---"
-                            )}
+                            {deal?.site_visit_date
+                              ? new Date(
+                                  deal.site_visit_date
+                                ).toLocaleDateString("en-GB")
+                              : "---"}
+                          </td>{" "}
+                          {/* <td>{deal.negotiable || "---"}</td> */}
+                          <td>
+                            <Form.Select
+                              size="sm"
+                              className="w-50"
+                              value={deal.deal_stage_id || ""}
+                              style={{
+                                backgroundColor: getStageColor(
+                                  dealStages.find(
+                                    (s) => s.id == deal.deal_stage_id
+                                  )?.deal_stages
+                                ),
+                              }}
+                              onChange={async (e) => {
+                                const newStageId = e.target.value;
+                                try {
+                                  await api.put(
+                                    `/api/v1/admin/deal/${deal.id}`,
+                                    {
+                                      ...deal,
+                                      deal_stage_id: newStageId,
+                                    }
+                                  );
+
+                                  setDealList((prev) =>
+                                    prev.map((d) =>
+                                      d.id === deal.id
+                                        ? {
+                                            ...d,
+                                            deal_stage_id: newStageId,
+                                            dealStage: dealStages.find(
+                                              (s) => s.id == newStageId
+                                            ),
+                                          }
+                                        : d
+                                    )
+                                  );
+                                } catch (err) {
+                                  console.error("Error updating stage:", err);
+                                }
+                              }}
+                            >
+                              <option value="">Select Stage</option>
+                              {dealStages.map((stage) => (
+                                <option key={stage.id} value={stage.id}>
+                                  {stage.deal_stages}
+                                </option>
+                              ))}
+                            </Form.Select>
                           </td>
                           <td>
+                            <VisibilityIcon
+                              className="me-2"
+                              onClick={() => {
+                                setViewData(deal);
+                                setShowViewModal(true);
+                              }}
+                              style={{ cursor: "pointer", color: "#0d6efd" }}
+                            />
                             <CreateTwoToneIcon
                               className="me-2"
-                              onClick={() => handleEdit(deal)}
+                              onClick={() => navigate(`/edit-deal/${deal.id}`)}
                               color="primary"
                               style={{ cursor: "pointer" }}
                             />
@@ -155,6 +220,13 @@ const DealList = () => {
                               }}
                               color="error"
                               style={{ cursor: "pointer" }}
+                            />
+                            <PictureAsPdfIcon
+                              style={{ color: "red", fontSize: "20px" }}
+                              onClick={() => {
+                                setQuotationDeal(deal);
+                                setShowQuotationModal(true);
+                              }}
                             />
                           </td>
                         </tr>
@@ -187,6 +259,20 @@ const DealList = () => {
         show={showDeleteModal}
         handleClose={() => setShowDeleteModal(false)}
         onDelete={handleDeleteConfirm}
+      />
+
+      {/* View Modal */}
+      <ViewModal
+        show={showViewModal}
+        handleClose={() => setShowViewModal(false)}
+        viewData={viewData}
+      />
+
+      {/* Quotation Modal */}
+      <QuotationModal
+        show={showQuotationModal}
+        handleClose={() => setShowQuotationModal(false)}
+        deal={quotationDeal}
       />
     </>
   );

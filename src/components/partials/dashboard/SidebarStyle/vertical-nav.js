@@ -21,7 +21,10 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import { BsAwardFill } from "react-icons/bs";
 import AddCardIcon from "@mui/icons-material/AddCard";
-
+import SettingsPhoneIcon from "@mui/icons-material/SettingsPhone";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
+import CalculateIcon from "@mui/icons-material/Calculate";
 import {
   Accordion,
   useAccordionButton,
@@ -260,6 +263,221 @@ const VerticalNav = memo((props) => {
             </Accordion.Collapse>
           </Accordion.Item>
         ) : null}
+
+        {/* Leads */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-leads"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-leads"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <PeopleIcon fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">Lead Managment</span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-leads">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/leadsSource-list" ? "active" : ""
+                  } nav-link`}
+                  to="/leadsSource-list"
+                >
+                  <i className="icon">
+                    <FormatListBulletedSharpIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <FormatListBulletedSharpIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Lead Source
+                  </span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/leads-list" ? "active" : ""
+                  } nav-link`}
+                  to="/leads-list"
+                >
+                  <i className="icon">
+                    <ListAltIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <ListAltIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Lead Contact
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/SourceTrackList" ? "active" : ""
+                  } nav-link`}
+                  to="/SourceTrackList"
+                >
+                  <i className="icon">
+                    <ListAltIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <ListAltIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Source Tracking
+                  </span>
+                </Link>
+              </li>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* opportunity */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-oppo"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-oppo"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <PeopleIcon fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">
+              Opportunity Managment
+            </span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-oppo">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/LeadFollowupList" ? "active" : ""
+                  } nav-link`}
+                  to="/LeadFollowupList"
+                >
+                  <i className="icon">
+                    <SettingsPhoneIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <SettingsPhoneIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Lead Follow Up
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/RateList" ? "active" : ""
+                  } nav-link`}
+                  to="/RateList"
+                >
+                  <i className="icon">
+                    <CurrencyRupeeIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <CurrencyRupeeIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Default Rate
+                  </span>
+                </Link>
+              </li>
+              {/* <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/dealstages-list" ? "active" : ""
+                  } nav-link`}
+                  to="/dealstages-list"
+                >
+                  <i className="icon">
+                    <FormatListBulletedSharpIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <FormatListBulletedSharpIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Deal Stages
+                  </span>
+                </Link>
+              </li> */}
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/deals-list" ? "active" : ""
+                  } nav-link`}
+                  to="/deals-list"
+                >
+                  <i className="icon">
+                    <CalculateIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <CalculateIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Feasibility and Calculation
+                  </span>
+                </Link>
+              </li>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
         {/* Employee Manage */}
         <Accordion.Item
           as="li"
@@ -828,138 +1046,7 @@ const VerticalNav = memo((props) => {
             </ul>
           </Accordion.Collapse>
         </Accordion.Item>
-        {/* Leads */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-leads"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
-            eventKey="sidebar-leads"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
-          >
-            <i className="icon">
-              <PeopleIcon fontSize="small" />
-            </i>
-            <span className="item-name sidebar-font-size">Leads</span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-leads">
-            <ul className="sub-nav">
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/leadsSource-list" ? "active" : ""
-                  } nav-link`}
-                  to="/leadsSource-list"
-                >
-                  <i className="icon">
-                    <FormatListBulletedSharpIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <FormatListBulletedSharpIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Lead Source
-                  </span>
-                </Link>
-              </li>
 
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/dealstages-list" ? "active" : ""
-                  } nav-link`}
-                  to="/dealstages-list"
-                >
-                  <i className="icon">
-                    <FormatListBulletedSharpIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <FormatListBulletedSharpIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Deal Stages
-                  </span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/requirement-list" ? "active" : ""
-                  } nav-link`}
-                  to="/requirement-list"
-                >
-                  <i className="icon">
-                    <FormatListBulletedSharpIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <FormatListBulletedSharpIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Requirement Type
-                  </span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/leads-list" ? "active" : ""
-                  } nav-link`}
-                  to="/leads-list"
-                >
-                  <i className="icon">
-                    <ListAltIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <ListAltIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Lead Contact
-                  </span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/deals-list" ? "active" : ""
-                  } nav-link`}
-                  to="/deals-list"
-                >
-                  <i className="icon">
-                    <TaskIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <TaskIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Deals</span>
-                </Link>
-              </li>
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
         {/* Customer */}
         <Accordion.Item
           as="li"
@@ -1048,6 +1135,148 @@ const VerticalNav = memo((props) => {
                   </span>
                 </Link>
               </li>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* Inventory Manage */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-invt"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-invt"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <InventoryIcon fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">
+              Inventory Management
+            </span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-invt">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/department-list" ? "active" : ""
+                  } nav-link`}
+                  to="/department-list"
+                >
+                  <i className="icon">
+                    <InventoryIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <InventoryIcon fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">Item Name</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/designation-list" ? "active" : ""
+                  } nav-link`}
+                  to="/designation-list"
+                >
+                  <i className="icon">
+                    <svg
+                      width="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11.997 15.1746C7.684 15.1746 4 15.8546 4 18.5746C4 21.2956 7.661 21.9996 11.997 21.9996C16.31 21.9996 19.994 21.3206 19.994 18.5996C19.994 15.8786 16.334 15.1746 11.997 15.1746Z"
+                        fill="currentColor"
+                      />
+                      <path
+                        opacity="0.4"
+                        d="M11.9971 12.5838C14.9351 12.5838 17.2891 10.2288 17.2891 7.29176C17.2891 4.35476 14.9351 1.99976 11.9971 1.99976C9.06008 1.99976 6.70508 4.35476 6.70508 7.29176C6.70508 10.2288 9.06008 12.5838 11.9971 12.5838Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <svg
+                      width="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11.997 15.1746C7.684 15.1746 4 15.8546 4 18.5746C4 21.2956 7.661 21.9996 11.997 21.9996C16.31 21.9996 19.994 21.3206 19.994 18.5996C19.994 15.8786 16.334 15.1746 11.997 15.1746Z"
+                        fill="currentColor"
+                      />
+                      <path
+                        opacity="0.4"
+                        d="M11.9971 12.5838C14.9351 12.5838 17.2891 10.2288 17.2891 7.29176C17.2891 4.35476 14.9351 1.99976 11.9971 1.99976C9.06008 1.99976 6.70508 4.35476 6.70508 7.29176C6.70508 10.2288 9.06008 12.5838 11.9971 12.5838Z"
+                        fill="currentColor"
+                      />
+                    </svg>{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Item Category
+                  </span>
+                </Link>
+              </li>
+              {/* <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/shift-list" ? "active" : ""
+                  } nav-link`}
+                  to="/shift-list"
+                >
+                  <i className="icon">
+                    <BrowseGalleryIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <BrowseGalleryIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Shift</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/EmployeeType" ? "active" : ""
+                  } nav-link`}
+                  to="/EmployeeType"
+                >
+                  <i className="icon">
+                    <AccountTreeIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <AccountTreeIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Units
+                  </span>
+                </Link>
+              </li> */}
             </ul>
           </Accordion.Collapse>
         </Accordion.Item>

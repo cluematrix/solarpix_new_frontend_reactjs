@@ -12,8 +12,12 @@ const AddEditModal = ({
 }) => {
   const [leadSources, setLeadSources] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [requirementTypes, setRequirementTypes] = useState([]); // ✅ new
+  const [requirementTypes, setRequirementTypes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showLeadSourceModal, setShowLeadSourceModal] = useState(false);
+  const [newLeadSource, setNewLeadSource] = useState("");
+
+  const loggedInEmployeeId = sessionStorage.getItem("employee_id");
 
   const fetchDropdowns = async () => {
     try {
@@ -21,12 +25,15 @@ const AddEditModal = ({
       const [leadRes, empRes, reqRes] = await Promise.all([
         api.get("/api/v1/admin/leadSource/active"),
         api.get("/api/v1/admin/employee/active"),
-        api.get("/api/v1/admin/requirementType/active"), // ✅ new
+        api.get("/api/v1/admin/requirementType/active"),
       ]);
-
       setLeadSources(leadRes.data || []);
       if (Array.isArray(empRes.data?.data)) setEmployees(empRes.data.data);
-      if (Array.isArray(reqRes.data)) setRequirementTypes(reqRes.data); // ✅ store requirement types
+      if (Array.isArray(reqRes.data)) setRequirementTypes(reqRes.data);
+
+      if (!formData.addedBy && loggedInEmployeeId) {
+        setFormData((prev) => ({ ...prev, addedBy: loggedInEmployeeId }));
+      }
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
     } finally {
@@ -48,8 +55,6 @@ const AddEditModal = ({
     onSave(formData);
   };
 
-  console.log(formData);
-
   return (
     <Modal show={show} onHide={handleClose} size="lg" backdrop="static">
       <Modal.Header closeButton>
@@ -62,41 +67,113 @@ const AddEditModal = ({
           </div>
         ) : (
           <Form onSubmit={handleSubmit}>
-            {/* Row 1 */}
-            <Row>
-              <Col md={3}>
+            <Row className="mb-3">
+              <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Salutation</Form.Label>
-                  <Form.Select
-                    name="salutation"
-                    value={formData.salutation}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select</option>
-                    <option value="Mr.">Mr.</option>
-                    <option value="Mrs.">Mrs.</option>
-                    <option value="Ms.">Ms.</option>
-                    <option value="Dr.">Dr.</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={5}>
-                <Form.Group>
-                  <Form.Label className="pt-4">
-                    Name <span className="text-danger">*</span>
-                  </Form.Label>
+                  <Form.Label>Enquiry Number</Form.Label>
                   <Form.Control
                     type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
+                    name="enquiry_number"
+                    value={formData.enquiry_number}
+                    readOnly
                   />
                 </Form.Group>
               </Col>
+
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Email</Form.Label>
+                  <Form.Label>Customer Type</Form.Label>
+                  <div>
+                    <Form.Check
+                      inline
+                      label="Individual"
+                      type="radio"
+                      name="customerType"
+                      value="Individual"
+                      checked={formData.customerType === "Individual"}
+                      onChange={handleChange}
+                    />
+                    <Form.Check
+                      inline
+                      label="Business"
+                      type="radio"
+                      name="customerType"
+                      value="Business"
+                      checked={formData.customerType === "Business"}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </Form.Group>
+              </Col>
+
+              <Col md={4}>
+                {formData.customerType === "Business" ? (
+                  <>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        Company Name <span className="text-danger">*</span>
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        Contact Person Name{" "}
+                        <span className="text-danger">*</span>
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </>
+                ) : (
+                  <>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Salutation</Form.Label>
+                      <Form.Select
+                        name="salutation"
+                        value={formData.salutation}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="Mr.">Mr.</option>
+                        <option value="Mrs.">Mrs.</option>
+                        <option value="Ms.">Ms.</option>
+                        <option value="Dr.">Dr.</option>
+                      </Form.Select>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        Name <span className="text-danger">*</span>
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </>
+                )}
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
                     name="email"
@@ -107,13 +184,10 @@ const AddEditModal = ({
                   />
                 </Form.Group>
               </Col>
-            </Row>
 
-            {/* Row 2 */}
-            <Row className="mt-2">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Contact</Form.Label>
+                  <Form.Label>Contact</Form.Label>
                   <Form.Control
                     type="text"
                     name="contact"
@@ -123,13 +197,18 @@ const AddEditModal = ({
                   />
                 </Form.Group>
               </Col>
+
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Lead Source</Form.Label>
+                  <Form.Label>Lead Source</Form.Label>
                   <Form.Select
                     name="leadSource"
                     value={formData.leadSource}
-                    onChange={handleChange}
+                    onChange={(e) =>
+                      e.target.value === "add_new"
+                        ? setShowLeadSourceModal(true)
+                        : handleChange(e)
+                    }
                   >
                     <option value="">Select Lead Source</option>
                     {leadSources.map((src) => (
@@ -137,15 +216,24 @@ const AddEditModal = ({
                         {src.lead_source}
                       </option>
                     ))}
+                    <option
+                      value="add_new"
+                      style={{ fontWeight: "bold", color: "#3a57e8" }}
+                    >
+                      + Add Lead
+                    </option>
                   </Form.Select>
                 </Form.Group>
               </Col>
+            </Row>
+
+            <Row className="mb-3">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Added By</Form.Label>
+                  <Form.Label>Added By</Form.Label>
                   <Form.Select
                     name="addedBy"
-                    value={formData.addedBy}
+                    value={formData.addedBy || ""}
                     onChange={handleChange}
                   >
                     <option value="">Select Employee</option>
@@ -157,54 +245,10 @@ const AddEditModal = ({
                   </Form.Select>
                 </Form.Group>
               </Col>
-            </Row>
 
-            {/* Row 3 */}
-            <Row className="mt-2">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Lead Owner</Form.Label>
-                  <Form.Select
-                    name="leadOwner"
-                    value={formData.leadOwner}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select Owner</option>
-                    {employees.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.name}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-
-              {/* New Requirement Type */}
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Requirement Type</Form.Label>
-                  <Form.Select
-                    name="requirementType"
-                    value={formData.requirementType}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select Requirement Type</option>
-                    {requirementTypes.map((req) => (
-                      <option key={req.id} value={req.id}>
-                        {req.requirement_type}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-
-              {/*  New Capacity */}
-              {/* Capacity as Number Input */}
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">
-                    Approximate Capacity (kW)
-                  </Form.Label>
+                  <Form.Label>Approximate Capacity (kW)</Form.Label>
                   <Form.Control
                     type="number"
                     name="capacity"
@@ -215,13 +259,10 @@ const AddEditModal = ({
                   />
                 </Form.Group>
               </Col>
-            </Row>
 
-            {/* Row 4 */}
-            <Row className="mt-2">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">State</Form.Label>
+                  <Form.Label>State</Form.Label>
                   <Form.Control
                     type="text"
                     name="state"
@@ -230,31 +271,12 @@ const AddEditModal = ({
                   />
                 </Form.Group>
               </Col>
+            </Row>
+
+            <Row className="mb-3">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Pincode</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="pincode"
-                    value={formData.pincode}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">Address</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label className="pt-4">City</Form.Label>
+                  <Form.Label>City</Form.Label>
                   <Form.Control
                     type="text"
                     name="city"
@@ -263,53 +285,142 @@ const AddEditModal = ({
                   />
                 </Form.Group>
               </Col>
+
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Address</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Pincode</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="pincode"
+                    value={formData.pincode}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
             </Row>
 
-            {/* Row 5 */}
-            <Row className="mt-2">
+            <Row className="mb-3">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Description</Form.Label>
+                  <Form.Label>Company Remark</Form.Label>
                   <Form.Control
                     as="textarea"
-                    rows={3}
-                    name="description"
-                    value={formData.description}
+                    rows={2}
+                    name="company_remark"
+                    value={formData.company_remark}
                     onChange={handleChange}
                   />
                 </Form.Group>
               </Col>
-              {/* Amount */}
+
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Amount (₹) *</Form.Label>
+                  <Form.Label>Customer Remark</Form.Label>
                   <Form.Control
-                    type="number"
-                    name="amount"
-                    value={formData.amount}
+                    as="textarea"
+                    rows={2}
+                    name="customer_remark"
+                    value={formData.customer_remark}
                     onChange={handleChange}
-                    required
                   />
                 </Form.Group>
               </Col>
-              {/* ✅ New Status */}
+
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="pt-4">Status</Form.Label>
+                  <Form.Label>Last Call</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="last_call"
+                    value={formData.last_call}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Priority</Form.Label>
                   <Form.Select
-                    name="status"
-                    value={formData.status}
+                    name="priority"
+                    value={formData.priority}
                     onChange={handleChange}
                   >
-                    <option value="">Select Status</option>
-                    <option value="New">New</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Converted">Converted</option>
-                    <option value="Lost">Lost</option>
+                    <option value="">Select Priority</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
+
+            {/* Lead Source Modal */}
+            <Modal
+              show={showLeadSourceModal}
+              onHide={() => setShowLeadSourceModal(false)}
+              centered
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Add New Lead Source</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form.Group>
+                  <Form.Label>Lead Source Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter lead source"
+                    value={newLeadSource}
+                    onChange={(e) => setNewLeadSource(e.target.value)}
+                  />
+                </Form.Group>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowLeadSourceModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={async () => {
+                    try {
+                      const res = await api.post("/api/v1/admin/leadSource", {
+                        lead_source: newLeadSource,
+                        isActive: true,
+                      });
+                      if (res.data) {
+                        const updatedRes = await api.get(
+                          "/api/v1/admin/leadSource/active"
+                        );
+                        setLeadSources(updatedRes.data || []);
+                      }
+                      setNewLeadSource("");
+                      setShowLeadSourceModal(false);
+                    } catch (err) {
+                      console.error("Error adding lead source:", err);
+                    }
+                  }}
+                >
+                  Save
+                </Button>
+              </Modal.Footer>
+            </Modal>
 
             <div className="text-end mt-3">
               <Button variant="secondary" onClick={handleClose}>

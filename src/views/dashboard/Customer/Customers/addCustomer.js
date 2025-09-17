@@ -35,12 +35,12 @@ const AddCustomer = () => {
     city: leadData?.city || "",
     state: leadData?.state || "",
     pincode: leadData?.pincode || "",
-    photo: leadData.photo || null,
-    client_category_id: leadData.client_category_id || "",
-    docSelect: leadData.docSelect || "",
-    doc_no: leadData.doc_no || "",
-    doc_upload: leadData.doc_upload || "",
-    description: leadData.description || "",
+    photo: leadData?.photo || null,
+    client_category_id: leadData?.client_category_id || "",
+    docSelect: leadData?.docSelect || "",
+    doc_no: leadData?.doc_no || "",
+    doc_upload: leadData?.doc_upload || "",
+    description: leadData?.description || "",
   };
 
   const navigate = useNavigate();

@@ -32,7 +32,7 @@ const LeadSourceList = () => {
 
   // 🔹 Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // change as needed
+  const itemsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
@@ -49,10 +49,7 @@ const LeadSourceList = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
 
-      // ✅ Match current role + route
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
@@ -73,12 +70,12 @@ const LeadSourceList = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); //  Stop loader after API call
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     setLoading(true);
-
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -145,29 +142,17 @@ const LeadSourceList = () => {
   };
 
   // ✅ Toggle Active/Inactive
-  const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus === 1 ? 0 : 1;
+  const handleToggleActive = async (id, currentStatus) => {
+    const newStatus = Number(currentStatus) === 1 ? false : true; // send boolean
 
-    // Optimistic UI update
-    setLeadSources((prev) =>
-      prev.map((src) => (src.id === id ? { ...src, isActive: newStatus } : src))
-    );
-
-    api
-      .put(`/api/v1/admin/leadSource/${id}`, { isActive: newStatus })
-      .then(() => {
-        toast.success("Status updated successfully");
-      })
-      .catch((err) => {
-        console.error("Update failed:", err);
-        toast.error("Failed to update status");
-        // Rollback if API fails
-        setLeadSources((prev) =>
-          prev.map((src) =>
-            src.id === id ? { ...src, isActive: currentStatus } : src
-          )
-        );
-      });
+    try {
+      await api.put(`/api/v1/admin/leadSource/${id}`, { isActive: newStatus });
+      toast.success("Status updated successfully");
+      fetchLeadSources();
+    } catch (err) {
+      console.error("Update failed:", err);
+      toast.error("Failed to update status");
+    }
   };
 
   // 🔹 Pagination Logic
@@ -176,7 +161,7 @@ const LeadSourceList = () => {
   const currentItems = leadSources.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(leadSources.length / itemsPerPage);
 
-  //  Loader while checking permissions
+  // Loader while checking permissions
   if (loading) {
     return (
       <div className="loader-div">
@@ -185,7 +170,7 @@ const LeadSourceList = () => {
     );
   }
 
-  if (!permissions.view) {
+  if (!permissions?.view) {
     return (
       <div
         className="d-flex justify-content-center align-items-center"
@@ -243,14 +228,16 @@ const LeadSourceList = () => {
                         <tr key={item.id}>
                           <td>{indexOfFirstItem + idx + 1}</td>
                           <td>{item.lead_source}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
+                          <td>
+                            {Number(item.isActive) === 1
+                              ? "Active"
+                              : "Inactive"}
+                          </td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={
-                                item.isActive === 1 || item.isActive === true
-                              }
+                              checked={Number(item.isActive) === 1}
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
@@ -264,7 +251,7 @@ const LeadSourceList = () => {
                                 style={{ cursor: "pointer" }}
                               />
                             )}
-                            {permissions.delete && (
+                            {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
                                   setDeleteId(item.id);
