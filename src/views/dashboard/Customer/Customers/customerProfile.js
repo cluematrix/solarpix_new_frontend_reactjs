@@ -112,6 +112,10 @@ const CustomerProfile = () => {
                     <td>{customer?.category?.category}</td>
                   </tr>
                   <tr>
+                    <td>Description</td>
+                    <td>{customer?.description}</td>
+                  </tr>
+                  <tr>
                     <td>Status</td>
                     <td
                       className={`${
@@ -157,7 +161,18 @@ const CustomerProfile = () => {
                   </tr>
                   <tr>
                     <td className="ps-0">Kyc Status</td>
-                    <td className="ps-0">{customer?.kycStatus || "--"}</td>
+                    <td
+                      className={`${
+                        customer?.kyc_status === "Pending"
+                          ? "text-warning"
+                          : customer?.kyc_status === "Approved"
+                          ? "text-success"
+                          : "text-danger"
+                      }`}
+                      style={{ paddingLeft: "0px" }}
+                    >
+                      {customer?.kyc_status || "--"}
+                    </td>
                   </tr>
                 </tbody>
               </Table>

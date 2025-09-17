@@ -1,43 +1,50 @@
+// Created by sufyan on 13 sep
+
 import React, { useState, useEffect } from "react";
 import {
   Card,
   Row,
   Col,
   Button,
+  Form,
   Spinner,
   Table,
   Pagination,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "./add-edit-modal";
-import DeleteModal from "./delete-modal";
+import AddEditModal from "./AddEditModal";
+import DeleteModal from "./DeleteModal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
 
-const DefaultHoliday = () => {
-  const [holidayList, setHolidayList] = useState([]);
-  const [formData, setFormData] = useState({ day: "", occasion: "", year: "" });
+const PaymentTermList = () => {
+  const [userlist, setUserlist] = useState([]);
+  const [roleName, setRoleName] = useState("");
   const [editId, setEditId] = useState(null);
-
+  const [errors, setErrors] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-
-  // 🔑 Permission
+  const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // 🔄 Pagination
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 10;
+  const rowsPerPage = 10;
+  // Pagination
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = userlist.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(userlist.length / rowsPerPage);
 
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -74,109 +81,149 @@ const DefaultHoliday = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); //  Stop loader after API call
+      setLoading(false); // ✅ Stop loader after API call
     }
   };
-  useEffect(() => {
-    setLoading(true);
 
+  useEffect(() => {
+    setLoading(true); // reset loader each time route changes
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Default Holidays
-  const fetchHolidays = () => {
+  // Fetch payment terms
+  const fetchPaymentTerm = () => {
     api
-      .get("/api/v1/admin/defaultHoliday")
+      .get("/api/v1/admin/paymentTerm")
       .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-        setHolidayList(data);
+        if (Array.isArray(res.data)) {
+          setUserlist(res.data);
+        } else if (Array.isArray(res.data.data)) {
+          setUserlist(res.data.data);
+        } else {
+          setUserlist([]);
+        }
       })
       .catch((err) => {
-        console.error("Error fetching default holidays:", err);
-        toast.error("Failed to fetch default holidays");
-        setHolidayList([]);
+        console.error("Error fetching payment terms:", err);
+        setUserlist([]);
       });
   };
 
   useEffect(() => {
-    fetchHolidays();
+    fetchPaymentTerm();
   }, []);
 
-  // ✅ Add or Update
-  const handleAddOrUpdate = () => {
-    if (
-      !formData.day.trim() ||
-      !formData.occasion.trim() ||
-      !formData.year.trim()
-    ) {
-      toast.warning("Day, Occasion and Year are required");
+  // Toggle Active/Inactive with optimistic update
+  const handleToggleActive = (id, currentStatus) => {
+    const newStatus = !currentStatus;
+
+    // Optimistic UI update
+    setUserlist((prev) =>
+      prev.map((dept) =>
+        dept.id === id ? { ...dept, isActive: newStatus } : dept
+      )
+    );
+
+    api
+      .put(`/api/v1/admin/paymentTerm/${id}`, { isActive: newStatus })
+      .then(() => {
+        successToast("Status updated successfully");
+      })
+      .catch((err) => {
+        console.error("Update failed:", err);
+        errorToast(err.response?.data?.message || "Failed to update status");
+        // Rollback if API fails
+        setUserlist((prev) =>
+          prev.map((dept) =>
+            dept.id === id ? { ...dept, isActive: currentStatus } : dept
+          )
+        );
+      });
+  };
+
+  // Add or Update Payment Term
+  const handleAddOrUpdateRole = () => {
+    if (!roleName.trim()) {
+      setErrors("Payment term is required");
       return;
     }
 
     if (editId) {
+      // Update
+      setLoadingBtn(true);
       api
-        .put(`/api/v1/admin/defaultHoliday/${editId}`, formData)
+        .put(`/api/v1/admin/paymentTerm/${editId}`, { payment_term: roleName })
         .then(() => {
-          toast.success("Default holiday updated successfully");
-          fetchHolidays();
+          successToast("Payment Term updated successfully");
+          fetchPaymentTerm();
           resetForm();
+          setErrors(null);
         })
         .catch((err) => {
-          console.error("Error updating default holiday:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update default holiday"
+          console.error("Error updating inventory:", err);
+          errorToast(
+            err.response?.data?.message || "Failed to update inventory"
           );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     } else {
+      // Add
+      setLoadingBtn(true);
       api
-        .post("/api/v1/admin/defaultHoliday", formData)
+        .post("/api/v1/admin/paymentTerm", { payment_term: roleName })
         .then(() => {
-          toast.success("Default holiday added successfully");
-          fetchHolidays();
+          successToast("Payment Term added successfully");
+          fetchPaymentTerm();
           resetForm();
+          setErrors(null);
         })
         .catch((err) => {
-          console.error("Error adding default holiday:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to add default holiday"
+          console.error("Error adding payment term:", err);
+          errorToast(
+            err.response?.data?.message || "Failed to add payment term"
           );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     }
   };
 
   const handleEdit = (index) => {
-    const holiday = holidayList[index];
-    setFormData({
-      day: holiday.day,
-      occasion: holiday.occasion,
-      year: holiday.year,
-    });
-    setEditId(holiday.id);
+    const paymentTerm = userlist[index];
+    setRoleName(paymentTerm.payment_term);
+    setEditId(paymentTerm.id || paymentTerm._id);
     setShowAddEdit(true);
   };
 
-  // ✅ Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
+    setLoadingBtn(true);
     api
-      .delete(`/api/v1/admin/defaultHoliday/${deleteId}`)
+      .delete(`/api/v1/admin/paymentTerm/${deleteId}`)
       .then(() => {
-        toast.success("Default holiday deleted successfully");
-        fetchHolidays();
+        successToast("Payment Term deleted successfully");
+        fetchPaymentTerm();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting default holiday:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to delete default holiday"
+        console.error("Error deleting payment term:", err);
+        errorToast(
+          err.response?.data?.message || "Failed to delete payment term"
         );
+      })
+      .finally(() => {
+        setLoadingBtn(false);
       });
   };
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setFormData({ day: "", occasion: "", year: "" });
+    setRoleName("");
     setEditId(null);
+    setErrors(null);
   };
 
   //  Loader while checking permissions
@@ -187,6 +234,7 @@ const DefaultHoliday = () => {
       </div>
     );
   }
+
   if (!permissions?.view) {
     return (
       <div
@@ -198,15 +246,6 @@ const DefaultHoliday = () => {
     );
   }
 
-  // 🔄 Pagination Logic
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = holidayList.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
-  const totalPages = Math.ceil(holidayList.length / recordsPerPage);
-
   return (
     <>
       <Row className="mt-4">
@@ -216,13 +255,13 @@ const DefaultHoliday = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Default Holiday </h5>
+              <h5 className="card-title fw-lighter">Payment Term</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + Add Default Holiday
+                  + New Payment Term
                 </Button>
               )}
             </Card.Header>
@@ -233,42 +272,54 @@ const DefaultHoliday = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Day</th>
-                      <th>Occasion</th>
-                      <th>Year</th>
+                      <th>Name</th>
+                      <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentRecords.length === 0 ? (
+                    {userlist.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center">
-                          No Default Holiday available
+                        <td colSpan="4" className="text-center">
+                          No Payment Term Available
                         </td>
                       </tr>
                     ) : (
-                      currentRecords.map((item, idx) => (
-                        <tr key={item.id}>
-                          <td>{indexOfFirstRecord + idx + 1}</td>
-                          <td>{item.day}</td>
-                          <td>{item.occasion}</td>
-                          <td>{item.year}</td>
+                      currentData.map((item, idx) => (
+                        <tr key={item.id || item._id}>
+                          <td>{idx + 1}</td>
+                          <td>{item.payment_term}</td>
+                          <td>
+                            <span
+                              className={`status-dot ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                            ></span>
+                            {item.isActive ? "Active" : "Inactive"}
+                          </td>
                           <td className="d-flex align-items-center">
+                            <Form.Check
+                              type="switch"
+                              id={`active-switch-${item.id}`}
+                              checked={item.isActive === true}
+                              onChange={() =>
+                                handleToggleActive(item.id, item.isActive)
+                              }
+                            />
+
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() =>
-                                  handleEdit(indexOfFirstRecord + idx)
-                                }
+                                onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
+
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(indexOfFirstRecord + idx);
-                                  setDeleteId(item.id);
+                                  setDeleteIndex(idx);
+                                  setDeleteId(item.id || item._id);
                                   setShowDelete(true);
                                 }}
                                 color="error"
@@ -283,24 +334,36 @@ const DefaultHoliday = () => {
                 </Table>
               </div>
 
-              {/* Pagination Controls */}
+              {/* 🔹 Pagination Controls */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  />
                   <Pagination.Prev
-                    onClick={() => setCurrentPage(currentPage - 1)}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                   />
                   {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
                       active={i + 1 === currentPage}
-                      onClick={() => setCurrentPage((prev) => prev - 1)}
+                      onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
                     </Pagination.Item>
                   ))}
                   <Pagination.Next
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
                   />
                 </Pagination>
@@ -314,13 +377,13 @@ const DefaultHoliday = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        formData={formData}
-        setFormData={setFormData}
-        onSave={handleAddOrUpdate}
-        modalTitle={
-          editId ? "Update Default Holiday" : "Add New Default Holiday"
-        }
+        roleName={roleName}
+        setRoleName={setRoleName}
+        errors={errors}
+        onSave={handleAddOrUpdateRole}
+        modalTitle={editId ? "Update Payment Term" : "Add New Payment Term"}
         buttonLabel={editId ? "Update" : "Submit"}
+        loading={loadingBtn}
       />
 
       {/* Delete Confirmation Modal */}
@@ -332,18 +395,16 @@ const DefaultHoliday = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Default Holiday"
+        modalTitle="Delete Payment Term Category"
         modalMessage={
-          deleteIndex !== null && holidayList[deleteIndex]
-            ? `Are you sure you want to delete "${holidayList[deleteIndex].occasion}"?`
+          deleteIndex !== null && userlist[deleteIndex]
+            ? `Are you sure you want to delete the payment term "${userlist[deleteIndex].payment_term}"?`
             : ""
         }
+        loading={loadingBtn}
       />
-
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
 
-export default DefaultHoliday;
+export default PaymentTermList;

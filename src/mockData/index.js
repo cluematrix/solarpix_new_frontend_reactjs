@@ -29,3 +29,9 @@ export const docTypeOptions = [
   { id: "1", name: "Aadhaar Card" },
   { id: "2", name: "Pan Card" },
 ];
+
+export const kycDataOptions = [
+  { id: "1", icon: "🟡", name: "Pending" },
+  { id: "2", icon: "🔵", name: "Approved" },
+  { id: "3", icon: "🔴", name: "Rejected" },
+];

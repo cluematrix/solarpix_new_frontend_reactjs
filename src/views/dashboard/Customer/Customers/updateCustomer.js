@@ -15,6 +15,7 @@ import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import CustomFileInput from "../../../../components/Form/CustomFileInput";
+import { IoNavigate } from "react-icons/io5";
 
 const UpdateCustomer = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const UpdateCustomer = () => {
   const [categories, setCategories] = useState([]);
   const [customerData, setCustomerData] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [previewPdf, setPreviewPdf] = useState(null);
   const initialValues = {
     client_id: "",
     salutation: "",
@@ -38,6 +40,10 @@ const UpdateCustomer = () => {
     pincode: "",
     photo: null,
     client_category_id: "",
+    docSelect: "",
+    doc: "",
+    doc_upload: "",
+    description: "",
   };
 
   const validationSchema = Yup.object().shape({
@@ -73,13 +79,20 @@ const UpdateCustomer = () => {
     //       );
     //     }
     //   ),
-    docSelect: Yup.string().required("Document Type is required"),
+    // docSelect: Yup.string().required("Document Type is required"),
     doc_no: Yup.string().required("Document number is required"),
+    // doc_upload: Yup.mixed()
+    //   .nullable()
+    //   .test("fileType", "Only Pdf files are allowed", (value) => {
+    //     if (!value) return true;
+    //     return ["application/pdf"].includes(value.type);
+    //   }),
     doc_upload: Yup.mixed()
       .nullable()
-      .test("fileType", "Only Pdf files are allowed", (value) => {
-        if (!value) return true;
-        return ["application/pdf"].includes(value.type);
+      .test("fileType", "Only PDF files are allowed", (value) => {
+        if (!value) return true; // not uploading → valid
+        if (typeof value === "string") return true; // already uploaded URL → valid
+        return value && value.type === "application/pdf"; // new file → check type
       }),
   });
 
@@ -141,27 +154,31 @@ const UpdateCustomer = () => {
     fetchData();
   }, [id]);
 
+  console.log("customerData", customerData);
+
   useEffect(() => {
-    if (customerData?.photo) {
-      setPreview(customerData.photo); // assuming API returns photo URL
+    if (customerData?.photo || customerData?.doc_upload) {
+      setPreview(customerData?.photo);
+      setPreviewPdf(customerData?.doc_upload);
     }
   }, [customerData]);
+
   // File input update
-  <CustomFileInput
-    label="Profile Picture"
-    name="photo"
-    accept="image/*"
-    onChange={(e) => {
-      const file = e.currentTarget.files[0];
-      setFieldValue("photo", file);
-      if (file) {
-        setPreview(URL.createObjectURL(file));
-      }
-    }}
-    onBlur={handleBlur}
-    error={errors.photo}
-    touched={touched.photo}
-  />;
+  // <CustomFileInput
+  //   label="Profile Picture"
+  //   name="photo"
+  //   accept="image/*"
+  //   onChange={(e) => {
+  //     const file = e.currentTarget.files[0];
+  //     setFieldValue("photo", file);
+  //     if (file) {
+  //       setPreview(URL.createObjectURL(file));
+  //     }
+  //   }}
+  //   onBlur={handleBlur}
+  //   error={errors.photo}
+  //   touched={touched.photo}
+  // />;
 
   if (loading && !customerData) {
     return (
@@ -171,6 +188,8 @@ const UpdateCustomer = () => {
     );
   }
 
+  console.log("previewPdf", previewPdf);
+  console.log("errors", errors);
   return (
     <Card>
       <Card.Header>
@@ -428,6 +447,19 @@ const UpdateCustomer = () => {
                 required
                 title={!values.docSelect && `Choose doc type first`}
               />
+              {previewPdf && (
+                <div className="">
+                  <a
+                    href={values?.doc_upload}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontSize: "12px", color: "black" }}
+                  >
+                    View PDF
+                    <IoNavigate />
+                  </a>
+                </div>
+              )}
             </Col>
           </Row>
           <Row className="mt-3 mb-4">

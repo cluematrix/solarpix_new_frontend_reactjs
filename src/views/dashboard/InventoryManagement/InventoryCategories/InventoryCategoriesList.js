@@ -1,3 +1,5 @@
+// Created by sufyan on 13 sep
+
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -9,41 +11,43 @@ import {
   Table,
   Pagination,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "./add-edit-modal";
-import DeleteModal from "./delete-modal";
+import AddEditModal from "./AddEditModal";
+import DeleteModal from "./DeleteModal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
 
-const TaskCategory = () => {
-  const [categoryList, setCategoryList] = useState([]);
-  const [category, setCategory] = useState("");
+const InventoryCategoriesList = () => {
+  const [userlist, setUserlist] = useState([]);
+  const [roleName, setRoleName] = useState("");
   const [editId, setEditId] = useState(null);
-
+  const [errors, setErrors] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-
+  const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // 🔹 Pagination States
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const categoriesPerPage = 10;
-
-  const indexOfLast = currentPage * categoriesPerPage;
-  const indexOfFirst = indexOfLast - categoriesPerPage;
-  const currentCategories = categoryList.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(categoryList.length / categoriesPerPage);
+  const rowsPerPage = 10;
+  // Pagination
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = userlist.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(userlist.length / rowsPerPage);
 
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Fetch Role Permissions
+  // const getrole = sessionStorage.getItem("roleId");
+  // 🔑 PERMISSION CHECK
+
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -80,121 +84,147 @@ const TaskCategory = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); //  Stop loader after API call
+      setLoading(false); // ✅ Stop loader after API call
     }
   };
-  useEffect(() => {
-    setLoading(true);
 
+  useEffect(() => {
+    setLoading(true); // reset loader each time route changes
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Task Categories
-  const fetchTaskCategories = () => {
+  // Fetch inventory category
+  const fetchInventoryCategory = () => {
     api
-      .get("/api/v1/admin/taskCategory")
+      .get("/api/v1/admin/inventoryCategory")
       .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-        setCategoryList(data);
+        if (Array.isArray(res.data)) {
+          setUserlist(res.data);
+        } else if (Array.isArray(res.data.data)) {
+          setUserlist(res.data.data);
+        } else {
+          setUserlist([]);
+        }
       })
       .catch((err) => {
-        console.error("Error fetching task categories:", err);
-        toast.error("Failed to fetch categories");
-        setCategoryList([]);
+        console.error("Error fetching inventory category:", err);
+        setUserlist([]);
       });
   };
 
   useEffect(() => {
-    fetchTaskCategories();
+    fetchInventoryCategory();
   }, []);
 
-  // ✅ Toggle Active/Inactive
+  // Toggle Active/Inactive with optimistic update
   const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus ? 0 : 1;
-    setCategoryList((prev) =>
-      prev.map((cat) => (cat.id === id ? { ...cat, isActive: newStatus } : cat))
+    const newStatus = !currentStatus;
+
+    // Optimistic UI update
+    setUserlist((prev) =>
+      prev.map((dept) =>
+        dept.id === id ? { ...dept, isActive: newStatus } : dept
+      )
     );
 
     api
-      .put(`/api/v1/admin/taskCategory/${id}`, { isActive: newStatus })
-      .then(() => toast.success("Status updated successfully"))
+      .put(`/api/v1/admin/inventoryCategory/${id}`, { isActive: newStatus })
+      .then(() => {
+        successToast("Status updated successfully");
+      })
       .catch((err) => {
         console.error("Update failed:", err);
-        toast.error("Failed to update status");
-        setCategoryList((prev) =>
-          prev.map((cat) =>
-            cat.id === id ? { ...cat, isActive: currentStatus } : cat
+        errorToast(err.response?.data?.message || "Failed to update status");
+        // Rollback if API fails
+        setUserlist((prev) =>
+          prev.map((dept) =>
+            dept.id === id ? { ...dept, isActive: currentStatus } : dept
           )
         );
       });
   };
 
-  // ✅ Add or Update
-  const handleAddOrUpdate = () => {
-    if (!category.trim()) {
-      toast.error("Category name is required");
+  // Add or Update inventory category
+  const handleAddOrUpdateRole = () => {
+    if (!roleName.trim()) {
+      setErrors("Inventory name is required");
       return;
     }
 
     if (editId) {
+      // Update
+      setLoadingBtn(true);
       api
-        .put(`/api/v1/admin/taskCategory/${editId}`, { category })
+        .put(`/api/v1/admin/inventoryCategory/${editId}`, {
+          category: roleName,
+        })
         .then(() => {
-          toast.success("Task category updated successfully");
-          fetchTaskCategories();
+          successToast("Inventory updated successfully");
+          fetchInventoryCategory();
           resetForm();
+          setErrors(null);
         })
         .catch((err) => {
-          console.error("Error updating task category:", err);
-          toast.error("Failed to update category");
+          console.error("Error updating inventory:", err);
+          errorToast(
+            err.response?.data?.message || "Failed to update inventory"
+          );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     } else {
+      // Add
+      setLoadingBtn(true);
       api
-        .post("/api/v1/admin/taskCategory", { category })
+        .post("/api/v1/admin/inventoryCategory", { category: roleName })
         .then(() => {
-          toast.success("Task category added successfully");
-          fetchTaskCategories();
+          successToast("Inventory added successfully");
+          fetchInventoryCategory();
           resetForm();
+          setErrors(null);
         })
         .catch((err) => {
-          console.error("Error adding task category:", err);
-          if (err.response?.data?.message) {
-            toast.error(err.response.data.message);
-          } else {
-            toast.error("Failed to add category");
-          }
+          console.error("Error adding inventory:", err);
+          errorToast(err.response?.data?.message || "Failed to add inventory");
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     }
   };
 
-  // ✅ Edit
   const handleEdit = (index) => {
-    const cat = categoryList[index];
-    setCategory(cat.category);
-    setEditId(cat.id);
+    const inventory = userlist[index];
+    setRoleName(inventory.category);
+    setEditId(inventory.id || inventory._id);
     setShowAddEdit(true);
   };
 
-  // ✅ Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
+    setLoadingBtn(true);
     api
-      .delete(`/api/v1/admin/taskCategory/${deleteId}`)
+      .delete(`/api/v1/admin/inventoryCategory/${deleteId}`)
       .then(() => {
-        toast.success("Task category deleted successfully");
-        fetchTaskCategories();
+        successToast("Inventory category deleted successfully");
+        fetchInventoryCategory();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting task category:", err);
-        toast.error("Failed to delete category");
+        console.error("Error deleting inventory:", err);
+        errorToast(err.response?.data?.message || "Failed to delete inventory");
+      })
+      .finally(() => {
+        setLoadingBtn(false);
       });
   };
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setCategory("");
+    setRoleName("");
     setEditId(null);
+    setErrors(null);
   };
 
   //  Loader while checking permissions
@@ -217,12 +247,6 @@ const TaskCategory = () => {
     );
   }
 
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
   return (
     <>
       <Row className="mt-4">
@@ -232,13 +256,13 @@ const TaskCategory = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Task Categories </h5>
+              <h5 className="card-title fw-lighter">Inventory Categories</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + Add Category
+                  + New Inventory
                 </Button>
               )}
             </Card.Header>
@@ -249,41 +273,44 @@ const TaskCategory = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Category</th>
+                      <th>Name</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentCategories.length === 0 ? (
+                    {userlist.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
-                          No Task Category available
+                          No Inventory Categories Available
                         </td>
                       </tr>
                     ) : (
-                      currentCategories.map((item, idx) => (
-                        <tr key={item.id}>
-                          <td>{indexOfFirst + idx + 1}</td>
+                      currentData.map((item, idx) => (
+                        <tr key={item.id || item._id}>
+                          <td>{idx + 1}</td>
                           <td>{item.category}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
+                          <td>
+                            <span
+                              className={`status-dot ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                            ></span>
+                            {item.isActive ? "Active" : "Inactive"}
+                          </td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={
-                                item.isActive === 1 || item.isActive === true
-                              }
+                              checked={item.isActive === true}
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
                             />
 
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(indexOfFirst + idx)}
+                                onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -292,8 +319,8 @@ const TaskCategory = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(indexOfFirst + idx);
-                                  setDeleteId(item.id);
+                                  setDeleteIndex(idx);
+                                  setDeleteId(item.id || item._id);
                                   setShowDelete(true);
                                 }}
                                 color="error"
@@ -308,56 +335,36 @@ const TaskCategory = () => {
                 </Table>
               </div>
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="d-flex justify-content-end mt-3 me-3">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    Previous
-                  </Button>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={currentPage === i + 1 ? "primary" : "light"}
-                      size="sm"
-                      className="mx-1"
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </Button>
-                  ))}
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
-              )}
-
+              {/* 🔹 Pagination Controls */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  />
                   <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                   />
                   {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
                       active={i + 1 === currentPage}
-                      onClick={() => handlePageChange(i + 1)}
+                      onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
                     </Pagination.Item>
                   ))}
                   <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
                   />
                 </Pagination>
@@ -371,13 +378,15 @@ const TaskCategory = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        value={category}
-        setValue={setCategory}
-        onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update Task Category" : "Add New Task Category"}
+        roleName={roleName}
+        setRoleName={setRoleName}
+        errors={errors}
+        onSave={handleAddOrUpdateRole}
+        modalTitle={
+          editId ? "Update Inventory Category" : "Add New Inventory Category"
+        }
         buttonLabel={editId ? "Update" : "Submit"}
-        fieldLabel="Task Category"
-        placeholder="Enter category"
+        loading={loadingBtn}
       />
 
       {/* Delete Confirmation Modal */}
@@ -389,18 +398,16 @@ const TaskCategory = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Task Category"
+        modalTitle="Delete Inventory Category"
         modalMessage={
-          deleteIndex !== null && categoryList[deleteIndex]
-            ? `Are you sure you want to delete "${categoryList[deleteIndex].category}"?`
+          deleteIndex !== null && userlist[deleteIndex]
+            ? `Are you sure you want to delete the inventory category "${userlist[deleteIndex].category}"?`
             : ""
         }
+        loading={loadingBtn}
       />
-
-      {/* ✅ Toast */}
-      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
 
-export default TaskCategory;
+export default InventoryCategoriesList;

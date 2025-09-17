@@ -78,3 +78,7 @@ input {
   padding: .3rem
 }
 
+.errors-text{
+  color:red;
+  font-size: 11px;
+}

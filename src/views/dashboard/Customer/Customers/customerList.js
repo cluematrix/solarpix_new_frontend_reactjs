@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
   Row,
@@ -17,24 +17,87 @@ import DeleteModal from "./deleteModal";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
+import { FaUserXmark } from "react-icons/fa6";
+import Tooltip from "@mui/material/Tooltip";
+import KycModal from "./kycModal";
+import { FaUserCheck } from "react-icons/fa6";
+import CustomInput from "../../../../components/Form/CustomInput";
 
 const CustomerList = () => {
   const navigate = useNavigate();
 
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const customersPerPage = 10;
   const indexOfLast = currentPage * customersPerPage;
   const indexOfFirst = indexOfLast - customersPerPage;
-  const totalPages = Math.ceil(customers.length / customersPerPage);
-  const currentCustomers = customers.slice(indexOfFirst, indexOfLast);
+
+  const searchResult = customers.filter((item) => {
+    return item.name.toLowerCase().startsWith(searchQuery.toLowerCase());
+  });
+
+  const filteredData = searchQuery ? searchResult : customers;
+  const totalPages = Math.ceil(filteredData.length / customersPerPage);
+  const currentCustomers = filteredData.slice(indexOfFirst, indexOfLast);
 
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [enableVerification, setEnableVerification] = useState(false);
+  const [kycData, setKycData] = useState(null);
+
+  console.log("searchResult", searchResult);
+
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
+    } finally {
+      setLoading(false); // ✅ Stop loader after API call
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true); // reset loader each time route changes
+    FETCHPERMISSION();
+  }, [pathname]);
 
   // fetch customers
   const fetchCustomers = async () => {
@@ -88,27 +151,63 @@ const CustomerList = () => {
 
   const handleToggleActive = async (id, status) => {
     const newStatus = !status;
-    try {
-      const res = await api.put(`/api/v1/admin/client/${id}`, {
+    api
+      .put(`/api/v1/admin/client/${id}`, {
         isActive: newStatus,
-      });
-      if (res.status === 200) {
-        successToast("Customer status updated successfully");
+      })
+      .then(() => {
+        console.log("working");
+        // toast.success("Status updated successfully");
+        successToast("Status updated successfully");
         setCustomers((prev) =>
           prev.map((c) => (c.id === id ? { ...c, isActive: newStatus } : c))
         );
-      }
-    } catch (err) {
-      console.error("Error updating customer status:", err);
-      errorToast(
-        err.response?.data?.message || "Failed to update customer status"
-      );
-    }
+      })
+      .catch((err) => {
+        errorToast(
+          err.response?.data?.message || "Failed to update customer status"
+        );
+      });
   };
+
+  const handleOpenKycModal = (item) => {
+    setEnableVerification(true);
+    setKycData(item);
+  };
+
+  //  Loader while checking permissions
+  if (loading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
+
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
 
   return (
     <>
-      <Row className="mt-4">
+      <Row style={{ marginTop: "-70px" }}>
+        <Col md={4}>
+          <CustomInput
+            name="searchQuery"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name"
+          />
+        </Col>
+      </Row>
+      <Row className="mt-3">
         <Col sm="12">
           <Card>
             <Card.Header
@@ -117,7 +216,7 @@ const CustomerList = () => {
             >
               <h5 className="card-title fw-lighter">Customers</h5>
               <Button
-                className="btn-primary"
+                className="btn-primary me-1"
                 onClick={() => navigate("/add-customer")}
               >
                 + Add Customer
@@ -138,6 +237,7 @@ const CustomerList = () => {
                         <th>Cust ID</th>
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Kyc Status</th>
                         <th>Status</th>
                         <th>Action</th>
                       </tr>
@@ -153,9 +253,35 @@ const CustomerList = () => {
                         currentCustomers.map((item, idx) => (
                           <tr key={item.id}>
                             <td>{indexOfFirst + idx + 1}</td>
-                            <td>{item.client_id}</td>
-                            <td>{item.name}</td>
-                            <td>{item.email}</td>
+                            <td>{item.client_id || "--"}</td>
+                            <td>{item.name || "--"}</td>
+                            <td>{item.email || "--"}</td>
+                            <td className="p-0 text-center">
+                              {" "}
+                              <Tooltip title={item.kyc_status || "--"}>
+                                <Button
+                                  className={`${
+                                    item?.kyc_status === "Pending"
+                                      ? "text-warning"
+                                      : item?.kyc_status === "Approved"
+                                      ? "text-success"
+                                      : "text-danger"
+                                  }`}
+                                  style={{
+                                    padding: "5px",
+                                    background: "none",
+                                    border: "none",
+                                  }}
+                                  onClick={() => handleOpenKycModal(item)}
+                                >
+                                  {item?.kyc_status === "Approved" ? (
+                                    <FaUserCheck style={{ fontSize: "18px" }} />
+                                  ) : (
+                                    <FaUserXmark style={{ fontSize: "18px" }} />
+                                  )}
+                                </Button>
+                              </Tooltip>
+                            </td>
                             <td>
                               <span
                                 className={`status-dot ${
@@ -173,12 +299,20 @@ const CustomerList = () => {
                                   handleToggleActive(item.id, item.isActive)
                                 }
                               />
+                              <VisibilityIcon
+                                onClick={() => handleView(item.id)}
+                                color="primary"
+                                style={{
+                                  cursor: "pointer",
+                                  marginLeft: "2px",
+                                }}
+                              />
                               <CreateTwoToneIcon
                                 onClick={() => handleEdit(item.id)}
                                 color="primary"
                                 style={{
                                   cursor: "pointer",
-                                  marginLeft: "5px",
+                                  marginLeft: "2px",
                                 }}
                               />
                               <DeleteRoundedIcon
@@ -188,15 +322,7 @@ const CustomerList = () => {
                                 color="error"
                                 style={{
                                   cursor: "pointer",
-                                  marginLeft: "5px",
-                                }}
-                              />
-                              <VisibilityIcon
-                                onClick={() => handleView(item.id)}
-                                color="primary"
-                                style={{
-                                  cursor: "pointer",
-                                  marginLeft: "5px",
+                                  marginLeft: "2px",
                                 }}
                               />
                             </td>
@@ -256,10 +382,22 @@ const CustomerList = () => {
         onConfirm={handleDeleteConfirm}
         modalTitle="Delete Customer"
         modalMessage={
-          deleteIndex !== null && customers[deleteIndex]
-            ? `Are you sure you want to delete the customer ${customers[deleteIndex].name}?`
+          deleteIndex !== null && filteredData[deleteIndex]
+            ? `Are you sure you want to delete the customer ${filteredData[deleteIndex].name}?`
             : ""
         }
+      />
+
+      {/* Kyc Modal */}
+      <KycModal
+        show={enableVerification}
+        handleClose={() => {
+          setEnableVerification(false);
+        }}
+        onConfirm={handleDeleteConfirm}
+        modalTitle="Customer Kyc"
+        kycData={kycData}
+        refetch={fetchCustomers}
       />
     </>
   );

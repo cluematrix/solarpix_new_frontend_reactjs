@@ -1,3 +1,5 @@
+// Created by sufyan on 16 sep
+
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -5,39 +7,59 @@ import {
   Col,
   Button,
   Form,
-  Pagination,
   Spinner,
   Table,
+  Pagination,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "./add-edit-modal";
-import DeleteModal from "./delete-modal";
+import AddEditModal from "./AddEditModal";
+import DeleteModal from "./DeleteModal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
+import * as Yup from "yup";
+import { useFormik } from "formik";
 
-const EmployeeType = () => {
+const initialValues = {
+  material: "",
+  balance: "",
+  inventory_category_id: "",
+};
+
+const StockMaterialList = () => {
   const [userlist, setUserlist] = useState([]);
-  const [empType, setEmpType] = useState("");
+  const [invCatData, setInvCatData] = useState([]);
   const [editId, setEditId] = useState(null);
-
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-
-  // 🔹 Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
+  const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  // Pagination
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = userlist.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(userlist.length / rowsPerPage);
+
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Fetch Role Permissions
+  const validationSchema = Yup.object().shape({
+    material: Yup.string().required("Material name is required"),
+    balance: Yup.string().required("Balance is required"),
+    inventory_category_id: Yup.string().required(
+      "Inventory category is required"
+    ),
+  });
+
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -79,127 +101,168 @@ const EmployeeType = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(true); // reset loader each time route changes
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Employee Types
-  const fetchEmployeeTypes = () => {
+  // Fetch stock material
+  const fetchStockMaterial = () => {
     api
-      .get("/api/v1/admin/employmentType")
+      .get("/api/v1/admin/stockMaterial")
       .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-        setUserlist(data);
+        if (Array.isArray(res.data)) {
+          setUserlist(res.data);
+        } else if (Array.isArray(res.data.data)) {
+          setUserlist(res.data.data);
+        } else {
+          setUserlist([]);
+        }
       })
       .catch((err) => {
-        console.error("Error fetching employee types:", err);
-        toast.error("Failed to fetch employee types");
+        console.error("Error fetching stock material:", err);
         setUserlist([]);
       });
   };
 
+  // Fetch inventory category
+  const fetchInventoryCategory = () => {
+    api
+      .get("/api/v1/admin/inventoryCategory")
+      .then((res) => {
+        if (Array.isArray(res.data)) {
+          setInvCatData(res.data);
+        } else if (Array.isArray(res.data.data)) {
+          setInvCatData(res.data.data);
+        } else {
+          setInvCatData([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching inventory category:", err);
+        setInvCatData([]);
+      });
+  };
+
   useEffect(() => {
-    fetchEmployeeTypes();
+    fetchStockMaterial();
+    fetchInventoryCategory();
   }, []);
 
-  // ✅ Toggle Active/Inactive
+  // Toggle Active/Inactive with optimistic update
   const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus ? 0 : 1;
+    const newStatus = !currentStatus;
+
+    // Optimistic UI update
     setUserlist((prev) =>
-      prev.map((et) => (et.id === id ? { ...et, isActive: newStatus } : et))
+      prev.map((dept) =>
+        dept.id === id ? { ...dept, isActive: newStatus } : dept
+      )
     );
 
     api
-      .put(`/api/v1/admin/employmentType/${id}`, { isActive: newStatus })
+      .put(`/api/v1/admin/stockMaterial/${id}`, { isActive: newStatus })
       .then(() => {
-        toast.success("Status updated successfully");
+        successToast("Status updated successfully");
       })
       .catch((err) => {
         console.error("Update failed:", err);
-        toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
+        errorToast(err.response?.data?.message || "Failed to update status");
+        // Rollback if API fails
         setUserlist((prev) =>
-          prev.map((et) =>
-            et.id === id ? { ...et, isActive: currentStatus } : et
+          prev.map((dept) =>
+            dept.id === id ? { ...dept, isActive: currentStatus } : dept
           )
         );
       });
   };
 
-  // ✅ Add or Update
-  const handleAddOrUpdate = () => {
-    if (!empType.trim()) {
-      toast.warning("Employee type is required");
-      return;
-    }
-
+  const onSubmit = (values) => {
     if (editId) {
+      // Update
+      setLoadingBtn(true);
       api
-        .put(`/api/v1/admin/employmentType/${editId}`, { emp_type: empType })
+        .put(`/api/v1/admin/stockMaterial/${editId}`, values)
         .then(() => {
-          toast.success("Employee type updated successfully");
-          fetchEmployeeTypes();
-          resetForm();
+          successToast("Stock material updated successfully");
+          fetchStockMaterial();
+          handleResetForm();
         })
         .catch((err) => {
-          console.error("Error updating employee type:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update employee type"
+          console.error("Error updating stock material:", err);
+          errorToast(
+            err.response?.data?.message || "Failed to update stock material"
           );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     } else {
+      // Add
+      setLoadingBtn(true);
       api
-        .post("/api/v1/admin/employmentType", { emp_type: empType })
+        .post("/api/v1/admin/stockMaterial", values)
         .then(() => {
-          toast.success("Employee type added successfully");
-          fetchEmployeeTypes();
-          resetForm();
+          successToast("Stock material added successfully");
+          fetchStockMaterial();
+          handleResetForm();
         })
         .catch((err) => {
-          console.error("Error adding employee type:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to add employee type"
+          console.error("Error adding stock material:", err);
+          errorToast(
+            err.response?.data?.message || "Failed to add stock material"
           );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     }
   };
 
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    onSubmit,
+  });
+
+  const { handleSubmit, resetForm } = formik;
+
   const handleEdit = (index) => {
-    const emp = userlist[index];
-    setEmpType(emp.emp_type);
-    setEditId(emp.id);
+    const stock_material = userlist[index];
+    formik.setValues({
+      material: stock_material.material,
+      balance: stock_material.balance,
+      inventory_category_id: stock_material.inventory_category_id,
+    });
+    setEditId(stock_material.id || stock_material._id);
     setShowAddEdit(true);
   };
 
-  // ✅ Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
+    setLoadingBtn(true);
     api
-      .delete(`/api/v1/admin/employmentType/${deleteId}`)
+      .delete(`/api/v1/admin/stockMaterial/${deleteId}`)
       .then(() => {
-        toast.success("Employee type deleted successfully");
-        fetchEmployeeTypes();
+        successToast("Stock Material deleted successfully");
+        fetchStockMaterial();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting employee type:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to delete employee type"
+        console.error("Error deleting stock material:", err);
+        errorToast(
+          err.response?.data?.message || "Failed to delete stock material"
         );
+      })
+      .finally(() => {
+        setLoadingBtn(false);
       });
   };
 
-  const resetForm = () => {
+  const handleResetForm = () => {
     setShowAddEdit(false);
-    setEmpType("");
     setEditId(null);
+    resetForm();
   };
-
-  // 🔹 Pagination logic
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentItems = userlist.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(userlist.length / itemsPerPage);
 
   //  Loader while checking permissions
   if (loading) {
@@ -209,6 +272,7 @@ const EmployeeType = () => {
       </div>
     );
   }
+
   if (!permissions?.view) {
     return (
       <div
@@ -229,13 +293,13 @@ const EmployeeType = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Employee Type</h5>
+              <h5 className="card-title fw-lighter">Stock Material</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + Add Type
+                  + New Stock Material
                 </Button>
               )}
             </Card.Header>
@@ -246,41 +310,48 @@ const EmployeeType = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Employee Type</th>
+                      <th>Material Name</th>
+                      <th>Inventory Category</th>
+                      <th>Balance</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentItems.length === 0 ? (
+                    {userlist.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center">
-                          No Employee Type available
+                        <td colSpan="6" className="text-center">
+                          No Stock Material Available
                         </td>
                       </tr>
                     ) : (
-                      currentItems.map((item, idx) => (
-                        <tr key={item.id}>
-                          <td>{indexOfFirst + idx + 1}</td>
-                          <td>{item.emp_type}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
+                      currentData.map((item, idx) => (
+                        <tr key={item.id || item._id}>
+                          <td>{idx + 1}</td>
+                          <td>{item.material}</td>
+                          <td>{item.category.category}</td>
+                          <td>{item.balance}</td>
+                          <td>
+                            <span
+                              className={`status-dot ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                            ></span>
+                            {item.isActive ? "Active" : "Inactive"}
+                          </td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={
-                                item.isActive === 1 || item.isActive === true
-                              }
+                              checked={item.isActive === true}
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
                             />
 
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(indexOfFirst + idx)}
+                                onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -289,8 +360,8 @@ const EmployeeType = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(indexOfFirst + idx);
-                                  setDeleteId(item.id);
+                                  setDeleteIndex(idx);
+                                  setDeleteId(item.id || item._id);
                                   setShowDelete(true);
                                 }}
                                 color="error"
@@ -305,7 +376,7 @@ const EmployeeType = () => {
                 </Table>
               </div>
 
-              {/* 🔹 Pagination UI */}
+              {/* 🔹 Pagination Controls */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
                   <Pagination.First
@@ -318,13 +389,13 @@ const EmployeeType = () => {
                     }
                     disabled={currentPage === 1}
                   />
-                  {[...Array(totalPages).keys()].map((num) => (
+                  {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
-                      key={num + 1}
-                      active={num + 1 === currentPage}
-                      onClick={() => setCurrentPage(num + 1)}
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
                     >
-                      {num + 1}
+                      {i + 1}
                     </Pagination.Item>
                   ))}
                   <Pagination.Next
@@ -347,12 +418,13 @@ const EmployeeType = () => {
       {/* Add/Edit Modal */}
       <AddEditModal
         show={showAddEdit}
-        handleClose={resetForm}
-        empType={empType}
-        setEmpType={setEmpType}
-        onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update Employee Type" : "Add New Employee Type"}
+        handleClose={handleResetForm}
+        onSave={handleSubmit}
+        modalTitle={editId ? "Update Stock Material" : "Add New Stock Material"}
         buttonLabel={editId ? "Update" : "Submit"}
+        loading={loadingBtn}
+        formik={formik}
+        invCatData={invCatData}
       />
 
       {/* Delete Confirmation Modal */}
@@ -364,18 +436,16 @@ const EmployeeType = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Employee Type"
+        modalTitle="Delete Stock Material"
         modalMessage={
           deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete "${userlist[deleteIndex].emp_type}"?`
+            ? `Are you sure you want to delete the stock material" ${userlist[deleteIndex].material}"?`
             : ""
         }
+        loading={loadingBtn}
       />
-
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
 
-export default EmployeeType;
+export default StockMaterialList;

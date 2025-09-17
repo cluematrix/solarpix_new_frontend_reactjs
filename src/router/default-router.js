@@ -91,6 +91,13 @@ import CustomerProfile from "../views/dashboard/Customer/Customers/customerProfi
 import NoticeBoard from "../views/dashboard/Notices/Notice/notice-list";
 import AppreciationList from "../views/dashboard/EmployeeManagment/Award/Appreciations/Appreciation-list";
 import RequirementList from "../views/dashboard/Leads/requirementType/requirement-list";
+import InventoryCategoriesList from "../views/dashboard/InventoryManagement/InventoryCategories/InventoryCategoriesList";
+import StockMaterialList from "../views/dashboard/InventoryManagement/StockMaterial/StockMaterialList";
+import SupplierManagementList from "../views/dashboard/InventoryManagement/SupplierManagement/SuplierManagementList";
+import PaymentTermList from "../views/dashboard/InventoryManagement/PaymentTerm/PaymentTermList";
+import StockParticularList from "../views/dashboard/InventoryManagement/StockParticulars/StockParticularsList";
+import BrandList from "../views/dashboard/InventoryManagement/BrandMaster/BrandList";
+import StockManagementList from "../views/dashboard/InventoryManagement/StockManagement/StockManagementlList";
 
 // employee profile 01 Sep
 
@@ -231,8 +238,39 @@ export const DefaultRouter = [
         element: <LeavesList />,
       },
 
-      // notice
+      // inventory management created by sufyan on 16 sep
 
+      // inventory-categories
+      {
+        path: "inventory-categories-list",
+        element: <InventoryCategoriesList />,
+      },
+      {
+        path: "stock-material-list",
+        element: <StockMaterialList />,
+      },
+      {
+        path: "supplier-management-list",
+        element: <SupplierManagementList />,
+      },
+      {
+        path: "payment-terms-list",
+        element: <PaymentTermList />,
+      },
+      {
+        path: "stock-particulars-list",
+        element: <StockParticularList />,
+      },
+      {
+        path: "brand-list",
+        element: <BrandList />,
+      },
+      {
+        path: "stock-management-list",
+        element: <StockManagementList />,
+      },
+
+      // notice
       {
         path: "/notice-board",
         element: <NoticeBoard />,
@@ -311,7 +349,7 @@ export const DefaultRouter = [
         element: <LeadsList />,
       },
 
-            {
+      {
         path: "/requirement-list",
         element: <RequirementList />,
       },

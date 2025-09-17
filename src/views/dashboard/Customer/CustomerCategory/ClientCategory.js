@@ -202,7 +202,7 @@ const ClientCategory = () => {
     );
   }
 
-  if (!permissions.view) {
+  if (!permissions?.view) {
     return (
       <div
         className="d-flex justify-content-center align-items-center"

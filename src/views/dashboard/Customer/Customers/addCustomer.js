@@ -35,12 +35,13 @@ const AddCustomer = () => {
     city: leadData?.city || "",
     state: leadData?.state || "",
     pincode: leadData?.pincode || "",
-    photo: leadData.photo || null,
-    client_category_id: leadData.client_category_id || "",
-    docSelect: leadData.docSelect || "",
-    doc_no: leadData.doc_no || "",
-    doc_upload: leadData.doc_upload || "",
-    description: leadData.description || "",
+    photo: leadData?.photo || null,
+    client_category_id: leadData?.client_category_id || "",
+    doc_type: leadData?.doc_type || "",
+    doc_no: leadData?.doc_no || "",
+    doc_upload: leadData?.doc_upload || "",
+    description: leadData?.description || "",
+    kyc_status: leadData?.kyc_status || "Pending",
   };
 
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ const AddCustomer = () => {
     pincode: Yup.string()
       .required("Pincode is required")
       .matches(/^\d{6}$/, "Enter a valid 6-digit pincode"),
-    client_category_id: Yup.string().required("Client Category is required"),
+    client_category_id: Yup.string().required("Customer Category is required"),
     photo: Yup.mixed()
       .nullable()
       .test(
@@ -81,7 +82,7 @@ const AddCustomer = () => {
           );
         }
       ),
-    docSelect: Yup.string().required("Document Type is required"),
+    doc_type: Yup.string().required("Document Type is required"),
     doc_no: Yup.string().required("Document number is required"),
     doc_upload: Yup.mixed()
       .nullable()
@@ -103,7 +104,7 @@ const AddCustomer = () => {
 
       const res = await api.post("/api/v1/admin/client", formData);
       console.log(res);
-      successToast(res.data.message || "Customer added successfully");
+      successToast("Customer added successfully");
       resetForm();
       navigate("/CustomerList");
     } catch (err) {
@@ -183,6 +184,7 @@ const AddCustomer = () => {
   }
 
   console.log("lead_id", values.lead_id);
+  console.log("values", values);
   return (
     <Card>
       <Card.Header>
@@ -395,18 +397,18 @@ const AddCustomer = () => {
             <h5 className="mb-0">Document Details</h5>
           </Card.Header>
 
-          {/* Row 5 {docSelect} */}
+          {/* Row 5 {doc_type} */}
           <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomRadioGroup
                 label="Select Document"
-                name="docSelect"
+                name="doc_type"
                 options={docTypeOptions}
-                value={values.docSelect}
+                value={values.doc_type}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                touched={touched.docSelect}
-                error={errors.docSelect}
+                touched={touched.doc_type}
+                error={errors.doc_type}
                 required
               />
             </Col>
@@ -416,23 +418,23 @@ const AddCustomer = () => {
           <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomInput
-                label={`Enter ${values.docSelect} No`}
+                label={`Enter ${values.doc_type} No`}
                 name="doc_no"
                 value={values.doc_no}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder={`Enter ${values.docSelect} No`}
+                placeholder={`Enter ${values.doc_type} No`}
                 touched={touched.doc_no}
                 errors={errors.doc_no}
-                disabled={!values.docSelect}
+                disabled={!values.doc_type}
                 required
-                title={!values.docSelect && `Choose doc type first`}
+                title={!values.doc_type && `Choose doc type first`}
               />
             </Col>
 
             <Col md={4}>
               <CustomFileInput
-                label={`Upload ${values.docSelect} (Pdf)`}
+                label={`Upload ${values.doc_type} (Pdf)`}
                 name="doc_upload"
                 // accept="application/pdf"
                 onChange={(e) =>
@@ -441,9 +443,9 @@ const AddCustomer = () => {
                 onBlur={handleBlur}
                 touched={touched.doc_upload}
                 error={errors.doc_upload}
-                disabled={!values.docSelect}
+                disabled={!values.doc_type}
                 required
-                title={!values.docSelect && `Choose doc type first`}
+                title={!values.doc_type && `Choose doc type first`}
               />
             </Col>
           </Row>

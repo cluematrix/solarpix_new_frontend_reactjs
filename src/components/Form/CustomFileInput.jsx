@@ -8,7 +8,7 @@ const CustomFileInput = ({
   onBlur,
   error,
   touched,
-  accept = "image/*",
+  accept = "",
   required = false,
   size = "md", // optional size
   disabled = false,
