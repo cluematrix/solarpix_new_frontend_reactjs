@@ -8,6 +8,7 @@ import {
   Spinner,
   Modal,
   Form,
+  Pagination,
 } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -52,6 +53,10 @@ const LeadFollowupList = () => {
   const [filterToDate, setFilterToDate] = useState("");
   const [filteredFollowups, setFilteredFollowups] = useState([]);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Fetch leads
   const fetchLeads = async () => {
     try {
@@ -72,6 +77,7 @@ const LeadFollowupList = () => {
         : res.data || [];
       setFollowups(data);
       setFilteredFollowups(data);
+      setCurrentPage(1); // reset to first page after fetching
     } catch (err) {
       console.error("Error fetching followups:", err);
     } finally {
@@ -115,7 +121,17 @@ const LeadFollowupList = () => {
     }
 
     setFilteredFollowups(filtered);
+    setCurrentPage(1); // reset pagination after filter
   }, [filterLead, filterFromDate, filterToDate, followups, leads]);
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredFollowups.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredFollowups.length / itemsPerPage);
 
   // Open View Modal
   const openViewModal = (followup) => {
@@ -224,9 +240,9 @@ const LeadFollowupList = () => {
         </Col>
         <Col md={3}>
           <Button
-            variant="primary"
-            className=" mt-1"
-            style={{ width: "90px" }} // Set width to 60px
+            variant="secondary"
+            className="mt-1"
+            style={{ width: "90px" }}
             onClick={() => {
               setFilterLead("");
               setFilterFromDate("");
@@ -260,79 +276,125 @@ const LeadFollowupList = () => {
                   <Spinner animation="border" />
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <Table hover responsive className="table">
-                    <thead>
-                      <tr className="table-gray">
-                        <th>Sr. No.</th>
-                        <th>Lead Name</th>
-                        <th>Message</th>
-                        <th>FollowUp Date</th>
-                        <th>Outcome</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredFollowups.length === 0 ? (
-                        <tr>
-                          <td colSpan="6" className="text-center">
-                            No follow-ups available
-                          </td>
+                <>
+                  <div className="table-responsive">
+                    <Table hover responsive className="table">
+                      <thead>
+                        <tr className="table-gray">
+                          <th>Sr. No.</th>
+                          <th>Lead Name</th>
+                          <th>Message</th>
+                          <th>FollowUp Date</th>
+                          <th>Outcome</th>
+                          <th>Action</th>
                         </tr>
-                      ) : (
-                        filteredFollowups.map((item, idx) => (
-                          <tr key={item.id}>
-                            <td>{idx + 1}</td>
-                            <td>
-                              {item.lead_id?.name ||
-                                leads.find((l) => l.id === item.lead_id)
-                                  ?.name ||
-                                "—"}
-                            </td>
-                            <td>{item.message}</td>
-                            <td>{item.followup_date}</td>
-                            <td>{item.out_comes || "—"}</td>
-                            <td>
-                              <VisibilityIcon
-                                color="info"
-                                size="sm"
-                                className="me-2"
-                                onClick={() => openViewModal(item)}
-                              />
-                              <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(idx)}
-                                color="primary"
-                                style={{ cursor: "pointer" }}
-                              />
-                              <EditNoteIcon
-                                variant="info"
-                                size="sm"
-                                className="me-2"
-                                onClick={() => openOutcomeModal(item)}
-                              />
-                              <DeleteRoundedIcon
-                                onClick={() => {
-                                  setDeleteIndex(idx);
-                                  setShowDelete(true);
-                                }}
-                                color="error"
-                                style={{ cursor: "pointer" }}
-                              />
+                      </thead>
+                      <tbody>
+                        {currentItems.length === 0 ? (
+                          <tr>
+                            <td colSpan="6" className="text-center">
+                              No follow-ups available
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
+                        ) : (
+                          currentItems.map((item, idx) => (
+                            <tr key={item.id}>
+                              <td>{indexOfFirstItem + idx + 1}</td>
+                              <td>
+                                {item.lead_id?.name ||
+                                  leads.find((l) => l.id === item.lead_id)
+                                    ?.name ||
+                                  "—"}
+                              </td>
+                              <td>{item.message}</td>
+                              <td>
+                                {item.followup_date
+                                  ? new Date(
+                                      item.followup_date
+                                    ).toLocaleDateString("en-GB")
+                                  : "—"}
+                              </td>
+
+                              <td>{item.out_comes || "—"}</td>
+                              <td>
+                                <VisibilityIcon
+                                  color="info"
+                                  size="sm"
+                                  className="me-2"
+                                  onClick={() => openViewModal(item)}
+                                />
+                                <CreateTwoToneIcon
+                                  className="me-2"
+                                  onClick={() => handleEdit(idx)}
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                />
+                                <EditNoteIcon
+                                  variant="info"
+                                  size="sm"
+                                  className="me-2"
+                                  onClick={() => openOutcomeModal(item)}
+                                />
+                                <DeleteRoundedIcon
+                                  onClick={() => {
+                                    setDeleteIndex(idx);
+                                    setShowDelete(true);
+                                  }}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <Pagination className="justify-content-end mt-3 me-3">
+                      <Pagination.First
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                      />
+                      <Pagination.Prev
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                      />
+                      {[...Array(totalPages)].map((_, idx) => (
+                        <Pagination.Item
+                          key={idx + 1}
+                          active={currentPage === idx + 1}
+                          onClick={() => setCurrentPage(idx + 1)}
+                        >
+                          {idx + 1}
+                        </Pagination.Item>
+                      ))}
+                      <Pagination.Next
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      />
+                      <Pagination.Last
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                      />
+                    </Pagination>
+                  )}
+                </>
               )}
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* Modals */}
+      {/* Modals (same as before) */}
       <AddEditModal
         show={showAddEdit}
         handleClose={() => {

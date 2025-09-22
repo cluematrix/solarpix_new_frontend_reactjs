@@ -8,6 +8,7 @@ import {
   Spinner,
   Form,
   Dropdown,
+  Pagination,
 } from "react-bootstrap";
 import api from "../../../../api/axios";
 
@@ -18,6 +19,10 @@ const SourceTrackList = () => {
   const [loading, setLoading] = useState(false);
   const [loadingSources, setLoadingSources] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // ✅ Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   //  Fetch lead sources
   const fetchLeadSources = async () => {
@@ -51,6 +56,7 @@ const SourceTrackList = () => {
         : [];
 
       setLeads(leads);
+      setCurrentPage(1); // reset to first page after filter
     } catch (err) {
       console.error("Error fetching leads:", err);
     } finally {
@@ -69,6 +75,12 @@ const SourceTrackList = () => {
     fetchLeadSources();
     fetchLeads();
   }, []);
+
+  // ✅ Pagination logic
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentLeads = leads.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(leads.length / itemsPerPage);
 
   return (
     <Card className="p-3">
@@ -137,47 +149,85 @@ const SourceTrackList = () => {
               <p className="mt-2">Loading leads...</p>
             </div>
           ) : (
-            <Table hover responsive>
-              <thead>
-                <tr>
-                  <th>Lead No</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Contact</th>
-                  <th>Lead Source</th>
-                  <th>Customer Type</th>
-                  <th>Priority</th>
-                  <th>Last Call</th>
-                  <th>Added By</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leads.length > 0 ? (
-                  leads.map((lead) => (
-                    <tr key={lead.id}>
-                      <td>{lead.lead_number}</td>
-                      <td>{lead.name}</td>
-                      <td>{lead.email}</td>
-                      <td>{lead.contact}</td>
-                      <td>{lead.leadSource?.lead_source || "-"}</td>
-                      <td>{lead.customer_type}</td>
-                      <td>{lead.priority}</td>
-                      <td>
-                        {new Date(lead.last_call).toLocaleDateString("en-GB")}{" "}
-                      </td>
-
-                      <td>{lead.addedBy?.name || "-"}</td>
-                    </tr>
-                  ))
-                ) : (
+            <>
+              <Table hover responsive>
+                <thead>
                   <tr>
-                    <td colSpan="9" className="text-center">
-                      No leads found
-                    </td>
+                    <th>Lead No</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Lead Source</th>
+                    <th>Customer Type</th>
+                    <th>Priority</th>
+                    <th>Last Call</th>
+                    <th>Added By</th>
                   </tr>
-                )}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {currentLeads.length > 0 ? (
+                    currentLeads.map((lead) => (
+                      <tr key={lead.id}>
+                        <td>{lead.lead_number}</td>
+                        <td>{lead.name}</td>
+                        <td>{lead.email}</td>
+                        <td>{lead.contact}</td>
+                        <td>{lead.leadSource?.lead_source || "-"}</td>
+                        <td>{lead.customer_type}</td>
+                        <td>{lead.priority}</td>
+                        <td>
+                          {lead.last_call
+                            ? new Date(lead.last_call).toLocaleDateString("en-GB")
+                            : "-"}
+                        </td>
+                        <td>{lead.addedBy?.name || "-"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="9" className="text-center">
+                        No leads found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+
+              {/* ✅ Pagination */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-end mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  />
+                  <Pagination.Prev
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    disabled={currentPage === 1}
+                  />
+
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+
+                  <Pagination.Next
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(p + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              )}
+            </>
           )}
         </Col>
       </Row>

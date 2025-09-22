@@ -52,9 +52,9 @@ const ViewFollowupModal = ({
         </Form.Group>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
+        {/* <Button variant="secondary" onClick={handleClose}>
           Close
-        </Button>
+        </Button> */}
       </Modal.Footer>
     </Modal>
   );

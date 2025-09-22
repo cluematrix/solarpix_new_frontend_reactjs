@@ -3,7 +3,7 @@ import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../../api/axios";
 
-const EditDeal = () => {
+const UpdateQuotationNew = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -11,7 +11,7 @@ const EditDeal = () => {
   const [leads, setLeads] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [rates, setRates] = useState([]);
-  const [employees, setEmployees] = useState([]); // ✅ employees
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -35,10 +35,68 @@ const EditDeal = () => {
     final_amount: "",
     sol_rate: "",
     inv_rate: "",
-    sender_by_id: "", // ✅ assign to
+    sender_by_id: "",
+    quotation_no: "",
   });
 
-  // Fetch dropdown data + deal details
+  // ------------------------ Utility Functions ------------------------
+  const getFinancialYear = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    return month >= 4
+      ? `${String(year).slice(-2)}-${String(year + 1).slice(-2)}`
+      : `${String(year - 1).slice(-2)}-${String(year).slice(-2)}`;
+  };
+
+  const getRate = (name) => {
+    const rateObj = rates.find((r) => r.name === name);
+    return rateObj ? rateObj.price : 0;
+  };
+
+  // ------------------------ Quotation No Generator ------------------------
+  const generateQuotationNo = async (lead_id) => {
+    try {
+      const fy = getFinancialYear();
+      const res = await api.get("/api/v1/admin/deal");
+      const deals = res.data || [];
+
+      const fyDeals = deals.filter(
+        (d) => d.quotation_no && d.quotation_no.includes(`QT/${fy}/`)
+      );
+
+      // Check if this lead already has quotations in this FY
+      const leadDeals = fyDeals.filter((d) => d.lead_id === Number(lead_id));
+
+      if (leadDeals.length > 0) {
+        const lastQuotation = leadDeals[leadDeals.length - 1].quotation_no;
+        const match = lastQuotation.match(/(.+)-(\d+)$/);
+        if (match) {
+          const base = match[1];
+          const suffix = parseInt(match[2], 10) + 1;
+          return `${base}-${suffix}`;
+        } else {
+          return `${lastQuotation}-1`;
+        }
+      }
+
+      // No quotation for this lead → normal numbering
+      if (fyDeals.length > 0) {
+        const lastNo = Math.max(
+          ...fyDeals.map((d) => parseInt(d.quotation_no.split("/").pop(), 10))
+        );
+        const newNo = String(lastNo + 1).padStart(2, "0");
+        return `QT/${fy}/${newNo}`;
+      } else {
+        return `QT/${fy}/01`;
+      }
+    } catch (err) {
+      console.error("Failed to generate quotation no:", err);
+      return "";
+    }
+  };
+
+  // ------------------------ Fetch Data ------------------------
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -48,7 +106,7 @@ const EditDeal = () => {
             api.get("/api/v1/admin/rate/active"),
             api.get("/api/v1/admin/lead"),
             api.get("/api/v1/admin/dealStages/active"),
-            api.get("/api/v1/admin/employee/active"), // ✅ employee API
+            api.get("/api/v1/admin/employee/active"),
             api.get(`/api/v1/admin/deal/${id}`),
           ]);
 
@@ -67,6 +125,7 @@ const EditDeal = () => {
           sol_rate: deal.sol_rate || "",
           inv_rate: deal.inv_rate || "",
           sender_by_id: deal.sender_by_id || "",
+          quotation_no: deal.quotation_no || "",
         });
       } catch (err) {
         console.error("Error loading deal data:", err);
@@ -76,10 +135,11 @@ const EditDeal = () => {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [id, navigate]);
 
-  // If rates are fetched but formData rates are empty → set defaults
+  // ------------------------ Default Rates ------------------------
   useEffect(() => {
     if (rates.length) {
       setFormData((prev) => ({
@@ -90,7 +150,7 @@ const EditDeal = () => {
     }
   }, [rates]);
 
-  // Auto update solar capacity when lead changes
+  // ------------------------ Auto Update Solar Capacity ------------------------
   useEffect(() => {
     if (formData.lead_id) {
       const selectedLead = leads.find(
@@ -102,12 +162,7 @@ const EditDeal = () => {
     }
   }, [formData.lead_id, leads]);
 
-  const getRate = (name) => {
-    const rateObj = rates.find((r) => r.name === name);
-    return rateObj ? rateObj.price : 0;
-  };
-
-  // Auto calculate amounts
+  // ------------------------ Auto Calculate Amounts ------------------------
   useEffect(() => {
     const solAmt =
       (Number(formData.sol_cap) || 0) *
@@ -131,6 +186,7 @@ const EditDeal = () => {
     formData.inv_rate,
   ]);
 
+  // ------------------------ Handle Input Change ------------------------
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "attachment") {
@@ -140,45 +196,72 @@ const EditDeal = () => {
     }
   };
 
+  // ------------------------ Handle Submit ------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (!formData.deal_name || !formData.lead_id || !formData.deal_stage_id) {
+      if (!formData.deal_name || !formData.lead_id || !formData.sender_by_id) {
         alert("Please fill required fields");
         return;
       }
 
-      const submitData = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key === "attachment" && formData[key]) {
-          submitData.append(key, formData[key]);
-        } else if (formData[key] !== null && formData[key] !== undefined) {
-          submitData.append(key, formData[key]);
+      // Generate quotation number for this lead
+      const quotationNo = await generateQuotationNo(formData.lead_id);
+
+      const payload = {
+        deal_name: formData.deal_name,
+        lead_id: formData.lead_id,
+        deal_stage_id: 4, // Win
+        isFinal: 1, // Final
+        status: formData.status || "Active",
+        site_visit_date: formData.site_visit_date,
+        description: formData.description,
+        sol_cap: formData.sol_cap,
+        sol_qty: formData.sol_qty,
+        sol_amt: formData.sol_amt,
+        sol_seller_id: formData.sol_seller_id,
+        inv_cap: formData.inv_cap,
+        inv_amt: formData.inv_amt,
+        inv_seller_id: formData.inv_seller_id,
+        final_amount: formData.final_amount,
+        sol_rate: formData.sol_rate,
+        inv_rate: formData.inv_rate,
+        sender_by_id: formData.sender_by_id,
+        attachment: formData.attachment || null,
+        quotation_no: quotationNo,
+      };
+
+      const formPayload = new FormData();
+      Object.keys(payload).forEach((key) => {
+        if (payload[key] !== null && payload[key] !== undefined) {
+          formPayload.append(key, payload[key]);
         }
       });
 
-      await api.put(`/api/v1/admin/deal/${id}`, submitData, {
+      await api.post("/api/v1/admin/deal", formPayload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      alert("Quotation updated successfully!");
       navigate("/deals-list");
     } catch (error) {
-      console.error("Error updating deal:", error);
+      console.error("Error updating deal:", error.response || error.message);
       alert(
-        `Failed to update deal: ${
-          error.response?.data?.message || error.message
-        }`
+        `Failed to update deal: ${JSON.stringify(
+          error.response?.data || error.message
+        )}`
       );
     }
   };
 
   if (loading) return <p>Loading...</p>;
 
+  // ------------------------ Render Form ------------------------
   return (
     <Card className="p-4 shadow-sm">
-      <h4 className="mb-3">Edit Deal</h4>
+      <h4 className="mb-3">Update New Quotation</h4>
       <Form onSubmit={handleSubmit}>
-        {/* Deal Fields */}
+        {/* Deal Info */}
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
@@ -230,6 +313,7 @@ const EditDeal = () => {
           </Col>
         </Row>
 
+        {/* Assign + Status + Visit */}
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
@@ -276,7 +360,7 @@ const EditDeal = () => {
           </Col>
         </Row>
 
-        {/* Solar Fields */}
+        {/* Solar Details */}
         <h6 className="mt-3">Solar Panel Details</h6>
         <p className="small">(Default Rate: ₹{getRate("SOLAR")})</p>
         <Row className="mb-3">
@@ -319,7 +403,6 @@ const EditDeal = () => {
             </Form.Group>
           </Col>
         </Row>
-
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
@@ -351,7 +434,7 @@ const EditDeal = () => {
           </Col>
         </Row>
 
-        {/* Inverter Fields */}
+        {/* Inverter Details */}
         <h6 className="mt-3">Inverter Details</h6>
         <p className="small">(Default Rate: ₹{getRate("INVERTOR")})</p>
         <Row className="mb-3">
@@ -412,7 +495,7 @@ const EditDeal = () => {
           </Col>
         </Row>
 
-        {/* Final Amount + Assign To */}
+        {/* Final Amount + Attachment + Description */}
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
@@ -422,18 +505,6 @@ const EditDeal = () => {
                 name="final_amount"
                 value={formData.final_amount}
                 readOnly
-              />
-            </Form.Group>
-          </Col>
-          <Col md={8}>
-            <Form.Group>
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
               />
             </Form.Group>
           </Col>
@@ -448,8 +519,19 @@ const EditDeal = () => {
               />
             </Form.Group>
           </Col> */}
-          {/* </Row>
-        <Row className="mb-3"> */}
+
+          <Col md={8}>
+            <Form.Group>
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+              />
+            </Form.Group>
+          </Col>
         </Row>
 
         {/* Submit */}
@@ -458,7 +540,7 @@ const EditDeal = () => {
             Cancel
           </Button>{" "}
           <Button variant="primary" type="submit">
-            Update Deal
+            Update Quotation
           </Button>
         </div>
       </Form>
@@ -466,4 +548,4 @@ const EditDeal = () => {
   );
 };
 
-export default EditDeal;
+export default UpdateQuotationNew;
