@@ -44,6 +44,8 @@ import LeadsList from "../views/dashboard/Leads/Leadcontact/leads-list"; //12 Au
 import DealList from "../views/dashboard/Leads/Deals/deals-list";
 import LeadSourceList from "../views/dashboard/Leads/LeadSource/leadsSource-list";
 import DealStagesList from "../views/dashboard/Leads/DealStages/dealstages-list";
+import LeadFollowupList from "../views/dashboard/Leads/LeadfollowUp/leadfollowuplist"; //12 Sept
+import addDeals from "../views/dashboard/Leads/Deals/AddDeals";
 // import userProfileEdit from '../views/dashboard/app/user-privacy-setting';
 // widget
 import Widgetbasic from "../views/dashboard/widget/widgetbasic";
@@ -98,6 +100,10 @@ import PaymentTermList from "../views/dashboard/InventoryManagement/PaymentTerm/
 import StockParticularList from "../views/dashboard/InventoryManagement/StockParticulars/StockParticularsList";
 import BrandList from "../views/dashboard/InventoryManagement/BrandMaster/BrandList";
 import StockManagementList from "../views/dashboard/InventoryManagement/StockManagement/StockManagementlList";
+import SourceTrackList from "../views/dashboard/Leads/SourceTracking/SourceTrackList";
+import RateList from "../views/dashboard/Leads/Rates/RateList";
+import AddDeals from "../views/dashboard/Leads/Deals/AddDeals";
+import EditDeal from "../views/dashboard/Leads/Deals/EditDeal";
 
 // employee profile 01 Sep
 
@@ -348,6 +354,19 @@ export const DefaultRouter = [
         path: "/leads-list",
         element: <LeadsList />,
       },
+      {
+        path: "/RateList",
+        element: <RateList />,
+      },
+
+      {
+        path: "/SourceTrackList",
+        element: <SourceTrackList />,
+      },
+      {
+        path: "/LeadFollowupList",
+        element: <LeadFollowupList />,
+      },
 
       {
         path: "/requirement-list",
@@ -366,6 +385,15 @@ export const DefaultRouter = [
       {
         path: "/deals-list",
         element: <DealList />,
+      },
+
+      {
+        path: "/AddDeals",
+        element: <AddDeals />,
+      },
+      {
+        path: "/edit-deal/:id",
+        element: <EditDeal />,
       },
 
       // Widget

@@ -1,28 +1,47 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Button, Table, Spinner } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Table,
+  Spinner,
+  Form,
+  Pagination,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import Tooltip from "@mui/material/Tooltip";
+import ViewModal from "./ViewModal";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const LeadsList = () => {
   const [leadList, setLeadList] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
-  // Convert Lead to Customer
-  const handleConvertToCustomer = (lead) => {
-    navigate("/add-customer", { state: { leadData: lead } });
-  };
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const [showView, setShowView] = useState(false);
+  const [viewData, setViewData] = useState(null);
+
+  const [permissions, setPermissions] = useState(null);
+
+  // 🔹 Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
+    customerType: "Individual",
+    companyName: "",
     salutation: "",
     name: "",
     amount: "",
@@ -34,11 +53,16 @@ const LeadsList = () => {
     city: "",
     state: "",
     pincode: "",
-    description: "",
+    reference: "",
     address: "",
     requirementType: "",
     capacity: "",
     status: "",
+    company_remark: "",
+    customer_remark: "",
+    last_call: "",
+    priority: "",
+    enquiry_number: "",
     isActive: true,
     isDelete: false,
   });
@@ -48,7 +72,79 @@ const LeadsList = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
-  // Fetch dropdowns once
+  // 🔑 Fetch Permission
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // Convert Lead to Customer
+  const handleConvertToCustomer = (lead) => {
+    navigate("/add-customer", { state: { leadData: lead } });
+  };
+
+  const generateEnquiryNumber = (leadList = []) => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.toLocaleString("en-US", { month: "short" }).toUpperCase();
+    const nextYear = (year + 1).toString().slice(-2);
+    const currentYear = year.toString().slice(-2);
+    let sequence = 1;
+
+    if (leadList.length > 0) {
+      const lastLead = [...leadList].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      )[0];
+      const lastNumber = lastLead?.lead_number || lastLead?.enquiry_number;
+      if (lastNumber) {
+        const parts = lastNumber.split("/");
+        const lastSeq = parseInt(parts[3] || "0", 10);
+        if (!isNaN(lastSeq)) sequence = lastSeq + 1;
+      }
+    }
+
+    return `SEPL/${currentYear}-${nextYear}/${month}/${String(
+      sequence
+    ).padStart(3, "0")}`;
+  };
+
+  // Fetch dropdowns
   const fetchDropdowns = async () => {
     try {
       const [leadRes, empRes, cliRes] = await Promise.all([
@@ -65,7 +161,7 @@ const LeadsList = () => {
     }
   };
 
-  // Fetch Leads List
+  // Fetch Leads
   const fetchLeads = async () => {
     try {
       setLoading(true);
@@ -91,6 +187,8 @@ const LeadsList = () => {
 
   const resetForm = () => {
     setFormData({
+      customerType: "Individual",
+      companyName: "",
       salutation: "",
       name: "",
       amount: "",
@@ -102,36 +200,48 @@ const LeadsList = () => {
       city: "",
       state: "",
       pincode: "",
-      description: "",
+      reference: "",
       address: "",
       requirementType: "",
       capacity: "",
       status: "",
+      company_remark: "",
+      customer_remark: "",
+      last_call: "",
+      priority: "",
+      enquiry_number: generateEnquiryNumber(leadList),
       isActive: true,
       isDelete: false,
     });
     setEditIndex(null);
   };
 
-  // Save lead (POST/PUT)
+  // Save lead
   const handleAddOrUpdateLead = async (data) => {
     const payload = {
-      salutation: data.salutation,
+      customer_type: data.customerType,
       name: data.name,
+      company_name: data.customerType === "Business" ? data.companyName : null,
+      salutation: data.customerType === "Individual" ? data.salutation : null,
       email: data.email,
       contact: data.contact,
       lead_source: Number(data.leadSource),
       added_by: Number(data.addedBy),
-      lead_owner: Number(data.leadOwner),
+      lead_owner: data.leadOwner ? Number(data.leadOwner) : null,
       city: data.city,
       state: data.state,
-      amount: data.amount,
+      amount: data.amount ? Number(data.amount) : null,
       pincode: data.pincode,
-      description: data.description,
+      reference: data.reference,
       address: data.address,
-      requirement_type_id: Number(data.requirementType),
-      capacity: data.capacity,
+      requirement_type_id: Number(data.requirementType) || null,
+      capacity: data.capacity ? Number(data.capacity) : null,
       status: data.status,
+      company_remark: data.company_remark,
+      customer_remark: data.customer_remark,
+      last_call: data.last_call,
+      priority: data.priority,
+      lead_number: data.enquiry_number,
       isActive: data.isActive,
       isDelete: data.isDelete,
     };
@@ -153,9 +263,12 @@ const LeadsList = () => {
   const handleEdit = (index) => {
     const lead = leadList[index];
     setFormData({
-      salutation: lead.salutation || "",
-      amount: lead.amount || "",
+      customerType: lead.customer_type || "Individual",
+      companyName: lead.company_name || "",
       name: lead.name || "",
+      salutation:
+        lead.customer_type === "Individual" ? lead.salutation || "" : "",
+      amount: lead.amount || "",
       email: lead.email || "",
       contact: lead.contact || "",
       leadSource: lead.lead_source?.id || lead.lead_source || "",
@@ -164,12 +277,17 @@ const LeadsList = () => {
       city: lead.city || "",
       state: lead.state || "",
       pincode: lead.pincode || "",
-      description: lead.description || "",
+      reference: lead.reference || "",
       address: lead.address || "",
       requirementType:
         lead.requirement_type_id?.id || lead.requirement_type_id || "",
       capacity: lead.capacity || "",
       status: lead.status || "",
+      company_remark: lead.company_remark || "",
+      customer_remark: lead.customer_remark || "",
+      last_call: lead.last_call || "",
+      priority: lead.priority || "",
+      enquiry_number: lead.lead_number || lead.enquiry_number || "",
       isActive: lead.isActive,
       isDelete: lead.isDelete,
     });
@@ -190,6 +308,32 @@ const LeadsList = () => {
     setDeleteIndex(null);
   };
 
+  // 🔹 Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = leadList.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(leadList.length / itemsPerPage);
+
+  // Loader while checking permissions
+  if (loading && !permissions) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
+
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
   return (
     <>
       <Row className="mt-4">
@@ -200,15 +344,17 @@ const LeadsList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Leads Contact</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => {
-                  resetForm();
-                  setShowAddEdit(true);
-                }}
-              >
-                + Add Lead
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => {
+                    resetForm();
+                    setShowAddEdit(true);
+                  }}
+                >
+                  + Add Lead
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0">
@@ -223,64 +369,112 @@ const LeadsList = () => {
                       <tr className="table-gray">
                         <th>Sr. No.</th>
                         <th>Name</th>
+                        <th>Company Name</th>
                         <th>Email</th>
                         <th>Contact</th>
-                        <th>Lead Source</th>
-                        <th>Added By</th>
-                        <th>Lead Owner</th>
+                        <th>Priority</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {leadList.length === 0 ? (
+                      {currentItems.length === 0 ? (
                         <tr>
-                          <td colSpan="8" className="text-center">
+                          <td colSpan="9" className="text-center">
                             No leads available
                           </td>
                         </tr>
                       ) : (
-                        leadList.map((item, idx) => (
-                          <tr key={idx}>
-                            <td>{idx + 1}</td>
+                        currentItems.map((item, idx) => (
+                          <tr key={item.id}>
+                            <td>{indexOfFirstItem + idx + 1}</td>
                             <td>{item.name}</td>
+                            <td>{item.company_name || "-"}</td>
                             <td>{item.email}</td>
                             <td>{item.contact}</td>
                             <td>
-                              {leadSources.find(
-                                (src) =>
-                                  src.id ===
-                                  (item.lead_source?.id || item.lead_source)
-                              )?.lead_source || "-"}
-                            </td>
-                            <td>
-                              {employees.find(
-                                (emp) =>
-                                  emp.id ===
-                                  (item.added_by?.id || item.added_by)
-                              )?.name || "-"}
-                            </td>
-                            <td>
-                              {employees.find(
-                                (emp) =>
-                                  emp.id ===
-                                  (item.lead_owner?.id || item.lead_owner)
-                              )?.name || "-"}
-                            </td>
-                            <td>
-                              <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(idx)}
-                                color="primary"
-                                style={{ cursor: "pointer" }}
-                              />
-                              <DeleteRoundedIcon
-                                onClick={() => {
-                                  setDeleteIndex(idx);
-                                  setShowDelete(true);
+                              <Form.Select
+                                size="sm"
+                                value={item.priority || ""}
+                                onChange={async (e) => {
+                                  const newPriority = e.target.value;
+                                  try {
+                                    await api.put(
+                                      `/api/v1/admin/lead/${item.id}`,
+                                      {
+                                        ...item,
+                                        lead_source:
+                                          item.lead_source?.id ||
+                                          item.lead_source,
+                                        added_by:
+                                          item.added_by?.id || item.added_by,
+                                        lead_owner:
+                                          item.lead_owner?.id ||
+                                          item.lead_owner,
+                                        requirement_type_id:
+                                          item.requirement_type_id?.id ||
+                                          item.requirement_type_id,
+                                        priority: newPriority,
+                                      }
+                                    );
+                                    setLeadList((prev) =>
+                                      prev.map((lead) =>
+                                        lead.id === item.id
+                                          ? { ...lead, priority: newPriority }
+                                          : lead
+                                      )
+                                    );
+                                  } catch (err) {
+                                    console.error(
+                                      "Error updating priority:",
+                                      err
+                                    );
+                                  }
                                 }}
-                                color="error"
-                                style={{ cursor: "pointer" }}
+                                style={{
+                                  backgroundColor:
+                                    item.priority === "High"
+                                      ? "#d4edda"
+                                      : item.priority === "Medium"
+                                      ? "#fff3cd"
+                                      : item.priority === "Low"
+                                      ? "#f8d7da"
+                                      : "white",
+                                }}
+                              >
+                                <option value="">Select</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                              </Form.Select>
+                            </td>
+                            <td>
+                              <VisibilityIcon
+                                color="primary"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => {
+                                  setViewData(item);
+                                  setShowView(true);
+                                }}
                               />
+                              {permissions.edit && (
+                                <CreateTwoToneIcon
+                                  className="me-2"
+                                  onClick={() => handleEdit(idx)}
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                              {permissions.del && (
+                                <DeleteRoundedIcon
+                                  onClick={() => {
+                                    setDeleteIndex(indexOfFirstItem + idx);
+                                    setShowDelete(true);
+                                  }}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
                               {clients.some(
                                 (client) => client.lead_id === item.id
                               ) ? (
@@ -301,7 +495,10 @@ const LeadsList = () => {
                                   <PersonAddIcon
                                     size="sm"
                                     className="ms-2"
-                                    style={{ cursor: "pointer", color: "blue" }}
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "blue",
+                                    }}
                                     onClick={() =>
                                       handleConvertToCustomer(item)
                                     }
@@ -314,6 +511,43 @@ const LeadsList = () => {
                       )}
                     </tbody>
                   </Table>
+
+                  {/* 🔹 Pagination Controls */}
+                  {totalPages > 1 && (
+                    <Pagination className="justify-content-center mt-3">
+                      <Pagination.First
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                      />
+                      <Pagination.Prev
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                      />
+                      {[...Array(totalPages)].map((_, i) => (
+                        <Pagination.Item
+                          key={i + 1}
+                          active={i + 1 === currentPage}
+                          onClick={() => setCurrentPage(i + 1)}
+                        >
+                          {i + 1}
+                        </Pagination.Item>
+                      ))}
+                      <Pagination.Next
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      />
+                      <Pagination.Last
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                      />
+                    </Pagination>
+                  )}
                 </div>
               )}
             </Card.Body>
@@ -333,8 +567,14 @@ const LeadsList = () => {
         onSave={handleAddOrUpdateLead}
         editData={editIndex !== null}
       />
-
-      {/* Delete Confirmation Modal */}
+      <ViewModal
+        show={showView}
+        handleClose={() => {
+          setShowView(false);
+          setViewData(null);
+        }}
+        lead={viewData}
+      />
       <DeleteModal
         show={showDelete}
         handleClose={() => {
