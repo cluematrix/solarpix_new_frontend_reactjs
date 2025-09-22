@@ -343,9 +343,7 @@ const VerticalNav = memo((props) => {
                     {" "}
                     <ListAltIcon fontSize="small" />
                   </i>
-                  <span className="item-name sidebar-font-size">
-                    Lead Contact
-                  </span>
+                  <span className="item-name sidebar-font-size">Leads</span>
                 </Link>
               </li>
               <li className="nav-item">
@@ -422,9 +420,7 @@ const VerticalNav = memo((props) => {
                     {" "}
                     <SettingsPhoneIcon fontSize="small" />
                   </i>
-                  <span className="item-name sidebar-font-size">
-                    Lead Follow Up
-                  </span>
+                  <span className="item-name sidebar-font-size">Follow Up</span>
                 </Link>
               </li>
               <li className="nav-item">
@@ -480,9 +476,7 @@ const VerticalNav = memo((props) => {
                     {" "}
                     <CalculateIcon fontSize="small" />
                   </i>
-                  <span className="item-name sidebar-font-size">
-                    Feasibility and Calculation
-                  </span>
+                  <span className="item-name sidebar-font-size">Quotation</span>
                 </Link>
               </li>
             </ul>

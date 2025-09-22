@@ -104,6 +104,7 @@ import SourceTrackList from "../views/dashboard/Leads/SourceTracking/SourceTrack
 import RateList from "../views/dashboard/Leads/Rates/RateList";
 import AddDeals from "../views/dashboard/Leads/Deals/AddDeals";
 import EditDeal from "../views/dashboard/Leads/Deals/EditDeal";
+import UpdateQuotationNew from "../views/dashboard/Leads/Deals/UpdateQuotationNew";
 
 // employee profile 01 Sep
 
@@ -394,6 +395,11 @@ export const DefaultRouter = [
       {
         path: "/edit-deal/:id",
         element: <EditDeal />,
+      },
+
+      {
+        path: "/UpdateQuotationNew/:id",
+        element: <UpdateQuotationNew />,
       },
 
       // Widget
