@@ -52,9 +52,10 @@ const EditDeal = () => {
     inv_cap: "",
     inv_amt: "",
     inv_seller_id: "",
-    final_amt: "",
-    sol_rate: "", // new field
-    inv_rate: "", // new field
+    final_amount: "",
+    sol_rate: "",
+    inv_rate: "",
+    sender_by_id: "", // ✅ assign to
   });
 
   // Fetch dropdown data + deal details
@@ -548,7 +549,6 @@ const EditDeal = () => {
         <h6 className="mt-3">Solar Panel Details</h6>
         <p className="small">(Default Rate: ₹{getRate("SOLAR")})</p>
         <Row className="mb-3">
-          {/* Solar Rate */}
           <Col md={4}>
             <Form.Group>
               <Form.Label>Rate</Form.Label>

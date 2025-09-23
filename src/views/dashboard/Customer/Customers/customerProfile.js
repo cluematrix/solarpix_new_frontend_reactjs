@@ -10,6 +10,7 @@ import {
 } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import api from "../../../../api/axios";
+import { FaEye } from "react-icons/fa";
 
 const CustomerProfile = () => {
   const { id } = useParams(); // Get customer ID from URL
@@ -134,42 +135,94 @@ const CustomerProfile = () => {
         {/* Right Section */}
         <Col md={4}>
           {/* Bank Details */}
+
           <Card>
             <Card.Body>
-              <h6>Document Details</h6>
-              <Table borderless className="mt-3">
+              <h6 className="mb-3">Document Details</h6>
+              <Table borderless className="align-middle">
                 <tbody>
                   <tr>
-                    <td className="ps-0">Document No</td>
-                    <td className="ps-0">{customer?.doc_no || "--"}</td>
-                  </tr>
-                  <tr>
-                    <td className="ps-0">View Document</td>
-                    {customer.doc_upload ? (
-                      <td className="ps-0">
+                    <td className="ps-0">Aadhaar Card</td>
+                    <td className="ps-0">
+                      {customer?.doc_upload ? (
                         <a
                           href={customer.doc_upload}
                           target="_blank"
                           rel="noopener noreferrer"
+                          className="text-primary d-flex align-items-center"
                         >
-                          View PDF
+                          <FaEye className="me-1" />
                         </a>
-                      </td>
-                    ) : (
-                      "--"
-                    )}
+                      ) : (
+                        "--"
+                      )}
+                    </td>
                   </tr>
+
                   <tr>
-                    <td className="ps-0">Kyc Status</td>
+                    <td className="ps-0">Pan Card</td>
+                    <td className="ps-0">
+                      {customer?.extra_doc ? (
+                        <a
+                          href={customer.extra_doc}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary d-flex align-items-center"
+                        >
+                          <FaEye className="me-1" />
+                        </a>
+                      ) : (
+                        "--"
+                      )}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="ps-0">Electricity Bill</td>
+                    <td className="ps-0">
+                      {customer?.electric_bill ? (
+                        <a
+                          href={customer.electric_bill}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary d-flex align-items-center"
+                        >
+                          <FaEye className="me-1" />
+                        </a>
+                      ) : (
+                        "--"
+                      )}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="ps-0">NOC / Sale Deed</td>
+                    <td className="ps-0">
+                      {customer?.extra_file ? (
+                        <a
+                          href={customer.extra_file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary d-flex align-items-center"
+                        >
+                          <FaEye className="me-1" />
+                        </a>
+                      ) : (
+                        "--"
+                      )}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="ps-0">KYC Status</td>
                     <td
-                      className={`${
+                      className={`fw-bold ps-0 ${
                         customer?.kyc_status === "Pending"
                           ? "text-warning"
                           : customer?.kyc_status === "Approved"
                           ? "text-success"
                           : "text-danger"
                       }`}
-                      style={{ paddingLeft: "0px" }}
                     >
                       {customer?.kyc_status || "--"}
                     </td>
