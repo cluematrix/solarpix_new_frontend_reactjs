@@ -120,12 +120,13 @@ const AddEditModal = ({
           </Form.Group>
 
           {/* Follow-up Date */}
+          {/* Follow-up DateTime */}
           <Form.Group className="mb-3">
             <Form.Label>
-              Follow-up Date <span className="text-danger">*</span>
+              Follow-up Date & Time <span className="text-danger">*</span>
             </Form.Label>
             <Form.Control
-              type="date"
+              type="datetime-local"
               name="followup_date"
               value={formData.followup_date || ""}
               onChange={handleChange}

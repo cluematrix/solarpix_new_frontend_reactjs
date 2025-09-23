@@ -10,7 +10,7 @@ const AddDeals = ({ editData }) => {
   const [suppliers, setSuppliers] = useState([]);
   const [rates, setRates] = useState([]);
   const [employees, setEmployees] = useState([]);
-
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     deal_name: "",
     deal_value: "",
@@ -188,22 +188,22 @@ const AddDeals = ({ editData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // start loading
     try {
-      // Validate required fields
       if (!formData.deal_name || !formData.lead_id) {
         alert(
           "Please fill all required fields: Deal Name, Lead, Stage, and Amount"
         );
+        setLoading(false);
         return;
       }
 
-      // Create FormData for file upload
       const submitData = new FormData();
       Object.keys(formData).forEach((key) => {
         if (key === "attachment" && formData[key]) {
           submitData.append(key, formData[key]);
         } else if (key === "site_visit_date" && !formData[key]) {
-          submitData.append(key, ""); // Send empty string for optional date
+          submitData.append(key, "");
         } else if (formData[key] !== null && formData[key] !== undefined) {
           submitData.append(key, formData[key]);
         }
@@ -218,7 +218,8 @@ const AddDeals = ({ editData }) => {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
-      navigate("/deals-list"); // Navigate back to deal list after saving
+
+      navigate("/deals-list");
     } catch (error) {
       console.error("Error saving deal:", error);
       alert(
@@ -226,6 +227,8 @@ const AddDeals = ({ editData }) => {
           error.response?.data?.message || error.message
         }`
       );
+    } finally {
+      setLoading(false); // stop loading in both success/fail
     }
   };
 
@@ -297,7 +300,7 @@ const AddDeals = ({ editData }) => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Group>
               <Form.Label>Status</Form.Label>
               <Form.Select
@@ -310,7 +313,7 @@ const AddDeals = ({ editData }) => {
                 <option value="Inactive">Inactive</option>
               </Form.Select>
             </Form.Group>
-          </Col>
+          </Col> */}
           <Col md={4}>
             <Form.Group>
               <Form.Label>Assign To *</Form.Label>
@@ -329,9 +332,6 @@ const AddDeals = ({ editData }) => {
               </Form.Select>
             </Form.Group>
           </Col>
-        </Row>
-
-        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Site Visit Date & Time</Form.Label>
@@ -543,8 +543,8 @@ const AddDeals = ({ editData }) => {
           <Button variant="secondary" onClick={() => navigate("/deals-list")}>
             Cancel
           </Button>{" "}
-          <Button variant="primary" type="submit">
-            {editData ? "Update Deal" : "Save Deal"}
+          <Button variant="primary" type="submit" disabled={loading}>
+            {loading ? "Saving..." : editData ? "Update Deal" : "Save Deal"}
           </Button>
         </div>
       </Form>

@@ -13,7 +13,7 @@ const UpdateQuotationNew = () => {
   const [rates, setRates] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     deal_name: "",
     deal_value: "",
@@ -197,38 +197,104 @@ const UpdateQuotationNew = () => {
   };
 
   // ------------------------ Handle Submit ------------------------
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     if (!formData.deal_name || !formData.lead_id || !formData.sender_by_id) {
+  //       alert("Please fill required fields");
+  //       return;
+  //     }
+
+  //     // Generate quotation number for this lead
+  //     const quotationNo = await generateQuotationNo(formData.lead_id);
+
+  //     const payload = {
+  //       deal_name: formData.deal_name,
+  //       lead_id: formData.lead_id,
+  //       deal_stage_id: 3, // Win
+  //       isFinal: 0, // Final
+  //       status: formData.status || "Active",
+  //       site_visit_date: formData.site_visit_date,
+  //       description: formData.description,
+  //       sol_cap: formData.sol_cap,
+  //       sol_qty: formData.sol_qty,
+  //       sol_amt: formData.sol_amt,
+  //       sol_seller_id: formData.sol_seller_id,
+  //       inv_cap: formData.inv_cap,
+  //       inv_amt: formData.inv_amt,
+  //       inv_seller_id: formData.inv_seller_id,
+  //       final_amount: formData.final_amount,
+  //       sol_rate: formData.sol_rate,
+  //       inv_rate: formData.inv_rate,
+  //       sender_by_id: formData.sender_by_id,
+  //       attachment: formData.attachment || null,
+  //       quotation_no: quotationNo,
+  //     };
+
+  //     const formPayload = new FormData();
+  //     Object.keys(payload).forEach((key) => {
+  //       if (payload[key] !== null && payload[key] !== undefined) {
+  //         formPayload.append(key, payload[key]);
+  //       }
+  //     });
+
+  //     await api.post("/api/v1/admin/deal", formPayload, {
+  //       headers: { "Content-Type": "multipart/form-data" },
+  //     });
+
+  //     alert("Quotation updated successfully!");
+  //     navigate("/deals-list");
+  //   } catch (error) {
+  //     console.error("Error updating deal:", error.response || error.message);
+  //     alert(
+  //       `Failed to update deal: ${JSON.stringify(
+  //         error.response?.data || error.message
+  //       )}`
+  //     );
+  //   }
+  // };
+
+  // ------------------------ Handle Submit ------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       if (!formData.deal_name || !formData.lead_id || !formData.sender_by_id) {
         alert("Please fill required fields");
         return;
       }
 
-      // Generate quotation number for this lead
+      // Generate quotation number
       const quotationNo = await generateQuotationNo(formData.lead_id);
 
+      // ------------------ DISABLE EXISTING QUOTATION ------------------
+      if (id) {
+        await api.put(`/api/v1/admin/deal/${id}`, { is_disable: true });
+      }
+
+      // ------------------ CREATE NEW QUOTATION ------------------
       const payload = {
         deal_name: formData.deal_name,
-        lead_id: formData.lead_id,
-        deal_stage_id: 4, // Win
-        isFinal: 1, // Final
+        lead_id: Number(formData.lead_id),
+        deal_stage_id: 3,
+        is_disable: false,
+        is_final: 0,
         status: formData.status || "Active",
         site_visit_date: formData.site_visit_date,
-        description: formData.description,
-        sol_cap: formData.sol_cap,
-        sol_qty: formData.sol_qty,
-        sol_amt: formData.sol_amt,
-        sol_seller_id: formData.sol_seller_id,
-        inv_cap: formData.inv_cap,
-        inv_amt: formData.inv_amt,
-        inv_seller_id: formData.inv_seller_id,
-        final_amount: formData.final_amount,
-        sol_rate: formData.sol_rate,
-        inv_rate: formData.inv_rate,
-        sender_by_id: formData.sender_by_id,
-        attachment: formData.attachment || null,
+        description: formData.description || "",
+        sol_cap: Number(formData.sol_cap) || 0,
+        sol_qty: Number(formData.sol_qty) || 0,
+        sol_amt: Number(formData.sol_amt) || 0,
+        sol_seller_id: Number(formData.sol_seller_id) || null,
+        inv_cap: Number(formData.inv_cap) || 0,
+        inv_amt: Number(formData.inv_amt) || 0,
+        inv_seller_id: Number(formData.inv_seller_id) || null,
+        final_amount: Number(formData.final_amount) || 0,
+        sol_rate: Number(formData.sol_rate) || 0,
+        inv_rate: Number(formData.inv_rate) || 0,
+        sender_by_id: Number(formData.sender_by_id),
         quotation_no: quotationNo,
+        attachment: formData.attachment || null,
       };
 
       const formPayload = new FormData();
@@ -242,15 +308,11 @@ const UpdateQuotationNew = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("Quotation updated successfully!");
+      // alert("Quotation saved successfully!");
       navigate("/deals-list");
     } catch (error) {
-      console.error("Error updating deal:", error.response || error.message);
-      alert(
-        `Failed to update deal: ${JSON.stringify(
-          error.response?.data || error.message
-        )}`
-      );
+      console.error("Error saving quotation:", error.response || error.message);
+      setSubmitting(false); // stop loader
     }
   };
 
@@ -539,8 +601,8 @@ const UpdateQuotationNew = () => {
           <Button variant="secondary" onClick={() => navigate("/deals-list")}>
             Cancel
           </Button>{" "}
-          <Button variant="primary" type="submit">
-            Update Quotation
+          <Button variant="primary" type="submit" disabled={submitting}>
+            {submitting ? "Saving..." : "Update Quotation"}
           </Button>
         </div>
       </Form>
