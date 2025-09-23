@@ -189,7 +189,7 @@ const DealList = () => {
                                 ).toLocaleDateString("en-GB")
                               : "---"}
                           </td>
-                          <td>
+                          {/* <td>
                             <Form.Select
                               size="sm"
                               className="w-50"
@@ -253,7 +253,82 @@ const DealList = () => {
                                   </option>
                                 ))}
                             </Form.Select>
+                          </td> */}
+                          <td>
+                            <Form.Select
+                              size="sm"
+                              className="w-50"
+                              value={deal.deal_stage_id || ""}
+                              style={{
+                                cursor: deal.is_disable
+                                  ? "not-allowed"
+                                  : "pointer",
+                                backgroundColor: deal.is_disable
+                                  ? "#cfcfcfff" // black background if disabled
+                                  : getStageColor(
+                                      dealStages.find(
+                                        (s) => s.id == deal.deal_stage_id
+                                      )?.deal_stages
+                                    ),
+                                color: deal.is_disable ? "#000000ff" : "#000", // white text if disabled
+                              }}
+                              disabled={
+                                deal.is_disable ||
+                                deal.deal_stage_id_name === "Won" ||
+                                deal.deal_stage_id_name === "Lost"
+                              }
+                              onChange={async (e) => {
+                                const newStageId = e.target.value;
+                                const stageName = dealStages.find(
+                                  (s) => s.id == newStageId
+                                )?.deal_stages;
+                                if (!newStageId) return;
+
+                                if (stageName === "Won") {
+                                  setSelectedDeal(deal);
+                                  setPendingStageId(newStageId);
+                                  setShowQuotationConfirm(true);
+                                } else {
+                                  try {
+                                    await api.put(
+                                      `/api/v1/admin/deal/${deal.id}`,
+                                      {
+                                        ...deal,
+                                        deal_stage_id: newStageId,
+                                      }
+                                    );
+                                    setDealList((prev) =>
+                                      prev.map((d) =>
+                                        d.id === deal.id
+                                          ? { ...d, deal_stage_id: newStageId }
+                                          : d
+                                      )
+                                    );
+                                  } catch (err) {
+                                    console.error("Error updating stage:", err);
+                                  }
+                                }
+                              }}
+                            >
+                              <option value="">Select Stage</option>
+                              {dealStages
+                                .filter((stage) => {
+                                  if (
+                                    deal.deal_stage_id_name === "Won" ||
+                                    deal.deal_stage_id_name === "Lost"
+                                  ) {
+                                    return stage.id == deal.deal_stage_id;
+                                  }
+                                  return stage.id >= deal.deal_stage_id;
+                                })
+                                .map((stage) => (
+                                  <option key={stage.id} value={stage.id}>
+                                    {stage.deal_stages}
+                                  </option>
+                                ))}
+                            </Form.Select>
                           </td>
+
                           <td>
                             <VisibilityIcon
                               className="me-2"
@@ -341,7 +416,7 @@ const DealList = () => {
           </p>
         </Modal.Body>
         <Modal.Footer>
-          <Button
+          {/* <Button
             variant="success"
             onClick={async () => {
               try {
@@ -367,7 +442,41 @@ const DealList = () => {
             }}
           >
             Send Current
+          </Button> */}
+          <Button
+            variant="success"
+            onClick={async () => {
+              try {
+                await api.put(`/api/v1/admin/deal/${selectedDeal.id}`, {
+                  ...selectedDeal,
+                  deal_stage_id: 4,
+                  isFinal: 1,
+                });
+
+                await fetchDeals();
+                setDealList((prev) =>
+                  prev.map((d) =>
+                    d.id === selectedDeal.id
+                      ? { ...d, deal_stage_id: 4, isFinal: 1 }
+                      : d
+                  )
+                );
+
+                // ✅ Redirect to addcustomer with deal data
+                // navigate("/add-customer", { state: { deal: selectedDeal } });
+                navigate("/add-customer", {
+                  state: { leadData: selectedDeal.lead, deal: selectedDeal },
+                });
+              } catch (err) {
+                console.error("Error sending quotation:", err);
+              } finally {
+                setShowQuotationConfirm(false);
+              }
+            }}
+          >
+            Send Current
           </Button>
+
           <Button
             variant="primary"
             onClick={() => {

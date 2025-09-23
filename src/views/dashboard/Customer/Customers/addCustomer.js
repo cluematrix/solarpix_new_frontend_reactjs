@@ -19,19 +19,42 @@ import { useLocation } from "react-router-dom";
 
 const AddCustomer = () => {
   const location = useLocation();
+  const dealData = location.state?.deal || null;
   const leadData = location.state?.leadData || null;
 
   console.log("leadData", leadData);
+  // const initialValues = {
+  //   client_id: "",
+  //   lead_id: leadData?.id || "",
+  //   salutation: leadData?.salutation || "",
+  //   name: leadData?.name || "",
+  //   email: leadData?.email || "",
+  //   password: "", // keep blank
+  //   contact: leadData?.contact || "",
+  //   address: leadData?.address || "",
+  //   gender: "", // lead may not have gender
+  //   city: leadData?.city || "",
+  //   state: leadData?.state || "",
+  //   pincode: leadData?.pincode || "",
+  //   photo: leadData?.photo || null,
+  //   client_category_id: leadData?.client_category_id || "",
+  //   doc_type: leadData?.doc_type || "",
+  //   doc_no: leadData?.doc_no || "",
+  //   doc_upload: leadData?.doc_upload || "",
+  //   description: leadData?.description || "",
+  //   kyc_status: leadData?.kyc_status || "Pending",
+  // };
+
   const initialValues = {
     client_id: "",
-    lead_id: leadData?.id || "",
+    lead_id: dealData?.lead_id || leadData?.id || "",
     salutation: leadData?.salutation || "",
-    name: leadData?.name || "",
+    name: leadData?.name || dealData?.deal_name || "",
     email: leadData?.email || "",
-    password: "", // keep blank
+    password: "",
     contact: leadData?.contact || "",
     address: leadData?.address || "",
-    gender: "", // lead may not have gender
+    gender: leadData?.gender || "",
     city: leadData?.city || "",
     state: leadData?.state || "",
     pincode: leadData?.pincode || "",
@@ -40,10 +63,9 @@ const AddCustomer = () => {
     doc_type: leadData?.doc_type || "",
     doc_no: leadData?.doc_no || "",
     doc_upload: leadData?.doc_upload || "",
-    description: leadData?.description || "",
+    description: leadData?.description || dealData?.description || "",
     kyc_status: leadData?.kyc_status || "Pending",
   };
-
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);

@@ -164,12 +164,19 @@ const LeadFollowupList = () => {
 
   const handleEdit = (index) => {
     const f = followups[index];
+
+    // Convert DB datetime (e.g., 2025-09-22 06:17:21) into "2025-09-22T06:17"
+    const formattedDateTime = f.followup_date
+      ? new Date(f.followup_date).toISOString().slice(0, 16)
+      : "";
+
     setFormData({
       lead_id: f.lead_id?.id || f.lead_id || "",
       message: f.message || "",
-      followup_date: f.followup_date || "",
+      followup_date: formattedDateTime, // fixed here
       schedule_by_id: f.schedule_by_id || "",
     });
+
     setEditIndex(index);
     setShowAddEdit(true);
   };
@@ -285,67 +292,86 @@ const LeadFollowupList = () => {
                           <th>Lead Name</th>
                           <th>Message</th>
                           <th>FollowUp Date</th>
+                          <th>FollowUp Time</th> {/* <-- added */}
                           <th>Outcome</th>
                           <th>Action</th>
                         </tr>
                       </thead>
+
                       <tbody>
                         {currentItems.length === 0 ? (
                           <tr>
-                            <td colSpan="6" className="text-center">
+                            <td colSpan="7" className="text-center">
                               No follow-ups available
                             </td>
                           </tr>
                         ) : (
-                          currentItems.map((item, idx) => (
-                            <tr key={item.id}>
-                              <td>{indexOfFirstItem + idx + 1}</td>
-                              <td>
-                                {item.lead_id?.name ||
-                                  leads.find((l) => l.id === item.lead_id)
-                                    ?.name ||
-                                  "—"}
-                              </td>
-                              <td>{item.message}</td>
-                              <td>
-                                {item.followup_date
-                                  ? new Date(
-                                      item.followup_date
-                                    ).toLocaleDateString("en-GB")
-                                  : "—"}
-                              </td>
+                          currentItems.map((item, idx) => {
+                            const dateObj = item.followup_date
+                              ? new Date(item.followup_date)
+                              : null;
+                            return (
+                              <tr key={item.id}>
+                                <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>
+                                  {item.lead_id?.name ||
+                                    leads.find((l) => l.id === item.lead_id)
+                                      ?.name ||
+                                    "—"}
+                                </td>
+                                <td>{item.message}</td>
 
-                              <td>{item.out_comes || "—"}</td>
-                              <td>
-                                <VisibilityIcon
-                                  color="info"
-                                  size="sm"
-                                  className="me-2"
-                                  onClick={() => openViewModal(item)}
-                                />
-                                <CreateTwoToneIcon
-                                  className="me-2"
-                                  onClick={() => handleEdit(idx)}
-                                  color="primary"
-                                  style={{ cursor: "pointer" }}
-                                />
-                                <EditNoteIcon
-                                  variant="info"
-                                  size="sm"
-                                  className="me-2"
-                                  onClick={() => openOutcomeModal(item)}
-                                />
-                                <DeleteRoundedIcon
-                                  onClick={() => {
-                                    setDeleteIndex(idx);
-                                    setShowDelete(true);
-                                  }}
-                                  color="error"
-                                  style={{ cursor: "pointer" }}
-                                />
-                              </td>
-                            </tr>
-                          ))
+                                {/* Show Date */}
+                                <td>
+                                  {dateObj
+                                    ? dateObj.toLocaleDateString("en-GB")
+                                    : "—"}
+                                </td>
+
+                                {/* Show Time */}
+                                <td>
+                                  {dateObj
+                                    ? dateObj.toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
+                                    : "—"}
+                                </td>
+
+                                <td>{item.out_comes || "—"}</td>
+                                <td>
+                                  <VisibilityIcon
+                                    color="info"
+                                    size="sm"
+                                    className="me-2"
+                                    onClick={() => openViewModal(item)}
+                                    style={{ cursor: "pointer" }}
+                                  />
+                                  <CreateTwoToneIcon
+                                    className="me-2"
+                                    onClick={() => handleEdit(idx)}
+                                    color="primary"
+                                    style={{ cursor: "pointer" }}
+                                  />
+                                  <EditNoteIcon
+                                    variant="info"
+                                    size="sm"
+                                    className="me-2"
+                                    onClick={() => openOutcomeModal(item)}
+                                    style={{ cursor: "pointer" }}
+                                  />
+                                  <DeleteRoundedIcon
+                                    onClick={() => {
+                                      setDeleteIndex(idx);
+                                      setShowDelete(true);
+                                    }}
+                                    color="error"
+                                    style={{ cursor: "pointer" }}
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })
                         )}
                       </tbody>
                     </Table>
