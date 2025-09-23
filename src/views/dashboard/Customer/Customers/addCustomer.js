@@ -62,16 +62,11 @@ const AddCustomer = () => {
     client_category_id: leadData?.client_category_id || "",
     doc_type: leadData?.doc_type || "",
     doc_no: leadData?.doc_no || "",
-<<<<<<< HEAD
     doc_upload: leadData?.doc_upload || "", // aadhaar card
     extra_doc: leadData?.extra_doc || "", // pancard card
     electric_bill: leadData?.electric_bill || "", // electric_bill card
     extra_file: leadData?.extra_file || "", // noc/sale deed card
     description: leadData?.description || "",
-=======
-    doc_upload: leadData?.doc_upload || "",
-    description: leadData?.description || dealData?.description || "",
->>>>>>> 6c63775ebcfa06173f95f070def9f99a4d996728
     kyc_status: leadData?.kyc_status || "Pending",
   };
   const navigate = useNavigate();
