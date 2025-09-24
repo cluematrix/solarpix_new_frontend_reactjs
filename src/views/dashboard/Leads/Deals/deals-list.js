@@ -132,7 +132,7 @@ const DealList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex flex-wrap justify-content-between align-items-center gap-2">
-              <h5 className="card-title fw-lighter mb-0">Generate Quotation</h5>
+              <h5 className="card-title fw-lighter mb-0">Quotation</h5>
 
               {/* Filter Dropdown */}
               <Form.Select
@@ -152,7 +152,7 @@ const DealList = () => {
                 className="btn-primary w-auto"
                 onClick={() => navigate("/AddDeals")}
               >
-                + Generate
+                + Generate Quotation
               </Button>
             </Card.Header>
 
@@ -162,10 +162,9 @@ const DealList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Deal Name</th>
                       <th>Lead Name</th>
                       <th>Site Visit Date</th>
-                      <th>Deal Stage</th>
+                      <th>Status</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -180,7 +179,7 @@ const DealList = () => {
                       currentItems.map((deal, index) => (
                         <tr key={deal.id}>
                           <td>{indexOfFirstItem + index + 1}</td>
-                          <td>{deal.deal_name}</td>
+                          {/* <td>{deal.deal_name}</td> */}
                           <td>{deal.lead?.name || "---"}</td>
                           <td>
                             {deal?.site_visit_date
@@ -189,71 +188,7 @@ const DealList = () => {
                                 ).toLocaleDateString("en-GB")
                               : "---"}
                           </td>
-                          {/* <td>
-                            <Form.Select
-                              size="sm"
-                              className="w-50"
-                              value={deal.deal_stage_id || ""}
-                              style={{
-                                backgroundColor: getStageColor(
-                                  dealStages.find(
-                                    (s) => s.id == deal.deal_stage_id
-                                  )?.deal_stages
-                                ),
-                                color: "#000",
-                              }}
-                              disabled={
-                                deal.deal_stage_id_name === "Won" ||
-                                deal.deal_stage_id_name === "Lost"
-                              }
-                              onChange={async (e) => {
-                                const newStageId = e.target.value;
-                                const stageName = dealStages.find(
-                                  (s) => s.id == newStageId
-                                )?.deal_stages;
-                                if (!newStageId) return;
 
-                                if (stageName === "Won") {
-                                  setSelectedDeal(deal);
-                                  setPendingStageId(newStageId);
-                                  setShowQuotationConfirm(true);
-                                } else {
-                                  try {
-                                    await api.put(
-                                      `/api/v1/admin/deal/${deal.id}`,
-                                      { ...deal, deal_stage_id: newStageId }
-                                    );
-                                    setDealList((prev) =>
-                                      prev.map((d) =>
-                                        d.id === deal.id
-                                          ? { ...d, deal_stage_id: newStageId }
-                                          : d
-                                      )
-                                    );
-                                  } catch (err) {
-                                    console.error("Error updating stage:", err);
-                                  }
-                                }
-                              }}
-                            >
-                              <option value="">Select Stage</option>
-                              {dealStages
-                                .filter((stage) => {
-                                  if (
-                                    deal.deal_stage_id_name === "Won" ||
-                                    deal.deal_stage_id_name === "Lost"
-                                  ) {
-                                    return stage.id == deal.deal_stage_id;
-                                  }
-                                  return stage.id >= deal.deal_stage_id;
-                                })
-                                .map((stage) => (
-                                  <option key={stage.id} value={stage.id}>
-                                    {stage.deal_stages}
-                                  </option>
-                                ))}
-                            </Form.Select>
-                          </td> */}
                           <td>
                             <Form.Select
                               size="sm"
@@ -263,14 +198,14 @@ const DealList = () => {
                                 cursor: deal.is_disable
                                   ? "not-allowed"
                                   : "pointer",
-                                backgroundColor: deal.is_disable
-                                  ? "#cfcfcfff" // black background if disabled
-                                  : getStageColor(
-                                      dealStages.find(
-                                        (s) => s.id == deal.deal_stage_id
-                                      )?.deal_stages
-                                    ),
-                                color: deal.is_disable ? "#000000ff" : "#000", // white text if disabled
+                                cursor:
+                                  deal.is_disable ||
+                                  deal.deal_stage_id_name === "Won" ||
+                                  deal.deal_stage_id_name === "Lost"
+                                    ? "not-allowed"
+                                    : "pointer",
+                                backgroundColor: "transparent", // no background
+                                color: "#000",
                               }}
                               disabled={
                                 deal.is_disable ||
@@ -279,10 +214,11 @@ const DealList = () => {
                               }
                               onChange={async (e) => {
                                 const newStageId = e.target.value;
+                                if (!newStageId) return;
+
                                 const stageName = dealStages.find(
                                   (s) => s.id == newStageId
                                 )?.deal_stages;
-                                if (!newStageId) return;
 
                                 if (stageName === "Won") {
                                   setSelectedDeal(deal);
@@ -311,21 +247,37 @@ const DealList = () => {
                               }}
                             >
                               <option value="">Select Stage</option>
-                              {dealStages
-                                .filter((stage) => {
-                                  if (
-                                    deal.deal_stage_id_name === "Won" ||
-                                    deal.deal_stage_id_name === "Lost"
-                                  ) {
-                                    return stage.id == deal.deal_stage_id;
-                                  }
-                                  return stage.id >= deal.deal_stage_id;
-                                })
-                                .map((stage) => (
-                                  <option key={stage.id} value={stage.id}>
-                                    {stage.deal_stages}
+                              {dealStages.map((stage) => {
+                                const isDisabled =
+                                  stage.id < deal.deal_stage_id &&
+                                  !["Won", "Lost"].includes(
+                                    deal.deal_stage_id_name
+                                  );
+
+                                // Map stage id to icon
+                                const stageIcon = {
+                                  1: "🟢", // Qualified
+                                  2: "🟠", // Proposal Sent / Negotiation
+                                  3: "🔵", // Negotiation - blue
+                                  4: "🟢", // Won
+                                  5: "🔴", // Lost
+                                }[stage.id];
+
+                                return (
+                                  <option
+                                    key={stage.id}
+                                    value={stage.id}
+                                    disabled={isDisabled}
+                                    style={{
+                                      cursor: isDisabled
+                                        ? "not-allowed"
+                                        : "pointer",
+                                    }}
+                                  >
+                                    {stageIcon} {stage.deal_stages}
                                   </option>
-                                ))}
+                                );
+                              })}
                             </Form.Select>
                           </td>
 

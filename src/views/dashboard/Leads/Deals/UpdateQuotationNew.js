@@ -176,17 +176,17 @@ const UpdateQuotationNew = () => {
       ...prev,
       sol_amt: solAmt,
       inv_amt: invAmt,
-      final_amount: solAmt + invAmt,
+      final_amt: solAmt + invAmt,
     }));
   }, [
     formData.sol_cap,
     formData.sol_qty,
     formData.sol_rate,
     formData.inv_cap,
+
     formData.inv_rate,
   ]);
 
-  // ------------------------ Handle Input Change ------------------------
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "attachment") {
@@ -196,70 +196,22 @@ const UpdateQuotationNew = () => {
     }
   };
 
-  // ------------------------ Handle Save ------------------------
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     if (!formData.deal_name || !formData.lead_id || !formData.sender_by_id) {
-  //       alert("Please fill required fields");
-  //       return;
-  //     }
+  useEffect(() => {
+    const solAmt = Number(formData.sol_amt) || 0;
+    const invAmt = Number(formData.inv_amt) || 0;
 
-  //     // Generate quotation number for this lead
-  //     const quotationNo = await generateQuotationNo(formData.lead_id);
-
-  //     const payload = {
-  //       deal_name: formData.deal_name,
-  //       lead_id: formData.lead_id,
-  //       deal_stage_id: 3, // Win
-  //       isFinal: 0, // Final
-  //       status: formData.status || "Active",
-  //       site_visit_date: formData.site_visit_date,
-  //       description: formData.description,
-  //       sol_cap: formData.sol_cap,
-  //       sol_qty: formData.sol_qty,
-  //       sol_amt: formData.sol_amt,
-  //       sol_seller_id: formData.sol_seller_id,
-  //       inv_cap: formData.inv_cap,
-  //       inv_amt: formData.inv_amt,
-  //       inv_seller_id: formData.inv_seller_id,
-  //       final_amount: formData.final_amount,
-  //       sol_rate: formData.sol_rate,
-  //       inv_rate: formData.inv_rate,
-  //       sender_by_id: formData.sender_by_id,
-  //       attachment: formData.attachment || null,
-  //       quotation_no: quotationNo,
-  //     };
-
-  //     const formPayload = new FormData();
-  //     Object.keys(payload).forEach((key) => {
-  //       if (payload[key] !== null && payload[key] !== undefined) {
-  //         formPayload.append(key, payload[key]);
-  //       }
-  //     });
-
-  //     await api.post("/api/v1/admin/deal", formPayload, {
-  //       headers: { "Content-Type": "multipart/form-data" },
-  //     });
-
-  //     alert("Quotation updated successfully!");
-  //     navigate("/deals-list");
-  //   } catch (error) {
-  //     console.error("Error updating deal:", error.response || error.message);
-  //     alert(
-  //       `Failed to update deal: ${JSON.stringify(
-  //         error.response?.data || error.message
-  //       )}`
-  //     );
-  //   }
-  // };
+    setFormData((prev) => ({
+      ...prev,
+      final_amount: solAmt + invAmt,
+    }));
+  }, [formData.sol_amt, formData.inv_amt]);
 
   // ------------------------ Handle Save ------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (!formData.deal_name || !formData.lead_id || !formData.sender_by_id) {
+      if (!formData.lead_id || !formData.sender_by_id) {
         alert("Please fill required fields");
         return;
       }
@@ -305,7 +257,7 @@ const UpdateQuotationNew = () => {
       });
 
       await api.post("/api/v1/admin/deal", formPayload, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { "Content-Type": "application/json" },
       });
 
       // alert("Quotation saved successfully!");
@@ -327,13 +279,12 @@ const UpdateQuotationNew = () => {
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Deal Name *</Form.Label>
+              <Form.Label>Quotation No</Form.Label>
               <Form.Control
                 type="text"
-                name="deal_name"
-                value={formData.deal_name}
-                onChange={handleChange}
-                required
+                name="quotation_no"
+                value={formData.quotation_no}
+                readOnly
               />
             </Form.Group>
           </Col>
@@ -349,7 +300,7 @@ const UpdateQuotationNew = () => {
                 <option value="">Select Lead</option>
                 {leads.map((lead) => (
                   <option key={lead.id} value={lead.id}>
-                    {lead.name} (Capacity: {lead.capacity})
+                    {lead.name}
                   </option>
                 ))}
               </Form.Select>
@@ -363,6 +314,7 @@ const UpdateQuotationNew = () => {
                 value={formData.deal_stage_id}
                 onChange={handleChange}
                 required
+                disabled
               >
                 <option value="">Select Stage</option>
                 {dealStages.map((stage) => (
@@ -370,24 +322,6 @@ const UpdateQuotationNew = () => {
                     {stage.deal_stages}
                   </option>
                 ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Assign + Status + Visit */}
-        <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Status</Form.Label>
-              <Form.Select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="">Select</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
               </Form.Select>
             </Form.Group>
           </Col>
@@ -409,6 +343,10 @@ const UpdateQuotationNew = () => {
               </Form.Select>
             </Form.Group>
           </Col>
+        </Row>
+
+        {/* Assign + Status + Visit */}
+        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Site Visit Date & Time</Form.Label>
@@ -426,7 +364,7 @@ const UpdateQuotationNew = () => {
         <h6 className="mt-3">Solar Panel Details</h6>
         <p className="small">(Default Rate: ₹{getRate("SOLAR")})</p>
         <Row className="mb-3">
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Group>
               <Form.Label>Rate</Form.Label>
               <Form.Control
@@ -441,7 +379,7 @@ const UpdateQuotationNew = () => {
                 }
               />
             </Form.Group>
-          </Col>
+          </Col> */}
           <Col md={4}>
             <Form.Group>
               <Form.Label>Capacity</Form.Label>
@@ -464,8 +402,6 @@ const UpdateQuotationNew = () => {
               />
             </Form.Group>
           </Col>
-        </Row>
-        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Amount</Form.Label>
@@ -473,10 +409,12 @@ const UpdateQuotationNew = () => {
                 type="number"
                 name="sol_amt"
                 value={formData.sol_amt}
-                readOnly
+                onChange={handleChange}
               />
             </Form.Group>
           </Col>
+        </Row>
+        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Seller</Form.Label>
@@ -500,7 +438,7 @@ const UpdateQuotationNew = () => {
         <h6 className="mt-3">Inverter Details</h6>
         <p className="small">(Default Rate: ₹{getRate("INVERTOR")})</p>
         <Row className="mb-3">
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Group>
               <Form.Label>Rate</Form.Label>
               <Form.Control
@@ -515,7 +453,7 @@ const UpdateQuotationNew = () => {
                 }
               />
             </Form.Group>
-          </Col>
+          </Col> */}
           <Col md={4}>
             <Form.Group>
               <Form.Label>Capacity</Form.Label>
@@ -534,7 +472,7 @@ const UpdateQuotationNew = () => {
                 type="number"
                 name="inv_amt"
                 value={formData.inv_amt}
-                readOnly
+                onChange={handleChange}
               />
             </Form.Group>
           </Col>

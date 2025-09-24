@@ -71,9 +71,8 @@ const QuotationModal = ({ show, handleClose, deal }) => {
   // Amount calculations
   const subtotal =
     (Number(deal.sol_amt || 0) || 0) + (Number(deal.inv_amt || 0) || 0);
-  const sgst = subtotal * 0.025;
-  const cgst = subtotal * 0.025;
-  const total = subtotal + sgst + cgst;
+
+  const total = subtotal;
   const advance = Number(deal.advance || 0);
   const balance = total - advance;
 

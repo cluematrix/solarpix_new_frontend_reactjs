@@ -190,7 +190,7 @@ const LeadSourceList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h4 className="card-title fw-bold">Lead Sources </h4>
+              <h5 className="card-title">Lead Sources </h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -229,6 +229,12 @@ const LeadSourceList = () => {
                           <td>{indexOfFirstItem + idx + 1}</td>
                           <td>{item.lead_source}</td>
                           <td>
+                            {" "}
+                            <span
+                              className={`status-dot ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                            ></span>
                             {Number(item.isActive) === 1
                               ? "Active"
                               : "Inactive"}
@@ -241,11 +247,10 @@ const LeadSourceList = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
+                                className=""
                                 onClick={() => handleEdit(item.id)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}

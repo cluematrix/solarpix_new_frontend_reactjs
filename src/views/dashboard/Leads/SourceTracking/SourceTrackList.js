@@ -20,9 +20,37 @@ const SourceTrackList = () => {
   const [loadingSources, setLoadingSources] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // ✅ Pagination states
+  //  Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  //  Status colors
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "won":
+        return "#d1e7dd"; // green shade
+      case "Progress":
+        return "#fff3cd"; // yellow
+      case "lost":
+        return "#f8d7da"; // red
+      default:
+        return "#e2e3e5"; // grey
+    }
+  };
+
+  // Priority colors
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case "high":
+        return "#f8d7da"; // red
+      case "medium":
+        return "#fff3cd"; // yellow
+      case "low":
+        return "#d1e7dd"; // green
+      default:
+        return "#e2e3e5"; // grey
+    }
+  };
 
   //  Fetch lead sources
   const fetchLeadSources = async () => {
@@ -37,7 +65,7 @@ const SourceTrackList = () => {
     }
   };
 
-  // ✅ Fetch leads (backend filter)
+  // Fetch leads (backend filter)
   const fetchLeads = async () => {
     try {
       setLoading(true);
@@ -64,7 +92,7 @@ const SourceTrackList = () => {
     }
   };
 
-  // ✅ Handle checkbox select/unselect
+  //  Handle checkbox select/unselect
   const handleSourceChange = (id) => {
     setSelectedSources((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
@@ -76,7 +104,7 @@ const SourceTrackList = () => {
     fetchLeads();
   }, []);
 
-  // ✅ Pagination logic
+  //  Pagination logic
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentLeads = leads.slice(indexOfFirst, indexOfLast);
@@ -92,7 +120,12 @@ const SourceTrackList = () => {
             onToggle={() => setShowDropdown(!showDropdown)}
           >
             <Dropdown.Toggle variant="primary" style={{ marginTop: "10px" }}>
-              Select Lead
+              {selectedSources.length > 0
+                ? leadSources
+                    .filter((s) => selectedSources.includes(s.id))
+                    .map((s) => s.lead_source)
+                    .join(", ")
+                : "Select Lead"}
             </Dropdown.Toggle>
 
             <Dropdown.Menu style={{ minWidth: "250px", padding: "10px" }}>
@@ -160,6 +193,7 @@ const SourceTrackList = () => {
                     <th>Lead Source</th>
                     <th>Customer Type</th>
                     <th>Priority</th>
+                    <th>Status</th>
                     <th>Last Call</th>
                     <th>Added By</th>
                   </tr>
@@ -174,10 +208,44 @@ const SourceTrackList = () => {
                         <td>{lead.contact}</td>
                         <td>{lead.leadSource?.lead_source || "-"}</td>
                         <td>{lead.customer_type}</td>
-                        <td>{lead.priority}</td>
+
+                        {/* Priority with background */}
+                        <td>
+                          <span
+                            style={{
+                              backgroundColor: getPriorityColor(lead.priority),
+                              padding: "4px 8px",
+                              borderRadius: "6px",
+                              display: "inline-block",
+                              fontWeight: "500",
+                              width: "80px",
+                            }}
+                          >
+                            {lead.priority || "-"}
+                          </span>
+                        </td>
+
+                        {/* Status with background */}
+                        <td>
+                          <span
+                            style={{
+                              backgroundColor: getStatusColor(lead.status),
+                              padding: "4px 8px",
+                              borderRadius: "6px",
+                              display: "inline-block",
+                              fontWeight: "500",
+                              width: "80px",
+                            }}
+                          >
+                            {lead.status || "-"}
+                          </span>
+                        </td>
+
                         <td>
                           {lead.last_call
-                            ? new Date(lead.last_call).toLocaleDateString("en-GB")
+                            ? new Date(lead.last_call).toLocaleDateString(
+                                "en-GB"
+                              )
                             : "-"}
                         </td>
                         <td>{lead.addedBy?.name || "-"}</td>
@@ -185,7 +253,7 @@ const SourceTrackList = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="9" className="text-center">
+                      <td colSpan="10" className="text-center">
                         No leads found
                       </td>
                     </tr>
@@ -193,7 +261,7 @@ const SourceTrackList = () => {
                 </tbody>
               </Table>
 
-              {/* ✅ Pagination */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-end mt-3">
                   <Pagination.First
