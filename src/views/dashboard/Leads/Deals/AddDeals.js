@@ -11,10 +11,10 @@ const AddDeals = ({ editData }) => {
   const [rates, setRates] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    deal_name: "",
     deal_value: "",
-    deal_stage_id: "",
+    deal_stage_id: 2, // default stage
     lead_id: "",
     description: "",
     site_visit_date: "",
@@ -27,14 +27,20 @@ const AddDeals = ({ editData }) => {
     sol_amt: "",
     sol_seller_id: "",
     inv_cap: "",
-    // inv_qty: "",
     inv_amt: "",
     inv_seller_id: "",
     final_amt: "",
-    sol_rate: "", // new field
-    inv_rate: "", // new field
+    sol_rate: "",
+    inv_rate: "",
     sender_by_id: "",
     quotation_no: "",
+  });
+
+  // Track manual edits
+  const [manualEdit, setManualEdit] = useState({
+    sol_amt: false,
+    inv_amt: false,
+    final_amt: false,
   });
 
   // Fetch initial data
@@ -47,7 +53,7 @@ const AddDeals = ({ editData }) => {
             api.get("/api/v1/admin/rate/active"),
             api.get("/api/v1/admin/lead"),
             api.get("/api/v1/admin/dealStages/active"),
-            api.get("/api/v1/admin/employee/active"), // 👈 new
+            api.get("/api/v1/admin/employee/active"),
           ]);
         setSuppliers(supplierRes.data || []);
         setRates(rateRes.data || []);
@@ -65,27 +71,22 @@ const AddDeals = ({ editData }) => {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
-    if (month >= 4) {
-      return `${String(year).slice(-2)}-${String(year + 1).slice(-2)}`;
-    } else {
-      return `${String(year - 1).slice(-2)}-${String(year).slice(-2)}`;
-    }
+    return month >= 4
+      ? `${String(year).slice(-2)}-${String(year + 1).slice(-2)}`
+      : `${String(year - 1).slice(-2)}-${String(year).slice(-2)}`;
   };
 
   useEffect(() => {
     const initQuotation = async () => {
       try {
         const fy = getFinancialYear();
-        const res = await api.get("/api/v1/admin/deal"); // fetch all deals
+        const res = await api.get("/api/v1/admin/deal");
         const deals = res.data || [];
-
-        // Filter only deals from current FY
         const fyDeals = deals.filter(
           (d) => d.quotation_no && d.quotation_no.includes(`QT/${fy}/`)
         );
 
         if (fyDeals.length > 0) {
-          // Get max number used
           const lastNo = Math.max(
             ...fyDeals.map((d) => parseInt(d.quotation_no.split("/").pop(), 10))
           );
@@ -95,7 +96,6 @@ const AddDeals = ({ editData }) => {
             quotation_no: `QT/${fy}/${newNo}`,
           }));
         } else {
-          // No quotations in this FY → start from 01
           setFormData((prev) => ({ ...prev, quotation_no: `QT/${fy}/01` }));
         }
       } catch (err) {
@@ -104,7 +104,7 @@ const AddDeals = ({ editData }) => {
     };
 
     if (!editData) {
-      initQuotation(); // only generate for new deals
+      initQuotation();
     } else if (editData.quotation_no) {
       setFormData((prev) => ({ ...prev, quotation_no: editData.quotation_no }));
     }
@@ -115,6 +115,7 @@ const AddDeals = ({ editData }) => {
     if (editData) {
       setFormData({
         ...editData,
+        deal_stage_id: 2,
         site_visit_date: editData.site_visit_date
           ? new Date(editData.site_visit_date).toISOString().slice(0, 16)
           : "",
@@ -132,7 +133,6 @@ const AddDeals = ({ editData }) => {
     }
   }, [rates]);
 
-  // Update sol_cap when lead_id changes
   useEffect(() => {
     if (formData.lead_id) {
       const selectedLead = leads.find(
@@ -152,71 +152,64 @@ const AddDeals = ({ editData }) => {
     return rateObj ? rateObj.price : 0;
   };
 
-  // Auto calculate amounts
+  // Auto calculate amounts unless manually edited
   useEffect(() => {
-    const solAmt =
-      (Number(formData.sol_cap) || 0) *
-      (Number(formData.sol_qty) || 0) *
-      (Number(formData.sol_rate) || 0);
+    setFormData((prev) => {
+      const solAmt =
+        (Number(prev.sol_cap) || 0) *
+        (Number(prev.sol_qty) || 0) *
+        (Number(prev.sol_rate) || 0);
+      const invAmt = (Number(prev.inv_cap) || 0) * (Number(prev.inv_rate) || 0);
 
-    const invAmt =
-      (Number(formData.inv_cap) || 0) * (Number(formData.inv_rate) || 0);
+      const newSolAmt = manualEdit.sol_amt ? Number(prev.sol_amt) : solAmt;
+      const newInvAmt = manualEdit.inv_amt ? Number(prev.inv_amt) : invAmt;
+      const newFinalAmt = manualEdit.final_amt
+        ? Number(prev.final_amt)
+        : newSolAmt + newInvAmt;
 
-    setFormData((prev) => ({
-      ...prev,
-      sol_amt: solAmt,
-      inv_amt: invAmt,
-      final_amt: solAmt + invAmt,
-    }));
+      return {
+        ...prev,
+        sol_amt: newSolAmt,
+        inv_amt: newInvAmt,
+        final_amt: newFinalAmt,
+      };
+    });
   }, [
     formData.sol_cap,
     formData.sol_qty,
     formData.sol_rate,
     formData.inv_cap,
-    // formData.inv_qty,
     formData.inv_rate,
+    manualEdit,
   ]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
     if (name === "attachment") {
       setFormData((prev) => ({ ...prev, attachment: files[0] }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+      if (["sol_amt", "inv_amt", "final_amt"].includes(name)) {
+        setManualEdit((prev) => ({ ...prev, [name]: true }));
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // start loading
+    setLoading(true);
     try {
-      if (!formData.deal_name || !formData.lead_id) {
-        alert(
-          "Please fill all required fields: Deal Name, Lead, Stage, and Amount"
-        );
+      if (!formData.lead_id) {
+        alert("Please fill all required fields: Lead, Stage, and Amount");
         setLoading(false);
         return;
       }
 
-      const submitData = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key === "attachment" && formData[key]) {
-          submitData.append(key, formData[key]);
-        } else if (key === "site_visit_date" && !formData[key]) {
-          submitData.append(key, "");
-        } else if (formData[key] !== null && formData[key] !== undefined) {
-          submitData.append(key, formData[key]);
-        }
-      });
-
       if (editData) {
-        await api.put(`/api/v1/admin/deal/${editData.id}`, submitData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.put(`/api/v1/admin/deal/${editData.id}`, formData);
       } else {
-        await api.post("/api/v1/admin/deal", submitData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post("/api/v1/admin/deal", formData);
       }
 
       navigate("/deals-list");
@@ -228,14 +221,13 @@ const AddDeals = ({ editData }) => {
         }`
       );
     } finally {
-      setLoading(false); // stop loading in both success/fail
+      setLoading(false);
     }
   };
 
   return (
     <Card className="p-4 shadow-sm">
       <Form onSubmit={handleSubmit}>
-        {/* Deal Fields */}
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
@@ -248,19 +240,7 @@ const AddDeals = ({ editData }) => {
               />
             </Form.Group>
           </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Deal Name *</Form.Label>
-              <Form.Control
-                type="text"
-                name="deal_name"
-                value={formData.deal_name}
-                onChange={handleChange}
-                required
-                placeholder="Enter deal name"
-              />
-            </Form.Group>
-          </Col>
+
           <Col md={4}>
             <Form.Group>
               <Form.Label>Lead *</Form.Label>
@@ -271,27 +251,25 @@ const AddDeals = ({ editData }) => {
                 required
               >
                 <option value="">Select Lead</option>
-                {leads.map((lead) => (
-                  <option key={lead.id} value={lead.id}>
-                    {lead.name} (Capacity: {lead.capacity})
-                  </option>
-                ))}
+                {leads
+                  .filter((lead) => lead.status === "Won")
+                  .map((lead) => (
+                    <option key={lead.id} value={lead.id}>
+                      {lead.name}
+                    </option>
+                  ))}
               </Form.Select>
             </Form.Group>
           </Col>
-        </Row>
 
-        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Stage *</Form.Label>
+              <Form.Label>Status *</Form.Label>
               <Form.Select
                 name="deal_stage_id"
                 value={formData.deal_stage_id}
-                onChange={handleChange}
-                required
+                disabled
               >
-                <option value="">Select Stage</option>
                 {dealStages.map((stage) => (
                   <option key={stage.id} value={stage.id}>
                     {stage.deal_stages}
@@ -300,20 +278,9 @@ const AddDeals = ({ editData }) => {
               </Form.Select>
             </Form.Group>
           </Col>
-          {/* <Col md={4}>
-            <Form.Group>
-              <Form.Label>Status</Form.Label>
-              <Form.Select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="">Select</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </Form.Select>
-            </Form.Group>
-          </Col> */}
+        </Row>
+
+        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Assign To *</Form.Label>
@@ -345,29 +312,10 @@ const AddDeals = ({ editData }) => {
           </Col>
         </Row>
 
-        <Row className="mb-3"></Row>
-
         {/* Solar Fields */}
         <h6 className="mt-3">Solar Panel Details</h6>
         <p className="small">(Rate: ₹{getRate("SOLAR")})</p>
         <Row className="mb-3">
-          {/* Solar Rate */}
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Rate</Form.Label>
-              <Form.Control
-                type="number"
-                name="sol_rate"
-                value={formData.sol_rate}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    sol_rate: Number(e.target.value),
-                  }))
-                }
-              />
-            </Form.Group>
-          </Col>
           <Col md={4}>
             <Form.Group>
               <Form.Label>Capacity</Form.Label>
@@ -376,7 +324,6 @@ const AddDeals = ({ editData }) => {
                 name="sol_cap"
                 value={formData.sol_cap}
                 onChange={handleChange}
-                placeholder="Enter capacity"
               />
             </Form.Group>
           </Col>
@@ -388,12 +335,9 @@ const AddDeals = ({ editData }) => {
                 name="sol_qty"
                 value={formData.sol_qty}
                 onChange={handleChange}
-                placeholder="Enter quantity"
               />
             </Form.Group>
           </Col>
-        </Row>
-        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Amount</Form.Label>
@@ -401,10 +345,13 @@ const AddDeals = ({ editData }) => {
                 type="number"
                 name="sol_amt"
                 value={formData.sol_amt}
-                readOnly
+                onChange={handleChange}
               />
             </Form.Group>
           </Col>
+        </Row>
+
+        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Supplier</Form.Label>
@@ -413,7 +360,7 @@ const AddDeals = ({ editData }) => {
                 value={formData.sol_seller_id}
                 onChange={handleChange}
               >
-                <option value="">Select Seller</option>
+                <option value="">Select Supplier</option>
                 {suppliers.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -430,44 +377,15 @@ const AddDeals = ({ editData }) => {
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Rate</Form.Label>
-              <Form.Control
-                type="number"
-                name="inv_rate"
-                value={formData.inv_rate}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    inv_rate: Number(e.target.value),
-                  }))
-                }
-              />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
               <Form.Label>Capacity</Form.Label>
               <Form.Control
                 type="number"
                 name="inv_cap"
                 value={formData.inv_cap}
                 onChange={handleChange}
-                placeholder="Enter capacity"
               />
             </Form.Group>
           </Col>
-          {/* <Col md={3}>
-            <Form.Group>
-              <Form.Label>Quantity</Form.Label>
-              <Form.Control
-                type="number"
-                name="inv_qty"
-                value={formData.inv_qty}
-                onChange={handleChange}
-                placeholder="Enter quantity"
-              />
-            </Form.Group>
-          </Col> */}
           <Col md={4}>
             <Form.Group>
               <Form.Label>Amount</Form.Label>
@@ -475,13 +393,10 @@ const AddDeals = ({ editData }) => {
                 type="number"
                 name="inv_amt"
                 value={formData.inv_amt}
-                readOnly
+                onChange={handleChange}
               />
             </Form.Group>
           </Col>
-        </Row>
-
-        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Supplier</Form.Label>
@@ -490,7 +405,7 @@ const AddDeals = ({ editData }) => {
                 value={formData.inv_seller_id}
                 onChange={handleChange}
               >
-                <option value="">Select Seller</option>
+                <option value="">Select Supplier</option>
                 {suppliers.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -499,6 +414,9 @@ const AddDeals = ({ editData }) => {
               </Form.Select>
             </Form.Group>
           </Col>
+        </Row>
+
+        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Final Amount</Form.Label>
@@ -506,23 +424,13 @@ const AddDeals = ({ editData }) => {
                 type="number"
                 name="final_amt"
                 value={formData.final_amt}
-                readOnly
+                onChange={handleChange}
+                disabled
               />
             </Form.Group>
           </Col>
         </Row>
 
-        {/* <Col md={4}>
-            <Form.Group>
-              <Form.Label>Attachment (PDF only)</Form.Label>
-              <Form.Control
-                type="file"
-                name="attachment"
-                accept="application/pdf"
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col> */}
         <Row>
           <Col md={12}>
             <Form.Group>
@@ -533,12 +441,12 @@ const AddDeals = ({ editData }) => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
+                placeholder="Enter Message"
               />
             </Form.Group>
           </Col>
         </Row>
-
-        {/* Submit */}
+        <br />
         <div className="text-end">
           <Button variant="secondary" onClick={() => navigate("/deals-list")}>
             Cancel

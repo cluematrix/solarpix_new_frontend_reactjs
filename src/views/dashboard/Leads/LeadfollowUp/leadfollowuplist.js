@@ -486,7 +486,7 @@ const LeadFollowupList = () => {
           <Form.Group className="mb-3">
             <Form.Label>Outcome</Form.Label>
             <Form.Control
-              type="text"
+              as="textarea"
               value={outcomeData.out_comes}
               onChange={(e) =>
                 setOutcomeData({ ...outcomeData, out_comes: e.target.value })

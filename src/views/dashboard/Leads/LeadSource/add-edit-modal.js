@@ -38,11 +38,11 @@ const AddEditModal = ({
             />
           </Form.Group>
           <div className="text-end mt-3">
-            <Button variant="secondary" onClick={handleClose}>
+            {/* <Button variant="secondary" onClick={handleClose}>
               Cancel
-            </Button>
+            </Button> */}
             <Button type="submit" variant="primary" className="ms-2">
-              {editData ? "Update" : "Submit"}
+              {editData ? "Update" : "Save"}
             </Button>
           </div>
         </Form>

@@ -366,13 +366,14 @@ const LeadsList = () => {
                 <div className="table-responsive">
                   <Table hover responsive className="table">
                     <thead>
-                      <tr className="table-gray">
+                      <tr className="table-gray centered">
                         <th>Sr. No.</th>
                         <th>Name</th>
                         <th>Company Name</th>
                         <th>Email</th>
-                        <th>Contact</th>
+                        {/* <th>Contact</th> */}
                         <th>Priority</th>
+                        <th>Status</th> {/* ✅ New column */}
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -388,11 +389,13 @@ const LeadsList = () => {
                           <tr key={item.id}>
                             <td>{indexOfFirstItem + idx + 1}</td>
                             <td>{item.name}</td>
-                            <td>{item.company_name || "-"}</td>
+                            <td>{item.company_name || "Individual"}</td>
                             <td>{item.email}</td>
-                            <td>{item.contact}</td>
+                            {/* <td>{item.contact}</td> */}
+
                             <td>
                               <Form.Select
+                                className="w-75"
                                 size="sm"
                                 value={item.priority || ""}
                                 onChange={async (e) => {
@@ -402,17 +405,6 @@ const LeadsList = () => {
                                       `/api/v1/admin/lead/${item.id}`,
                                       {
                                         ...item,
-                                        lead_source:
-                                          item.lead_source?.id ||
-                                          item.lead_source,
-                                        added_by:
-                                          item.added_by?.id || item.added_by,
-                                        lead_owner:
-                                          item.lead_owner?.id ||
-                                          item.lead_owner,
-                                        requirement_type_id:
-                                          item.requirement_type_id?.id ||
-                                          item.requirement_type_id,
                                         priority: newPriority,
                                       }
                                     );
@@ -430,23 +422,64 @@ const LeadsList = () => {
                                     );
                                   }
                                 }}
-                                style={{
-                                  backgroundColor:
-                                    item.priority === "High"
-                                      ? "#d4edda"
-                                      : item.priority === "Medium"
-                                      ? "#fff3cd"
-                                      : item.priority === "Low"
-                                      ? "#f8d7da"
-                                      : "white",
-                                }}
                               >
-                                <option value="">Select</option>
-                                <option value="High">High</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Low">Low</option>
+                                <option disabled value="">
+                                  Select
+                                </option>
+                                {[
+                                  { id: "1", icon: "🟢", name: "High" },
+                                  { id: "2", icon: "🟠", name: "Medium" },
+                                  { id: "3", icon: "🔴", name: "Low" },
+                                ].map((option) => (
+                                  <option key={option.id} value={option.name}>
+                                    {option.icon} {option.name}
+                                  </option>
+                                ))}
                               </Form.Select>
                             </td>
+
+                            <td>
+                              <Form.Select
+                                className="w-75"
+                                size="sm"
+                                value={item.status || "Progress"}
+                                onChange={async (e) => {
+                                  const newStatus = e.target.value;
+                                  try {
+                                    await api.put(
+                                      `/api/v1/admin/lead/${item.id}`,
+                                      {
+                                        ...item,
+                                        status: newStatus,
+                                      }
+                                    );
+                                    setLeadList((prev) =>
+                                      prev.map((lead) =>
+                                        lead.id === item.id
+                                          ? { ...lead, status: newStatus }
+                                          : lead
+                                      )
+                                    );
+                                  } catch (err) {
+                                    console.error(
+                                      "Error updating status:",
+                                      err
+                                    );
+                                  }
+                                }}
+                              >
+                                {[
+                                  { id: "1", icon: "🟢", name: "Won" },
+                                  { id: "2", icon: "🔴", name: "Lost" },
+                                  { id: "3", icon: "🟠", name: "Progress" },
+                                ].map((option) => (
+                                  <option key={option.id} value={option.name}>
+                                    {option.icon} {option.name}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            </td>
+
                             <td>
                               <VisibilityIcon
                                 color="primary"

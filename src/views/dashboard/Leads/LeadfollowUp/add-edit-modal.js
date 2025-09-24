@@ -137,7 +137,7 @@ const AddEditModal = ({
           {/* Schedule By */}
           <Form.Group className="mb-3">
             <Form.Label>
-              Schedule By <span className="text-danger">*</span>
+              Schedule To <span className="text-danger">*</span>
             </Form.Label>
             <Form.Select
               name="schedule_by_id"
@@ -157,7 +157,7 @@ const AddEditModal = ({
           {/* Action Buttons */}
           <div className="text-end">
             <Button type="submit" variant="primary" className="ms-2">
-              Submit
+              Save
             </Button>
           </div>
         </Form>

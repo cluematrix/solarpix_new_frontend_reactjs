@@ -127,6 +127,30 @@ const EditDeal = () => {
   };
 
   // Auto calculate amounts
+  // useEffect(() => {
+  //   const solAmt =
+  //     (Number(formData.sol_cap) || 0) *
+  //     (Number(formData.sol_qty) || 0) *
+  //     (Number(formData.sol_rate) || 0);
+
+  //   const invAmt =
+  //     (Number(formData.inv_cap) || 0) * (Number(formData.inv_rate) || 0);
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     sol_amt: solAmt,
+  //     inv_amt: invAmt,
+  //     final_amount: solAmt + invAmt,
+  //   }));
+  // }, [
+  //   formData.sol_cap,
+  //   formData.sol_qty,
+  //   formData.sol_rate,
+  //   formData.inv_cap,
+  //   formData.inv_rate,
+  // ]);
+
+  // Auto calculate amounts whenever capacity, qty, or rate changes
   useEffect(() => {
     const solAmt =
       (Number(formData.sol_cap) || 0) *
@@ -140,13 +164,14 @@ const EditDeal = () => {
       ...prev,
       sol_amt: solAmt,
       inv_amt: invAmt,
-      final_amount: solAmt + invAmt,
+      final_amt: solAmt + invAmt,
     }));
   }, [
     formData.sol_cap,
     formData.sol_qty,
     formData.sol_rate,
     formData.inv_cap,
+
     formData.inv_rate,
   ]);
 
@@ -158,6 +183,16 @@ const EditDeal = () => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
+
+  useEffect(() => {
+    const solAmt = Number(formData.sol_amt) || 0;
+    const invAmt = Number(formData.inv_amt) || 0;
+
+    setFormData((prev) => ({
+      ...prev,
+      final_amt: solAmt + invAmt,
+    }));
+  }, [formData.sol_amt, formData.inv_amt]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -195,265 +230,19 @@ const EditDeal = () => {
 
   console.log("formData.inv_rate", formData.inv_rate);
   return (
-    // <Card className="p-4 shadow-sm">
-    //   <h4 className="mb-3">Edit Deal</h4>
-    //   <Form onSubmit={handleSubmit}>
-    //     {/* Deal Fields */}
-    //     <Row className="mb-3">
-    //       <Col md={4}>
-    //         <Form.Group>
-    //           <Form.Label>Deal Name *</Form.Label>
-    //           <Form.Control
-    //             type="text"
-    //             name="deal_name"
-    //             value={formData.deal_name}
-    //             onChange={handleChange}
-    //             required
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={4}>
-    //         <Form.Group>
-    //           <Form.Label>Lead *</Form.Label>
-    //           <Form.Select
-    //             name="lead_id"
-    //             value={formData.lead_id}
-    //             onChange={handleChange}
-    //             required
-    //           >
-    //             <option value="">Select Lead</option>
-    //             {leads.map((lead) => (
-    //               <option key={lead.id} value={lead.id}>
-    //                 {lead.name} (Capacity: {lead.capacity})
-    //               </option>
-    //             ))}
-    //           </Form.Select>
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={4}>
-    //         <Form.Group>
-    //           <Form.Label>Stage *</Form.Label>
-    //           <Form.Select
-    //             name="deal_stage_id"
-    //             value={formData.deal_stage_id}
-    //             onChange={handleChange}
-    //             required
-    //           >
-    //             <option value="">Select Stage</option>
-    //             {dealStages.map((stage) => (
-    //               <option key={stage.id} value={stage.id}>
-    //                 {stage.deal_stages}
-    //               </option>
-    //             ))}
-    //           </Form.Select>
-    //         </Form.Group>
-    //       </Col>
-    //     </Row>
-
-    //     <Row className="mb-3">
-    //       <Col md={4}>
-    //         <Form.Group>
-    //           <Form.Label>Status</Form.Label>
-    //           <Form.Select
-    //             name="status"
-    //             value={formData.status}
-    //             onChange={handleChange}
-    //           >
-    //             <option value="">Select</option>
-    //             <option value="Active">Active</option>
-    //             <option value="Inactive">Inactive</option>
-    //           </Form.Select>
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={4}>
-    //         <Form.Group>
-    //           <Form.Label>Attachment (PDF only)</Form.Label>
-    //           <Form.Control
-    //             type="file"
-    //             name="attachment"
-    //             accept="application/pdf"
-    //             onChange={handleChange}
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={4}>
-    //         <Form.Group>
-    //           <Form.Label>Site Visit Date</Form.Label>
-    //           <Form.Control
-    //             type="date"
-    //             name="site_visit_date"
-    //             value={formData.site_visit_date}
-    //             onChange={handleChange}
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //     </Row>
-
-    //     {/* Solar Fields */}
-    //     <h6 className="mt-3">Solar Panel Details</h6>
-    //     <p className="small">(Rate: ₹{getRate("SOLAR")})</p>
-    //     <Row className="mb-3">
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Capacity</Form.Label>
-    //           <Form.Control
-    //             type="number"
-    //             name="sol_cap"
-    //             value={formData.sol_cap}
-    //             onChange={handleChange}
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Quantity</Form.Label>
-    //           <Form.Control
-    //             type="number"
-    //             name="sol_qty"
-    //             value={formData.sol_qty}
-    //             onChange={handleChange}
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Amount</Form.Label>
-    //           <Form.Control
-    //             type="number"
-    //             name="sol_amt"
-    //             value={formData.sol_amt}
-    //             readOnly
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Seller</Form.Label>
-    //           <Form.Select
-    //             name="sol_seller_id"
-    //             value={formData.sol_seller_id}
-    //             onChange={handleChange}
-    //           >
-    //             <option value="">Select Seller</option>
-    //             {suppliers.map((s) => (
-    //               <option key={s.id} value={s.id}>
-    //                 {s.name}
-    //               </option>
-    //             ))}
-    //           </Form.Select>
-    //         </Form.Group>
-    //       </Col>
-    //     </Row>
-
-    //     {/* Inverter Fields */}
-    //     <h6 className="mt-3">Inverter Details</h6>
-    //     <p className="small">(Rate: ₹{getRate("INVERTOR")})</p>
-    //     <Row className="mb-3">
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Capacity</Form.Label>
-    //           <Form.Control
-    //             type="number"
-    //             name="inv_cap"
-    //             value={formData.inv_cap}
-    //             onChange={handleChange}
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Quantity</Form.Label>
-    //           <Form.Control
-    //             type="number"
-    //             name="inv_qty"
-    //             value={formData.inv_qty}
-    //             onChange={handleChange}
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Amount</Form.Label>
-    //           <Form.Control
-    //             type="number"
-    //             name="inv_amt"
-    //             value={formData.inv_amt}
-    //             readOnly
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={3}>
-    //         <Form.Group>
-    //           <Form.Label>Seller</Form.Label>
-    //           <Form.Select
-    //             name="inv_seller_id"
-    //             value={formData.inv_seller_id}
-    //             onChange={handleChange}
-    //           >
-    //             <option value="">Select Seller</option>
-    //             {suppliers.map((s) => (
-    //               <option key={s.id} value={s.id}>
-    //                 {s.name}
-    //               </option>
-    //             ))}
-    //           </Form.Select>
-    //         </Form.Group>
-    //       </Col>
-    //     </Row>
-
-    //     {/* Final Amount */}
-    //     <Row className="mb-3">
-    //       <Col md={4}>
-    //         <Form.Group>
-    //           <Form.Label>Final Amount</Form.Label>
-    //           <Form.Control
-    //             type="number"
-    //             name="final_amount"
-    //             value={formData.final_amount}
-    //             readOnly
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //       <Col md={8}>
-    //         <Form.Group>
-    //           <Form.Label>Description</Form.Label>
-    //           <Form.Control
-    //             as="textarea"
-    //             rows={3}
-    //             name="description"
-    //             value={formData.description}
-    //             onChange={handleChange}
-    //           />
-    //         </Form.Group>
-    //       </Col>
-    //     </Row>
-
-    //     {/* Submit */}
-    //     <div className="text-end">
-    //       <Button variant="secondary" onClick={() => navigate("/deals-list")}>
-    //         Cancel
-    //       </Button>{" "}
-    //       <Button variant="primary" type="submit">
-    //         Update Deal
-    //       </Button>
-    //     </div>
-    //   </Form>
-    // </Card>
-
     <Card className="p-4 shadow-sm">
       <Form onSubmit={handleSubmit}>
         {/* Deal Fields */}
+
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Deal Name *</Form.Label>
+              <Form.Label>Quotation No</Form.Label>
               <Form.Control
                 type="text"
-                name="deal_name"
-                value={formData.deal_name}
-                onChange={handleChange}
-                required
-                placeholder="Enter deal name"
+                name="quotation_no"
+                value={formData.quotation_no}
+                readOnly
               />
             </Form.Group>
           </Col>
@@ -477,12 +266,13 @@ const EditDeal = () => {
           </Col>
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Stage *</Form.Label>
+              <Form.Label>Status *</Form.Label>
               <Form.Select
                 name="deal_stage_id"
                 value={formData.deal_stage_id}
                 onChange={handleChange}
                 required
+                disabled
               >
                 <option value="">Select Stage</option>
                 {dealStages.map((stage) => (
@@ -496,20 +286,6 @@ const EditDeal = () => {
         </Row>
 
         <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Status</Form.Label>
-              <Form.Select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="">Select</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </Form.Select>
-            </Form.Group>
-          </Col>
           <Col md={4}>
             <Form.Group>
               <Form.Label>Assign To *</Form.Label>
@@ -528,7 +304,6 @@ const EditDeal = () => {
               </Form.Select>
             </Form.Group>
           </Col>
-
           <Col md={4}>
             <Form.Group>
               <Form.Label>Site Visit Date & Time</Form.Label>
@@ -549,7 +324,7 @@ const EditDeal = () => {
         <p className="small">(Default Rate: ₹{getRate("SOLAR")})</p>
         <Row className="mb-3">
           {/* Solar Rate */}
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Group>
               <Form.Label>Rate</Form.Label>
               <Form.Control
@@ -564,7 +339,7 @@ const EditDeal = () => {
                 }
               />
             </Form.Group>
-          </Col>
+          </Col> */}
           <Col md={4}>
             <Form.Group>
               <Form.Label>Capacity</Form.Label>
@@ -589,9 +364,6 @@ const EditDeal = () => {
               />
             </Form.Group>
           </Col>
-        </Row>
-
-        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Amount</Form.Label>
@@ -599,13 +371,16 @@ const EditDeal = () => {
                 type="number"
                 name="sol_amt"
                 value={formData.sol_amt}
-                readOnly
+                onChange={handleChange} // allow user to type if needed
               />
             </Form.Group>
           </Col>
+        </Row>
+
+        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Seller</Form.Label>
+              <Form.Label>Supplier</Form.Label>
               <Form.Select
                 name="sol_seller_id"
                 value={formData.sol_seller_id}
@@ -626,7 +401,7 @@ const EditDeal = () => {
         <h6 className="mt-3">Inverter Details</h6>
         <p className="small">(Default Rate: ₹{getRate("INVERTOR")})</p>
         <Row className="mb-3">
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Group>
               <Form.Label>Rate</Form.Label>
               <Form.Control
@@ -641,7 +416,7 @@ const EditDeal = () => {
                 }
               />
             </Form.Group>
-          </Col>
+          </Col> */}
           <Col md={4}>
             <Form.Group>
               <Form.Label>Capacity</Form.Label>
@@ -661,7 +436,7 @@ const EditDeal = () => {
                 type="number"
                 name="inv_amt"
                 value={formData.inv_amt}
-                readOnly
+                onChange={handleChange} // allow user to type if needed
               />
             </Form.Group>
           </Col>
@@ -735,7 +510,7 @@ const EditDeal = () => {
             Cancel
           </Button>{" "}
           <Button variant="primary" type="submit">
-            Update Deal
+            Update
           </Button>
         </div>
       </Form>

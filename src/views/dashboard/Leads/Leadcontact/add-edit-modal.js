@@ -363,6 +363,19 @@ const AddEditModal = ({
             <Row className="mb-3">
               <Col md={4}>
                 <Form.Group>
+                  <Form.Label>Last Call</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="last_call"
+                    value={formData.last_call}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={12}>
+                <Form.Group>
                   <Form.Label>Company Remark</Form.Label>
                   <Form.Control
                     as="textarea"
@@ -374,8 +387,9 @@ const AddEditModal = ({
                   />
                 </Form.Group>
               </Col>
-
-              <Col md={4}>
+            </Row>
+            <Row className="mb-3">
+              <Col md={12}>
                 <Form.Group>
                   <Form.Label>Customer Remark</Form.Label>
                   <Form.Control
@@ -385,18 +399,6 @@ const AddEditModal = ({
                     value={formData.customer_remark}
                     onChange={handleChange}
                     placeholder="Enter customer remark"
-                  />
-                </Form.Group>
-              </Col>
-
-              <Col md={4}>
-                <Form.Group>
-                  <Form.Label>Last Call</Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="last_call"
-                    value={formData.last_call}
-                    onChange={handleChange}
                   />
                 </Form.Group>
               </Col>
@@ -458,11 +460,11 @@ const AddEditModal = ({
             </Modal>
 
             <div className="text-end mt-3">
-              <Button variant="secondary" onClick={handleClose}>
+              {/* <Button variant="secondary" onClick={handleClose}>
                 Cancel
-              </Button>
+              </Button> */}
               <Button type="submit" variant="primary" className="ms-2">
-                Submit
+                Save
               </Button>
             </div>
           </Form>
