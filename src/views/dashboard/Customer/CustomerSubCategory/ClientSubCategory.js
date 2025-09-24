@@ -345,7 +345,7 @@ const ClientSubCategory = () => {
         setValue={setSubCategory}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Sub Category" : "Add New Sub Category"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         fieldLabel="Sub Category"
         placeholder="Enter sub category"
       />

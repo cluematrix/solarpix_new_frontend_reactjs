@@ -172,9 +172,6 @@ const AddEditStockModal = ({
           </Row>
 
           <div className="text-end mt-3">
-            <Button variant="secondary" onClick={handleModalClose}>
-              Cancel
-            </Button>
             <Button type="submit" variant="primary" className="ms-2">
               Save Stock
             </Button>

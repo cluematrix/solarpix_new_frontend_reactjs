@@ -26,15 +26,15 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import ViewModal from "./ViewModal";
 
 const initialValues = {
-  Credit: "",
-  Debit: "",
+  Credit: 0,
+  Debit: 0,
   balance: "",
   remark: "",
   stock_material_id: "",
   stock_particular_id: "",
   supplier_management_id: "",
   brand_id: "",
-  client_id: "",
+  select_type: "Debit",
 };
 
 const StockManagementList = () => {
@@ -73,17 +73,43 @@ const StockManagementList = () => {
   });
 
   const validationSchema = Yup.object().shape({
-    Debit: Yup.string().required("Debit is required"),
-    Credit: Yup.string().required("Credit is required"),
-    balance: Yup.string().required("Balance is required"),
-    // remark: Yup.string().required("Remark is required"),
+    balance: Yup.number()
+      .required("Balance is required")
+      .typeError("Balance must be a number"),
+
     stock_material_id: Yup.string().required("Stock material is required"),
     stock_particular_id: Yup.string().required("Stock particular is required"),
     supplier_management_id: Yup.string().required(
       "Supplier management is required"
     ),
     brand_id: Yup.string().required("Brand name is required"),
-    client_id: Yup.string().required("Customer name is required"),
+    select_type: Yup.string()
+      .oneOf(["Credit", "Debit"], "Select type is required")
+      .required("Select type is required"),
+
+    Credit: Yup.number()
+      .nullable()
+      .when("select_type", {
+        is: "Credit",
+        then: (schema) =>
+          schema
+            .required("Credit is required")
+            .positive("Credit must be positive")
+            .typeError("Credit must be a number"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+
+    Debit: Yup.number()
+      .nullable()
+      .when("select_type", {
+        is: "Debit",
+        then: (schema) =>
+          schema
+            .required("Debit is required")
+            .positive("Debit must be positive")
+            .typeError("Debit must be a number"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
   });
 
   const FETCHPERMISSION = async () => {
@@ -488,7 +514,7 @@ const StockManagementList = () => {
         modalTitle={
           editId ? "Update Stock Management" : "Add New Stock Management"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
         formik={formik}
         stockMaterial={metaData.stockMaterial}

@@ -101,9 +101,7 @@ const RequirementList = () => {
     const newStatus = currentStatus === 1 ? 0 : 1;
 
     setRequirementList((prev) =>
-      prev.map((req) =>
-        req.id === id ? { ...req, isActive: newStatus } : req
-      )
+      prev.map((req) => (req.id === id ? { ...req, isActive: newStatus } : req))
     );
 
     api
@@ -338,8 +336,10 @@ const RequirementList = () => {
         roleName={requirementType}
         setRoleName={setRequirementType}
         onSave={handleAddOrUpdateRequirement}
-        modalTitle={editId ? "Update Requirement Type" : "Add New Requirement Type"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        modalTitle={
+          editId ? "Update Requirement Type" : "Add New Requirement Type"
+        }
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       <DeleteModal
@@ -358,7 +358,11 @@ const RequirementList = () => {
         }
       />
 
-      <ToastContainer position="top-right" autoClose={3000} transition={Slide} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        transition={Slide}
+      />
     </>
   );
 };

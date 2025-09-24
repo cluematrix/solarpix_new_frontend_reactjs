@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal, Form, Button, Row, Col } from "react-bootstrap";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
+import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
+import { selectTypeData } from "../../../../mockData";
 
 const AddEditModal = ({
   show,
@@ -17,7 +19,42 @@ const AddEditModal = ({
   brand,
   customer,
 }) => {
-  console.log("valuesStockMg", formik.values.remark);
+  console.log("formik.values", formik.values);
+  console.log("formik.errors", formik.errors);
+  // Balance calculate useEffect
+  useEffect(() => {
+    const selectedMaterial = stockMaterial.find((m) => {
+      console.log("m.id", m.id);
+      console.log(
+        "formik.values.stock_material_id",
+        formik.values.stock_material_id
+      );
+      return m.id == formik.values.stock_material_id;
+    });
+
+    console.log("selectedMaterial.balance", selectedMaterial);
+    if (!selectedMaterial) return;
+
+    let baseBalance = selectedMaterial.balance || 0;
+    let newBalance = baseBalance;
+
+    if (formik.values.select_type == "Credit" && formik.values.Credit) {
+      newBalance = baseBalance + Number(formik.values.Credit);
+      formik.setFieldValue("Debit", 0);
+    } else if (formik.values.select_type == "Debit" && formik.values.Debit) {
+      newBalance = baseBalance - Number(formik.values.Debit);
+      formik.setFieldValue("Credit", 0);
+    }
+
+    formik.setFieldValue("balance", newBalance);
+  }, [
+    formik.values.stock_material_id,
+    formik.values.Credit,
+    formik.values.Debit,
+    formik.values.select_type,
+    stockMaterial,
+  ]);
+
   return (
     <Modal
       centered
@@ -31,52 +68,8 @@ const AddEditModal = ({
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* row 1 Credit, Debit, balance */}
+          {/* Row 1 stock_material_id, stock_particular_id, supplier_management_id */}
           <Row>
-            <Col md={4}>
-              <CustomInput
-                label="Credit"
-                name="Credit"
-                value={formik.values.Credit}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="Enter credit"
-                touched={formik.touched.Credit}
-                errors={formik.errors.Credit}
-                required={true}
-              />
-            </Col>
-            <Col md={4}>
-              <CustomInput
-                label="Debit"
-                name="Debit"
-                value={formik.values.Debit}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="Enter debit"
-                touched={formik.touched.Debit}
-                errors={formik.errors.Debit}
-                required={true}
-              />
-            </Col>
-            <Col md={4}>
-              <CustomInput
-                type="number"
-                label="Balance"
-                name="balance"
-                value={formik.values.balance}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="Enter balance"
-                touched={formik.touched.balance}
-                errors={formik.errors.balance}
-                required={true}
-              />
-            </Col>
-          </Row>
-
-          {/* row 2 stock_material_id, stock_particular_id, supplier_management_id */}
-          <Row className="mt-3">
             <Col md={4}>
               <CustomSelect
                 label="Stock Material"
@@ -127,8 +120,66 @@ const AddEditModal = ({
             </Col>
           </Row>
 
-          {/* row 3 brand_id, client_id */}
+          {/* Row 2 select_type,  */}
           <Row className="mt-3">
+            <Col md={12}>
+              <CustomRadioGroup
+                label="Select Type"
+                name="select_type"
+                options={selectTypeData}
+                value={formik.values.select_type}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                touched={formik.touched.select_type}
+                error={formik.errors.select_type}
+                required
+              />
+            </Col>
+          </Row>
+
+          {/* Row 3 Credit, Debit, balance */}
+          <Row className="mt-3">
+            <Col md={4}>
+              {formik.values.select_type === "Credit" ? (
+                <CustomInput
+                  type="number"
+                  label="Credit"
+                  name="Credit"
+                  value={formik.values.Credit}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  placeholder="Enter Credit"
+                  touched={formik.touched.Credit}
+                  errors={formik.errors.Credit}
+                />
+              ) : (
+                <CustomInput
+                  type="number"
+                  label="Debit"
+                  name="Debit"
+                  value={formik.values.Debit}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  placeholder="Enter Debit"
+                  touched={formik.touched.Debit}
+                  errors={formik.errors.Debit}
+                />
+              )}
+            </Col>
+            <Col md={4}>
+              <CustomInput
+                type="number"
+                label="Balance"
+                name="balance"
+                value={formik.values.balance}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                placeholder="Balance"
+                touched={formik.touched.balance}
+                errors={formik.errors.balance}
+                readOnly={true}
+              />
+            </Col>
             <Col md={4}>
               <CustomSelect
                 label="Brand"
@@ -142,22 +193,6 @@ const AddEditModal = ({
                 touched={formik.touched.brand_id}
                 required
                 lableName="brand_name"
-                lableKey="id"
-              />
-            </Col>
-            <Col md={4}>
-              <CustomSelect
-                label="Customer"
-                name="client_id"
-                value={formik.values.client_id}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                options={customer}
-                placeholder="--"
-                error={formik.errors.client_id}
-                touched={formik.touched.client_id}
-                required
-                lableName="name"
                 lableKey="id"
               />
             </Col>

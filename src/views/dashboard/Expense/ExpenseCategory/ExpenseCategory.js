@@ -349,7 +349,7 @@ const ExpenseCategory = () => {
         modalTitle={
           editId ? "Update Expense Category" : "Add New Expense Category"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         fieldLabel="Expense Category"
         placeholder="Enter category"
       />

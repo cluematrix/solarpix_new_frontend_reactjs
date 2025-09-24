@@ -197,13 +197,13 @@ const CustomerList = () => {
 
   return (
     <>
-      <Row style={{ marginTop: "-70px" }}>
+      <Row style={{ marginTop: "-25px" }}>
         <Col md={4}>
           <CustomInput
             name="searchQuery"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name"
+            placeholder="Search By Name"
           />
         </Col>
       </Row>

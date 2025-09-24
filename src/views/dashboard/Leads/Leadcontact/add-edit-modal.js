@@ -426,12 +426,6 @@ const AddEditModal = ({
               </Modal.Body>
               <Modal.Footer>
                 <Button
-                  variant="secondary"
-                  onClick={() => setShowLeadSourceModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
                   variant="primary"
                   onClick={async () => {
                     try {
@@ -458,11 +452,8 @@ const AddEditModal = ({
             </Modal>
 
             <div className="text-end mt-3">
-              <Button variant="secondary" onClick={handleClose}>
-                Cancel
-              </Button>
               <Button type="submit" variant="primary" className="ms-2">
-                Submit
+                Save
               </Button>
             </div>
           </Form>

@@ -2,7 +2,7 @@ import { useEffect, memo, Fragment, useContext } from "react";
 import { useLocation, Outlet } from "react-router-dom";
 
 //react-shepherd
-import {  ShepherdTourContext } from "react-shepherd";
+import { ShepherdTourContext } from "react-shepherd";
 
 //react-bootstrap
 import { Button } from "react-bootstrap";
@@ -32,7 +32,6 @@ import * as SettingSelector from "../../store/setting/selectors";
 
 // Redux Selector / Action
 import { useSelector } from "react-redux";
-
 
 const Tour = () => {
   const tour = useContext(ShepherdTourContext);
@@ -160,7 +159,7 @@ const Default = memo((props) => {
       <Loader />
       <Sidebar app_name={appName} />
       <Tour />
-      <main className="main-content">
+      <main className="main-content page-wrapper">
         <div className="position-relative">
           <Header />
           <SubHeader />

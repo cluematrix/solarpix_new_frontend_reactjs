@@ -275,7 +275,7 @@ const RoleList = () => {
         setRoleName={setRoleName}
         onSave={handleAddOrUpdateRole}
         modalTitle={editId ? "Update Role" : "Add Role"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Confirmation Modal */}

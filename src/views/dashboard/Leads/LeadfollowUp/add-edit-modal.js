@@ -157,7 +157,7 @@ const AddEditModal = ({
           {/* Action Buttons */}
           <div className="text-end">
             <Button type="submit" variant="primary" className="ms-2">
-              Submit
+              Save
             </Button>
           </div>
         </Form>

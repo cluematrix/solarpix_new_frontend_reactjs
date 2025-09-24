@@ -483,13 +483,6 @@ const UpdateCustomer = () => {
             <Button type="submit" variant="primary" disabled={isSubmitting}>
               {isSubmitting ? "Updating..." : "Update"}
             </Button>
-            <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate("/CustomerList")}
-            >
-              Cancel
-            </Button>
           </div>
         </Form>
       </Card.Body>

@@ -538,11 +538,8 @@ const AddDeals = ({ editData }) => {
           </Col>
         </Row>
 
-        {/* Submit */}
+        {/* Save */}
         <div className="text-end">
-          <Button variant="secondary" onClick={() => navigate("/deals-list")}>
-            Cancel
-          </Button>{" "}
           <Button variant="primary" type="submit" disabled={loading}>
             {loading ? "Saving..." : editData ? "Update Deal" : "Save Deal"}
           </Button>

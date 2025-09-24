@@ -350,7 +350,7 @@ const ContractType = () => {
         setValue={setType}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Contract Type" : "Add New Contract Type"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         fieldLabel="Contract Type"
         placeholder="Enter contract type"
       />

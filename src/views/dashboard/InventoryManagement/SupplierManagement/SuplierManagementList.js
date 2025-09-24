@@ -464,7 +464,7 @@ const SupplierManagementList = () => {
         modalTitle={
           editId ? "Update Supplier Management" : "Add New Supplier Management"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
         formik={formik}
         paymentTermData={paymentTermData}

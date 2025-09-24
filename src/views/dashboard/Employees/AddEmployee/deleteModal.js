@@ -8,7 +8,7 @@ const DeleteModal = ({
   modalTitle,
   modalMessage,
 }) => {
-  console.log("modalMessage",modalMessage)
+  console.log("modalMessage", modalMessage);
   return (
     <Modal centered show={show} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -16,11 +16,8 @@ const DeleteModal = ({
       </Modal.Header>
       <Modal.Body>{modalMessage}</Modal.Body>
       <Modal.Footer>
-        {/* <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button> */}
         <Button variant="danger" onClick={onConfirm}>
-          Yes, Delete
+          Delete
         </Button>
       </Modal.Footer>
     </Modal>

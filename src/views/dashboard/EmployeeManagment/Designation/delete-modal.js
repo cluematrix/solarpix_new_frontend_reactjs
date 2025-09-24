@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Modal, } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 
 const DeleteModal = ({
   show,
@@ -15,11 +15,8 @@ const DeleteModal = ({
       </Modal.Header>
       <Modal.Body>{modalMessage}</Modal.Body>
       <Modal.Footer>
-        {/* <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button> */}
         <Button variant="danger" onClick={onConfirm}>
-          Yes, Delete
+          Delete
         </Button>
       </Modal.Footer>
     </Modal>

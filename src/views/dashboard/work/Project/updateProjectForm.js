@@ -1,13 +1,12 @@
 // Created by: Sufyan 02 Sep 2025
 import React, { useState, useEffect, Fragment } from "react";
-import { Form, Button, Row, Col, Card, Spinner, Badge } from "react-bootstrap";
+import { Form, Button, Row, Col, Card, Badge } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import api from "../../../../api/axios";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import { maritialStatusData } from "../../../../mockData";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomCheckbox from "../../../../components/Form/CustomCheckbox";
@@ -369,17 +368,10 @@ const UpdateProjectForm = ({
               </Col>
             </Row>
 
-            {/* Submit + Cancel */}
+            {/* Save */}
             <div className="mt-4 text-end">
               <Button type="submit" variant="primary" disabled={isSubmitting}>
                 {isSubmitting ? "Saving..." : "Save"}
-              </Button>
-              <Button
-                variant="secondary"
-                className="ms-2"
-                onClick={handleClose}
-              >
-                Cancel
               </Button>
             </div>
           </Form>

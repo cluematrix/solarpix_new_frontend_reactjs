@@ -375,7 +375,7 @@ const TaskCategory = () => {
         setValue={setCategory}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Task Category" : "Add New Task Category"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         fieldLabel="Task Category"
         placeholder="Enter category"
       />

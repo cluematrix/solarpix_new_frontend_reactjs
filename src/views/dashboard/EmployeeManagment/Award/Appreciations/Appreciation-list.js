@@ -289,7 +289,7 @@ const AppreciationList = () => {
         setFormData={setFormData}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Appreciation" : "Add Appreciation"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Modal */}

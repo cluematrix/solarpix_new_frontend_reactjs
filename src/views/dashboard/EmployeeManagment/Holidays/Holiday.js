@@ -297,7 +297,7 @@ const Holiday = () => {
         setFormData={setFormData}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Holiday" : "Add New Holiday"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Confirmation Modal */}

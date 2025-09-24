@@ -270,11 +270,9 @@ const ProjectCategory = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
                                 onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
@@ -340,7 +338,7 @@ const ProjectCategory = () => {
         modalTitle={
           editId ? "Update Project Category" : "Add New Project Category"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         fieldLabel="Project Category"
         placeholder="Enter category"
       />
@@ -360,6 +358,7 @@ const ProjectCategory = () => {
             ? `Are you sure you want to delete "${categoryList[deleteIndex].category}"?`
             : ""
         }
+        loading={loading}
       />
 
       <ToastContainer position="top-right" autoClose={3000} />

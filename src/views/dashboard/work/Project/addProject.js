@@ -17,6 +17,7 @@ const AddProject = ({
   // Get formData from location state if available
   const location = useLocation();
   const formData = location.state?.formData || {};
+  const [activeStep, setActiveStep] = React.useState(0);
 
   const initialValues = {
     short_code: "",
@@ -77,47 +78,62 @@ const AddProject = ({
     stock: [],
   });
 
-  const validationSchema = Yup.object().shape({
-    short_code: Yup.string().required("Short Code is required"),
-    project_name: Yup.string().required("Project Name is required"),
-    start_date: Yup.date().required("Start Date is required"),
-    is_deadline: Yup.boolean().default(false),
-    end_date: Yup.date()
-      .nullable()
-      .when("is_deadline", (is_deadline, schema) => {
-        return !is_deadline
-          ? schema
-              .required("End Date is required")
-              .min(
-                Yup.ref("start_date"),
-                "End Date cannot be before Start Date"
-              )
-          : schema.nullable(); // if is_deadline is true, end_date not required
-      }),
-    project_category_id: Yup.string().required("Project Category is required"),
-    client_id: Yup.string().required("Customer is required"),
-    project_remarks: Yup.string().required("Project remarks is required"),
-    estimate: Yup.number()
-      .typeError("Project estimate must be a number")
-      .positive("Project estimate must be positive")
-      .required("Project estimate is required"),
-    stock_material: Yup.array()
-      .min(1, "At least one stock material must be selected")
-      .required("Stock material are required"),
-    company_name: Yup.string().required("Company Name is required"),
-    capacity: Yup.string().required("Capacity is required"),
-    co_ordinate: Yup.string().required("Co-ordinate is required"),
-    structure_installer: Yup.string().required(
-      "Structure installer is required"
-    ),
-    panel_wiring_installer: Yup.string().required(
-      "Panel wiring installer is required"
-    ),
-    sepl_inspection_by: Yup.string().required("SEPL inspection by is required"),
-    sepl_inspection_date: Yup.date().required(
-      "SEPL inspection date is required"
-    ),
-  });
+  const validationSchemas = [
+    // Step-wise validation schemas (project info)
+    Yup.object().shape({
+      short_code: Yup.string().required("Short Code is required"),
+      project_name: Yup.string().required("Project Name is required"),
+      start_date: Yup.date().required("Start Date is required"),
+      is_deadline: Yup.boolean().default(false),
+      end_date: Yup.date()
+        .nullable()
+        .when("is_deadline", (is_deadline, schema) => {
+          return !is_deadline
+            ? schema
+                .required("End Date is required")
+                .min(
+                  Yup.ref("start_date"),
+                  "End Date cannot be before Start Date"
+                )
+            : schema.nullable(); // if is_deadline is true, end_date not required
+        }),
+      project_category_id: Yup.string().required(
+        "Project Category is required"
+      ),
+      client_id: Yup.string().required("Customer is required"),
+      project_remarks: Yup.string().required("Project remarks is required"),
+      estimate: Yup.number()
+        .typeError("Project estimate must be a number")
+        .positive("Project estimate must be positive")
+        .required("Project estimate is required"),
+    }),
+
+    // Step-wise validation schemas (material info)
+    Yup.object().shape({
+      stock_material: Yup.array()
+        .min(1, "At least one stock material must be selected")
+        .required("Stock material are required"),
+      company_name: Yup.string().required("Company Name is required"),
+      capacity: Yup.string().required("Capacity is required"),
+    }),
+
+    // Step-wise validation schemas (staff management info)
+    Yup.object().shape({
+      co_ordinate: Yup.string().required("Co-ordinate is required"),
+      structure_installer: Yup.string().required(
+        "Structure installer is required"
+      ),
+      panel_wiring_installer: Yup.string().required(
+        "Panel wiring installer is required"
+      ),
+      sepl_inspection_by: Yup.string().required(
+        "SEPL inspection by is required"
+      ),
+      sepl_inspection_date: Yup.date().required(
+        "SEPL inspection date is required"
+      ),
+    }),
+  ];
 
   const onSubmit = async (values, { resetForm }) => {
     try {
@@ -136,20 +152,11 @@ const AddProject = ({
 
   const formik = useFormik({
     initialValues,
-    validationSchema,
+    validationSchema: validationSchemas[activeStep],
     onSubmit,
   });
 
-  const {
-    values,
-    errors,
-    touched,
-    handleChange,
-    handleBlur,
-    handleSubmit,
-    isSubmitting,
-    setFieldValue,
-  } = formik;
+  const { values, setFieldValue } = formik;
 
   // fetch employee
   const fetchEmployee = async () => {
@@ -183,10 +190,8 @@ const AddProject = ({
           employeeList: empListRes.data.data.filter((e) => e.isActive),
           project: projectRes.data.data.filter((e) => e.isActive),
           client: clientRes.data.data.filter((e) => e.isActive),
-          // stock: stockRes.data.data.filter((e) => e.isActive),
+          stock: stockRes.data.filter((e) => e.isActive),
         });
-
-        console.log("metaData.projectCategory", metaData.stock);
       } catch (error) {
         errorToast("Error loading data");
         console.error(error);
@@ -236,6 +241,9 @@ const AddProject = ({
             selectedMemberNames={selectedMemberNames}
             setShowMembersModal={setShowMembersModal}
             employee={employee}
+            activeStep={activeStep}
+            setActiveStep={setActiveStep}
+            validationSchemas={validationSchemas}
           />
         </Card.Body>
       </Card>

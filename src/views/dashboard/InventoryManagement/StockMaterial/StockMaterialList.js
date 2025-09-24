@@ -421,7 +421,7 @@ const StockMaterialList = () => {
         handleClose={handleResetForm}
         onSave={handleSubmit}
         modalTitle={editId ? "Update Stock Material" : "Add New Stock Material"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
         formik={formik}
         invCatData={invCatData}

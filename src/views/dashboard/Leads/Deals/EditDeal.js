@@ -429,7 +429,7 @@ const EditDeal = () => {
     //       </Col>
     //     </Row>
 
-    //     {/* Submit */}
+    //     {/* Save */}
     //     <div className="text-end">
     //       <Button variant="secondary" onClick={() => navigate("/deals-list")}>
     //         Cancel
@@ -729,13 +729,10 @@ const EditDeal = () => {
         <Row className="mb-3"> */}
         </Row>
 
-        {/* Submit */}
+        {/* Save */}
         <div className="text-end">
-          <Button variant="secondary" onClick={() => navigate("/deals-list")}>
-            Cancel
-          </Button>{" "}
           <Button variant="primary" type="submit">
-            Update Deal
+            Save
           </Button>
         </div>
       </Form>

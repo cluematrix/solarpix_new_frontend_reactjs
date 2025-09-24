@@ -84,7 +84,7 @@ const AddEditTaskModal = ({
     .filter((m) => formData.projectMembers?.includes(m.id))
     .map((m) => m.name);
 
-  // ✅ Submit form
+  // ✅ Save form
   const handleSubmit = (e) => {
     e.preventDefault();
     // send to parent (TaskList)
@@ -279,9 +279,6 @@ const AddEditTaskModal = ({
 
               {/* Buttons */}
               <div className="text-end mt-3">
-                <Button variant="secondary" onClick={handleClose}>
-                  Cancel
-                </Button>
                 <Button type="submit" variant="primary" className="ms-2">
                   Save Task
                 </Button>

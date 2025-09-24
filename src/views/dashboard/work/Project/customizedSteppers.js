@@ -21,6 +21,11 @@ import EvStationOutlinedIcon from "@mui/icons-material/EvStationOutlined"; // Ne
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined"; // Nodal Point
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined"; // Staff Assignment Info
 import AddProjectInfo from "./Form/addProjectInfo";
+import AddProjectMaterial from "./Form/addProjectMaterial";
+import AddProjectMseb from "./Form/addProjectMseb";
+import AddProjectMetering from "./Form/addProjectMetering";
+import AddProjectNp from "./Form/addProjectNp";
+import AddProjectMembers from "./Form/addProjectMembers";
 
 const QontoStepIconRoot = styled("div")(({ theme }) => ({
   color: "#eaeaf0",
@@ -184,6 +189,9 @@ export default function CustomizedSteppers({
   selectedMemberNames,
   setShowMembersModal,
   employee,
+  activeStep,
+  setActiveStep,
+  validationSchemas,
 }) {
   // Stepper
   const steps = [
@@ -195,31 +203,41 @@ export default function CustomizedSteppers({
     "Staff Assignment",
   ];
 
-  const [activeStep, setActiveStep] = React.useState(0);
-
   const handleNext = () => setActiveStep((prev) => prev + 1);
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
-        return (
-          <AddProjectInfo
-            formik={formik}
-            metaData={metaData}
-            selectedMemberNames={selectedMemberNames}
-            setShowMembersModal={setShowMembersModal}
-            employee={employee}
-          />
-        );
+        return <AddProjectInfo formik={formik} metaData={metaData} />;
       case 1:
-        return <div>Form Step 2: Address Details</div>;
+        return <AddProjectMaterial formik={formik} metaData={metaData} />;
       case 2:
-        return <div>Review & Submit</div>;
+        return <AddProjectMseb formik={formik} />;
+      case 3:
+        return <AddProjectMetering formik={formik} />;
+      case 4:
+        return <AddProjectNp formik={formik} />;
+      case 5:
+        return <AddProjectMembers formik={formik} employee={employee} />;
       default:
         return "Unknown Step";
     }
   };
+
+  //   const handleNext = async () => {
+  //     const valid = await formik.validateForm();
+  //     if (Object.keys(valid).length === 0) {
+  //       setActiveStep((prev) => prev + 1);
+  //     } else {
+  //       formik.setTouched(
+  //         Object.keys(validationSchemas[activeStep].fields).reduce(
+  //           (acc, key) => ({ ...acc, [key]: true }),
+  //           {}
+  //         )
+  //       );
+  //     }
+  //   };
 
   return (
     <Stack sx={{ width: "100%", mb: 2 }} spacing={2}>
@@ -237,22 +255,26 @@ export default function CustomizedSteppers({
       <hr />
       <Box sx={{ mt: 2 }}>{renderStepContent(activeStep)}</Box>
 
-      <Box sx={{ mt: 2 }}>
-        <Button disabled={activeStep === 0} onClick={handleBack}>
+      <Box
+        sx={{
+          mt: 2,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Button
+          disabled={activeStep === 0}
+          onClick={handleBack}
+          className="me-1"
+        >
           Back
         </Button>
         {activeStep === steps.length - 1 ? (
-          <Button
-            variant="contained"
-            color="success"
-            onClick={() => alert("Form Submitted")}
-          >
-            Submit
+          <Button color="success" onClick={() => alert("Form Submitted")}>
+            Save
           </Button>
         ) : (
-          <Button variant="contained" onClick={handleNext}>
-            Next
-          </Button>
+          <Button onClick={handleNext}>Next</Button>
         )}
       </Box>
     </Stack>

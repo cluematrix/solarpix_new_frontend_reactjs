@@ -11,11 +11,8 @@ const DeleteModal = ({ show, handleClose, onDelete }) => {
         <p>Are you sure you want to delete this record?</p>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button>
         <Button variant="danger" onClick={onDelete}>
-          Yes, Delete
+          Delete
         </Button>
       </Modal.Footer>
     </Modal>
