@@ -52,9 +52,10 @@ const EditDeal = () => {
     inv_cap: "",
     inv_amt: "",
     inv_seller_id: "",
-    final_amt: "",
-    sol_rate: "", // new field
-    inv_rate: "", // new field
+    final_amount: "",
+    sol_rate: "",
+    inv_rate: "",
+    sender_by_id: "", // ✅ assign to
   });
 
   // Fetch dropdown data + deal details

@@ -5,6 +5,7 @@ import { kycDataOptions } from "../../../../mockData";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
+import { FaEye } from "react-icons/fa";
 
 const KycModal = ({
   show,
@@ -16,13 +17,13 @@ const KycModal = ({
 }) => {
   console.log("kycData", kycData);
   const initialValues = {
-    kyc_status: kycData?.kyc_status || "",
+    kycStatus: kycData?.kyc_status || "",
   };
 
   const onSubmit = () => {
     api
       .put(`/api/v1/admin/client/${kycData.id}`, {
-        kyc_status: values.kyc_status,
+        kyc_status: values.kycStatus,
       })
       .then(() => {
         console.log("workingKycModal");
@@ -40,9 +41,12 @@ const KycModal = ({
   const formik = useFormik({
     initialValues,
     onSubmit,
+    enableReinitialize: true,
   });
 
   const { values, handleChange, handleBlur, handleSubmit } = formik;
+
+  console.log("valuesKycModal", values.kycStatus);
   return (
     <Modal centered show={show} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -52,32 +56,83 @@ const KycModal = ({
         <Table borderless className="mt-3">
           <tbody>
             <tr>
-              <td className="ps-0">Document No</td>
-              <td className="ps-0">{kycData?.doc_no || "--"}</td>
-            </tr>
-            <tr>
-              <td className="ps-0">View Document</td>
-              {kycData?.doc_upload ? (
-                <td className="ps-0">
+              <td className="ps-0">Aadhaar Card</td>
+              <td className="ps-0">
+                {kycData?.doc_upload ? (
                   <a
-                    href={kycData?.doc_upload}
+                    href={kycData.doc_upload}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="text-primary d-flex align-items-center"
                   >
-                    View PDF
+                    <FaEye className="me-1" />
                   </a>
-                </td>
-              ) : (
-                "--"
-              )}
+                ) : (
+                  "--"
+                )}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="ps-0">Pan Card</td>
+              <td className="ps-0">
+                {kycData?.extra_doc ? (
+                  <a
+                    href={kycData.extra_doc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary d-flex align-items-center"
+                  >
+                    <FaEye className="me-1" />
+                  </a>
+                ) : (
+                  "--"
+                )}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="ps-0">Electricity Bill</td>
+              <td className="ps-0">
+                {kycData?.electric_bill ? (
+                  <a
+                    href={kycData.electric_bill}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary d-flex align-items-center"
+                  >
+                    <FaEye className="me-1" />
+                  </a>
+                ) : (
+                  "--"
+                )}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="ps-0">NOC / Sale Deed</td>
+              <td className="ps-0">
+                {kycData?.extra_file ? (
+                  <a
+                    href={kycData.extra_file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary d-flex align-items-center"
+                  >
+                    <FaEye className="me-1" />
+                  </a>
+                ) : (
+                  "--"
+                )}
+              </td>
             </tr>
             <tr>
               <td className="ps-0">Kyc Status</td>
               <td className="ps-0">
                 <Form onSubmit={handleSubmit}>
                   <Form.Select
-                    name="kyc_status"
-                    value={values?.kyc_status || ""}
+                    name="kycStatus"
+                    value={values?.kycStatus}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     size="sm"

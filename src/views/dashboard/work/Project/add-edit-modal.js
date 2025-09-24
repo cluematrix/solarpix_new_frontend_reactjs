@@ -64,31 +64,31 @@ const AddEditProjectModal = ({
   console.log("Selected Members:", selectedMemberNames);
   return (
     <>
-      <Modal show={show} onHide={handleClose} size="lg" backdrop="static">
-        <Modal.Header closeButton className="mb-4">
-          <Modal.Title>
+      {/* <Modal show={show} onHide={handleClose} size="lg" backdrop="static"> */}
+      {/* <Modal.Header closeButton className="mb-4"> */}
+      {/* <Modal.Title>
             {openEditModal ? "Edit Project" : "Add Project"}
           </Modal.Title>
-        </Modal.Header>
-        {openEditModal ? (
-          <UpdateProjectForm
-            setShowMembersModal={setShowMembersModal}
-            formData={formData}
-            handleClose={handleClose}
-            selectedMemberNames={selectedMemberNames}
-          />
-        ) : (
-          <AddProject
-            setShowMembersModal={setShowMembersModal}
-            formData={formData}
-            handleClose={handleClose}
-            selectedMemberNames={selectedMemberNames}
-          />
-        )}
-      </Modal>
+        </Modal.Header> */}
+      {/* {openEditModal ? (
+        <UpdateProjectForm
+          setShowMembersModal={setShowMembersModal}
+          formData={formData}
+          handleClose={handleClose}
+          selectedMemberNames={selectedMemberNames}
+        />
+      ) : (
+        <AddProject
+          setShowMembersModal={setShowMembersModal}
+          formData={formData}
+          handleClose={handleClose}
+          selectedMemberNames={selectedMemberNames}
+        />
+      )} */}
+      {/* </Modal> */}
 
       {/* Members Selection Modal */}
-      <Modal show={showMembersModal} onHide={() => setShowMembersModal(false)}>
+      {/* <Modal show={showMembersModal} onHide={() => setShowMembersModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Select Project Members</Modal.Title>
         </Modal.Header>
@@ -114,7 +114,7 @@ const AddEditProjectModal = ({
             Save Selection
           </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal> */}
     </>
   );
 };

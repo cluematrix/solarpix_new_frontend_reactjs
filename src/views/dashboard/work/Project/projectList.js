@@ -95,6 +95,9 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
     setEditIndex(index);
     setShowAddEdit(true);
     setOpenEditModalData(true);
+    navigate("/add-project", {
+      state: { formData: item },
+    });
   };
 
   // delete modal
@@ -187,6 +190,7 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                   onClick={() => {
                     setShowAddEdit(true);
                     setOpenEditModalData(false);
+                    navigate("/add-project");
                   }}
                 >
                   + Add Project

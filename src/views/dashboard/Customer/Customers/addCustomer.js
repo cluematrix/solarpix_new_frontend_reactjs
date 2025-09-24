@@ -62,8 +62,11 @@ const AddCustomer = () => {
     client_category_id: leadData?.client_category_id || "",
     doc_type: leadData?.doc_type || "",
     doc_no: leadData?.doc_no || "",
-    doc_upload: leadData?.doc_upload || "",
-    description: leadData?.description || dealData?.description || "",
+    doc_upload: leadData?.doc_upload || "", // aadhaar card
+    extra_doc: leadData?.extra_doc || "", // pancard card
+    electric_bill: leadData?.electric_bill || "", // electric_bill card
+    extra_file: leadData?.extra_file || "", // noc/sale deed card
+    description: leadData?.description || "",
     kyc_status: leadData?.kyc_status || "Pending",
   };
   const navigate = useNavigate();
@@ -88,9 +91,7 @@ const AddCustomer = () => {
       .min(6, "Password must be at least 6 characters long"),
     city: Yup.string().required("City is required"),
     state: Yup.string().required("State is required"),
-    pincode: Yup.string()
-      .required("Pincode is required")
-      .matches(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+    pincode: Yup.string().required("Pincode is required"),
     client_category_id: Yup.string().required("Customer Category is required"),
     photo: Yup.mixed()
       .nullable()
@@ -104,15 +105,38 @@ const AddCustomer = () => {
           );
         }
       ),
-    doc_type: Yup.string().required("Document Type is required"),
-    doc_no: Yup.string().required("Document number is required"),
+    // doc_type: Yup.string().required("Document Type is required"),
+    // doc_no: Yup.string().required("Document number is required"),
     doc_upload: Yup.mixed()
       .nullable()
       .test("fileType", "Only Pdf files are allowed", (value) => {
         if (!value) return true;
         return ["application/pdf"].includes(value.type);
       })
-      .required("Upload doc is required"),
+      .required("Aadhaar card is required"),
+
+    extra_doc: Yup.mixed()
+      .nullable()
+      .test("fileType", "Only Pdf files are allowed", (value) => {
+        if (!value) return true;
+        return ["application/pdf"].includes(value.type);
+      })
+      .required("Pan card is required"),
+
+    electric_bill: Yup.mixed()
+      .nullable()
+      .test("fileType", "Only Pdf files are allowed", (value) => {
+        if (!value) return true;
+        return ["application/pdf"].includes(value.type);
+      })
+      .required("Electricity bill is required"),
+
+    extra_file: Yup.mixed()
+      .nullable()
+      .test("fileType", "Only Pdf files are allowed", (value) => {
+        if (!value) return true;
+        return ["application/pdf"].includes(value.type);
+      }),
   });
 
   const onSubmit = async (values, { resetForm }) => {
@@ -199,8 +223,8 @@ const AddCustomer = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }
@@ -419,44 +443,11 @@ const AddCustomer = () => {
             <h5 className="mb-0">Document Details</h5>
           </Card.Header>
 
-          {/* Row 5 {doc_type} */}
+          {/* Row 5 {doc_upload(aadhaar), extra_doc(pan)} */}
           <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomRadioGroup
-                label="Select Document"
-                name="doc_type"
-                options={docTypeOptions}
-                value={values.doc_type}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                touched={touched.doc_type}
-                error={errors.doc_type}
-                required
-              />
-            </Col>
-          </Row>
-
-          {/* Row 5 {doc_no} */}
-          <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomInput
-                label={`Enter ${values.doc_type} No`}
-                name="doc_no"
-                value={values.doc_no}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder={`Enter ${values.doc_type} No`}
-                touched={touched.doc_no}
-                errors={errors.doc_no}
-                disabled={!values.doc_type}
-                required
-                title={!values.doc_type && `Choose doc type first`}
-              />
-            </Col>
-
             <Col md={4}>
               <CustomFileInput
-                label={`Upload ${values.doc_type} (Pdf)`}
+                label="Aadhaar Card (pdf)"
                 name="doc_upload"
                 // accept="application/pdf"
                 onChange={(e) =>
@@ -465,9 +456,54 @@ const AddCustomer = () => {
                 onBlur={handleBlur}
                 touched={touched.doc_upload}
                 error={errors.doc_upload}
-                disabled={!values.doc_type}
                 required
-                title={!values.doc_type && `Choose doc type first`}
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomFileInput
+                label="Pan Card (pdf)"
+                name="extra_doc"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("extra_doc", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.extra_doc}
+                error={errors.extra_doc}
+                required
+              />
+            </Col>
+          </Row>
+
+          {/* electric_bill, extra_file */}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomFileInput
+                label="Electricity Bill (pdf)"
+                name="electric_bill"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("electric_bill", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.electric_bill}
+                error={errors.electric_bill}
+                required
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomFileInput
+                label="NOC / Sale Deed (pdf)"
+                name="extra_file"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("extra_file", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.extra_file}
+                error={errors.extra_file}
               />
             </Col>
           </Row>

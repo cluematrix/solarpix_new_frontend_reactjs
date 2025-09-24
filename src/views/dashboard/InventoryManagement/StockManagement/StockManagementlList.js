@@ -389,7 +389,7 @@ const StockManagementList = () => {
                           <td>{item.Credit}</td>
                           <td>{item.Debit}</td>
                           <td>{item.balance}</td>
-                          <td>{item.stock_material_id}</td>
+                          <td>{item.material.material}</td>
                           <td>
                             <span
                               className={`status-dot ${
