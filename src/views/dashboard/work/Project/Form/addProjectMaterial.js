@@ -138,6 +138,7 @@ const AddProjectMaterial = ({ formik, metaData }) => {
                   <tr key={stock.id}>
                     <td>
                       <Form.Check
+                        id={stock.id}
                         type="checkbox"
                         label={stock.material}
                         checked={!!selectedItem} // agar object mila to true

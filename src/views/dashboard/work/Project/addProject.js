@@ -42,7 +42,7 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
     net_metering_app_id: "",
     net_metering_app_date: "",
     net_metering_sanction_letter: "", // file upload
-    net_metering_sanction_letter_status: "Pending",
+    net_metering_sanction_status: "Pending",
 
     np_phone: "",
     np_reg_no: "",
@@ -269,11 +269,22 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
   //generate next short_code
   useEffect(() => {
     if (metaData.project && metaData.project.length > 0) {
-      const lastShortCode =
-        metaData.project[metaData.project.length - 1]?.short_code || "SOLAR000";
+      // ✅ Get all short codes
+      const codes = metaData.project.map((p) => p.short_code);
 
-      // extract number safely
-      const match = lastShortCode.match(/\d+$/); // SOLAR123 → 123
+      // ✅ Sort them by numeric part (descending)
+      const sorted = codes.sort((a, b) => {
+        const numA = parseInt(a.match(/\d+$/)?.[0] || 0, 10);
+        const numB = parseInt(b.match(/\d+$/)?.[0] || 0, 10);
+        return numB - numA;
+      });
+
+      // ✅ Take the highest one
+      const lastShortCode = sorted[0];
+      console.log("lastShortCode", lastShortCode);
+
+      // ✅ Extract number and increment
+      const match = lastShortCode.match(/\d+$/);
       const num = match ? parseInt(match[0], 10) : 0;
 
       const nextId = "SOLAR" + String(num + 1).padStart(3, "0");
