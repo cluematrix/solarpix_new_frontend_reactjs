@@ -94,7 +94,7 @@ const SignIn = ({ swal }) => {
           sessionStorage.setItem("solarpix_token", accessToken);
           sessionStorage.setItem("roleId", user.role_id);
           sessionStorage.setItem("employee_id", user.id);
-          sessionStorage.setItem("user", user);
+          sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
           await swal.fire({
             icon: "success",

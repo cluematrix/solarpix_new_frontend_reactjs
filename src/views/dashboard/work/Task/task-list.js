@@ -11,7 +11,7 @@ import {
 } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import VisibilityIcon from "@mui/icons-material/Visibility"; // 👁 eye icon
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddEditTaskModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
@@ -19,43 +19,39 @@ import avatarPic from "../../../../assets/images/avatars/avatar-pic.jpg";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import { statusOptions } from "../../../../mockData";
-import "../../../../styles/hoverMembersImg.css";
 import { useNavigate } from "react-router-dom";
+import ViewTaskModal from "./ViewTaskModal";
 
-const TaskList = ({ onActiveTab }) => {
+const TaskList = () => {
   const [taskList, setTaskList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    project: "",
-    startDate: "",
-    dueDate: "",
-    withoutDueDate: false,
-    status: "Incomplete",
-    projectMembers: [],
-    description: "",
-  });
-
-  const [editTask, setEditTask] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
+  const [editTask, setEditTask] = useState(null);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteTask, setDeleteTask] = useState(null);
-
-  const [showTaskDetails, setShowTaskDetails] = useState(false);
-  const [showMembersOnly, setShowMembersOnly] = useState(false);
-
   const [selectedTask, setSelectedTask] = useState(null);
-  const [selectedMembers, setSelectedMembers] = useState([]);
+  const navigate = useNavigate();
 
-  // Fetch tasks from API
+  // Form defaults
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    priority: "Medium",
+    task_type: "",
+    start_date: "",
+    end_date: "",
+    assign_by: "",
+    assign_to: [],
+    task_category_id: "",
+    status: "To Do",
+    project_id: "",
+  });
+
+  // Fetch all tasks
   const fetchTasks = async () => {
     try {
       setLoading(true);
       const res = await api.get("/api/v1/admin/task");
-
       if (res.data.success) {
         setTaskList(res.data.data || []);
       }
@@ -70,27 +66,19 @@ const TaskList = ({ onActiveTab }) => {
     fetchTasks();
   }, []);
 
-  // Add or Update Task
+  // Add/Edit task handler
   const handleAddOrUpdateTask = async (data) => {
     try {
       const loggedInUser = JSON.parse(sessionStorage.getItem("employee_id"));
-      // alert(loggedInUser);
-      const assignById = loggedInUser;
-
       const payload = {
-        title: data.title,
-        description: data.description,
-        start_date: data.startDate,
-        end_date: data.withoutDueDate ? null : data.dueDate,
-        project_id: data.project,
-        task_category_id: data.category,
-        status: data.status,
-        assign_to: data.projectMembers,
-        assign_by: assignById,
+        ...data,
+        assign_by: loggedInUser,
+        end_date: data.withoutDueDate ? null : data.end_date,
       };
 
       if (editTask) {
         await api.put(`/api/v1/admin/task/${editTask.id}`, payload);
+        successToast("Task updated successfully");
       } else {
         await api.post("/api/v1/admin/task", payload);
         successToast("Task created successfully");
@@ -98,81 +86,62 @@ const TaskList = ({ onActiveTab }) => {
 
       fetchTasks();
     } catch (err) {
-      console.error("Error saving task:", err.response?.data || err);
-      successToast("Task created successfully");
+      console.error(err);
+      errorToast("Failed to save task");
     } finally {
       setShowAddEdit(false);
       setEditTask(null);
     }
   };
 
-  // Update Task Status
+  // Update status
   const handleUpdateStatus = async (task, newStatus) => {
     try {
-      const payload = {
+      await api.put(`/api/v1/admin/task/${task.id}`, {
         ...task,
         status: newStatus,
-      };
-
-      await api.put(`/api/v1/admin/task/${task.id}`, payload);
-
+      });
       successToast("Status updated successfully");
       fetchTasks();
     } catch (err) {
-      console.error("Error saving task:", err.response?.data || err);
-      errorToast(err.response?.data || "Failed to update status");
+      console.error(err);
+      errorToast("Failed to update status");
     }
   };
 
-  // Edit Task
+  // Edit task
   const handleEdit = (task) => {
     setFormData({
-      title: task.title,
-      category: task.task_category_id || "",
-      project: task.project?.id || "",
-      startDate: task.start_date?.split("T")[0] || "",
-      dueDate: task.end_date?.split("T")[0] || "",
-      withoutDueDate: !task.end_date,
-      status: task.status,
-      projectMembers: task.assign_to || [],
-      description: task.description,
+      title: task.title || "",
+      description: task.description || "",
+      priority: task.priority || "Medium",
+      task_type: task.task_type || "",
+      start_date: task.start_date?.split("T")[0] || "",
+      end_date: task.end_date?.split("T")[0] || "",
+      assign_by: task.assign_by || "",
+      assign_to: task.assign_to || [],
+      task_category_id: task.task_category_id || "",
+      status: task.status || "Incomplete",
+      project_id: task.project_id || "",
     });
     setEditTask(task);
     setShowAddEdit(true);
   };
 
-  // Delete Task
+  // Delete task
   const handleDeleteConfirm = async () => {
-    if (deleteTask) {
-      try {
-        await api.delete(`/api/v1/admin/task/${deleteTask.id}`);
-        fetchTasks();
-      } catch (err) {
-        console.error("Error deleting task:", err);
-      }
+    if (!deleteTask) return;
+    try {
+      await api.delete(`/api/v1/admin/task/${deleteTask.id}`);
+      fetchTasks();
+      successToast("Task deleted successfully");
+    } catch (err) {
+      console.error(err);
+      errorToast("Failed to delete task");
+    } finally {
+      setShowDelete(false);
+      setDeleteTask(null);
     }
-    setShowDelete(false);
-    setDeleteTask(null);
-  };
-
-  // Open Task Details modal
-
-  const handleViewTask = (task) => {
-    setSelectedTask(task);
-
-    setShowTaskDetails(true);
-  };
-
-  // // Open Members Only modal
-  // const handleShowMembers = (members) => {
-  //   setSelectedMembers(members || []);
-  //   setShowMembersOnly(true);
-  // };
-
-  // navigate to employee profile tab
-  const handleNavigateToProfile = (item) => {
-    navigate(`/view-employee/${item.id}`);
-    console.log("itemEmp", item);
   };
 
   return (
@@ -182,7 +151,7 @@ const TaskList = ({ onActiveTab }) => {
           <Card>
             <Card.Header
               className="d-flex justify-content-between"
-              style={{ padding: "15px 15px 0px 15px" }}
+              style={{ padding: "15px" }}
             >
               <h5 className="card-title fw-lighter">Tasks</h5>
               <Button
@@ -190,14 +159,16 @@ const TaskList = ({ onActiveTab }) => {
                 onClick={() => {
                   setFormData({
                     title: "",
-                    category: "",
-                    project: "",
-                    startDate: "",
-                    dueDate: "",
-                    withoutDueDate: false,
-                    status: "Incomplete",
-                    projectMembers: [],
                     description: "",
+                    priority: "Medium",
+                    task_type: "",
+                    start_date: "",
+                    end_date: "",
+                    assign_by: "",
+                    assign_to: [],
+                    task_category_id: "",
+                    status: "To Do",
+                    project_id: "",
                   });
                   setEditTask(null);
                   setShowAddEdit(true);
@@ -206,7 +177,6 @@ const TaskList = ({ onActiveTab }) => {
                 + Add Task
               </Button>
             </Card.Header>
-
             <Card.Body className="px-0 pt-3">
               {loading ? (
                 <div className="text-center my-4">
@@ -214,13 +184,12 @@ const TaskList = ({ onActiveTab }) => {
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <Table hover responsive className="table">
+                  <Table hover responsive>
                     <thead>
                       <tr className="table-gray">
                         <th>Sr. No.</th>
                         <th>Title</th>
                         <th>Project</th>
-                        {/* <th>Category</th> */}
                         <th>Assigned To</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -229,43 +198,40 @@ const TaskList = ({ onActiveTab }) => {
                     <tbody>
                       {taskList.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="text-center">
+                          <td colSpan="6" className="text-center">
                             No tasks available
                           </td>
                         </tr>
                       ) : (
-                        taskList.map((item, idx) => (
-                          <tr key={item.id}>
+                        taskList.map((task, idx) => (
+                          <tr key={task.id}>
                             <td>{idx + 1}</td>
-                            <td>{item.title}</td>
-                            <td>{item.project?.project_name || "-"}</td>
+                            <td>{task.title}</td>
+                            <td>{task.project?.project_name || "-"}</td>
                             <td className="text-center">
-                              <div className="d-flex align-items-center justify-content-center">
-                                {item.assign_to_details
-                                  .slice(0, 3)
-                                  .map((ass, index) => (
+                              <div className="d-flex justify-content-center">
+                                {task.assign_to_details
+                                  ?.slice(0, 3)
+                                  .map((m, i) => (
                                     <img
-                                      key={index}
-                                      src={ass.photo || avatarPic}
-                                      alt={ass.name}
-                                      title={ass.name}
-                                      className="rounded-circle me-1 avatar-hover"
+                                      key={i}
+                                      src={m.photo || avatarPic}
+                                      title={m.name}
+                                      className="rounded-circle me-1"
                                       style={{
                                         width: "25px",
                                         height: "25px",
                                         objectFit: "cover",
-                                        border: "1px solid #ccc",
                                         cursor: "pointer",
-                                        zIndex: 10 - index,
+                                        zIndex: 10 - i,
                                         marginLeft: "-15px",
                                       }}
                                       onClick={() =>
-                                        handleNavigateToProfile(ass)
+                                        navigate(`/view-employee/${m.id}`)
                                       }
                                     />
                                   ))}
-
-                                {item.assign_to_details.length > 3 && (
+                                {task.assign_to_details?.length > 3 && (
                                   <div
                                     className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark"
                                     style={{
@@ -275,13 +241,8 @@ const TaskList = ({ onActiveTab }) => {
                                       border: "1px solid #ccc",
                                       cursor: "pointer",
                                     }}
-                                    onClick={() =>
-                                      handleNavigateToProfile(
-                                        item.assign_to_details
-                                      )
-                                    }
                                   >
-                                    +{item.assign_to_details.length - 3}
+                                    +{task.assign_to_details.length - 3}
                                   </div>
                                 )}
                               </div>
@@ -289,44 +250,39 @@ const TaskList = ({ onActiveTab }) => {
                             <td>
                               <Form.Select
                                 size="sm"
-                                name="status"
-                                value={item.status || ""}
+                                value={task.status}
                                 onChange={(e) =>
-                                  handleUpdateStatus(item, e.target.value)
+                                  handleUpdateStatus(task, e.target.value)
                                 }
-                                className="w-75"
                               >
-                                {statusOptions.map((status) => (
-                                  <option key={status.name} value={status.name}>
-                                    {status.icon} {status.name}
+                                {statusOptions.map((s) => (
+                                  <option key={s.name} value={s.name}>
+                                    {s.icon} {s.name}
                                   </option>
                                 ))}
                               </Form.Select>
                             </td>
-
                             <td>
-                              {item.assign_to_details?.length > 0 ? (
-                                <VisibilityIcon
-                                  style={{ cursor: "pointer" }}
-                                  color="primary"
-                                  onClick={() => handleViewTask(item)}
-                                  className="me-2"
-                                />
-                              ) : (
-                                "-"
-                              )}
-                              <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(item)}
-                                color="primary"
+                              <VisibilityIcon
+                                color="primary" // grayish tone
                                 style={{ cursor: "pointer" }}
+                                onClick={() => setSelectedTask(task)}
+                                className="me-2"
                               />
+
+                              <CreateTwoToneIcon
+                                color="primary" // blue
+                                onClick={() => handleEdit(task)}
+                                style={{ cursor: "pointer" }}
+                                className="me-2"
+                              />
+
                               <DeleteRoundedIcon
+                                color="error" // red
                                 onClick={() => {
-                                  setDeleteTask(item);
+                                  setDeleteTask(task);
                                   setShowDelete(true);
                                 }}
-                                color="error"
                                 style={{ cursor: "pointer" }}
                               />
                             </td>
@@ -342,104 +298,20 @@ const TaskList = ({ onActiveTab }) => {
         </Col>
       </Row>
 
-      {/* Task Details Modal */}
-      <Modal
-        show={showTaskDetails}
-        onHide={() => setShowTaskDetails(false)}
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Task Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedTask ? (
-            <div>
-              <p>
-                <strong>Title:</strong> {selectedTask.title}
-              </p>
-              <p>
-                <strong>Project:</strong>{" "}
-                {selectedTask.project?.project_name || "-"}
-              </p>
-              <p>
-                <strong>Category:</strong>{" "}
-                {selectedTask.taskCategory?.category || "-"}
-              </p>
-              <p>
-                <strong>Status:</strong> {selectedTask.status}
-              </p>
-              <p>
-                <strong>Start Date:</strong>{" "}
-                {selectedTask.start_date?.split("T")[0] || "-"}
-              </p>
-              <p>
-                <strong>Due Date:</strong>{" "}
-                {selectedTask.end_date?.split("T")[0] || "No Due Date"}
-              </p>
-              <p>
-                <strong>Description:</strong> {selectedTask.description || "-"}
-              </p>
-
-              <hr />
-              <h6>Assigned Members</h6>
-              {selectedTask.assign_to_details?.length > 0 ? (
-                <ul>
-                  {selectedTask.assign_to_details.map((m) => (
-                    <li key={m.id}>{m.name}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No members assigned.</p>
-              )}
-            </div>
-          ) : (
-            <p>No task details available.</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer></Modal.Footer>
-      </Modal>
-
-      {/* Members Only Modal */}
-      <Modal show={showMembersOnly} onHide={() => setShowMembersOnly(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Assigned Members</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedMembers.length > 0 ? (
-            <ul>
-              {selectedMembers.map((m) => (
-                <li key={m.id}>
-                  <strong>{m.name}</strong>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No members assigned.</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer></Modal.Footer>
-      </Modal>
-
-      {/* Add/Edit Task Modal */}
+      {/* Add/Edit Modal */}
       <AddEditTaskModal
         show={showAddEdit}
-        handleClose={() => {
-          setShowAddEdit(false);
-          setEditTask(null);
-        }}
+        handleClose={() => setShowAddEdit(false)}
         formData={formData}
         setFormData={setFormData}
         onSave={handleAddOrUpdateTask}
         editData={!!editTask}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
-        handleClose={() => {
-          setShowDelete(false);
-          setDeleteTask(null);
-        }}
+        handleClose={() => setShowDelete(false)}
         onConfirm={handleDeleteConfirm}
         modalTitle="Delete Task"
         modalMessage={
@@ -447,6 +319,13 @@ const TaskList = ({ onActiveTab }) => {
             ? `Are you sure you want to delete "${deleteTask.title}"?`
             : ""
         }
+      />
+
+      {/* View Modal */}
+      <ViewTaskModal
+        show={!!selectedTask}
+        handleClose={() => setSelectedTask(null)}
+        task={selectedTask}
       />
     </>
   );

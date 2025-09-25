@@ -57,6 +57,11 @@ const Header = memo((props) => {
   const minisidebar = () => {
     document.getElementsByTagName("ASIDE")[0].classList.toggle("sidebar-mini");
   };
+
+  const user = JSON.parse(sessionStorage.getItem("user") || "null");
+
+  console.log(user?.name || "Guest");
+
   return (
     <Fragment>
       <Navbar
@@ -386,42 +391,18 @@ const Header = memo((props) => {
                   aria-expanded="false"
                 >
                   <img
-                    src={avatars1}
+                    src={user?.photo || avatars1} // fallback to avatars1 if no photo
                     alt="User-Profile"
-                    className="theme-color-default-img img-fluid avatar avatar-40 avatar-rounded"
+                    className="img-fluid avatar avatar-40 avatar-rounded"
                   />
-                  <img
-                    src={avatars2}
-                    alt="User-Profile"
-                    className="theme-color-purple-img img-fluid avatar avatar-40 avatar-rounded"
-                  />
-                  <img
-                    src={avatars3}
-                    alt="User-Profile"
-                    className="theme-color-blue-img img-fluid avatar avatar-40 avatar-rounded"
-                  />
-                  <img
-                    src={avatars5}
-                    alt="User-Profile"
-                    className="theme-color-green-img img-fluid avatar avatar-40 avatar-rounded"
-                  />
-                  <img
-                    src={avatars6}
-                    alt="User-Profile"
-                    className="theme-color-yellow-img img-fluid avatar avatar-40 avatar-rounded"
-                  />
-                  <img
-                    src={avatars4}
-                    alt="User-Profile"
-                    className="theme-color-pink-img img-fluid avatar avatar-40 avatar-rounded"
-                  />
+
                   <div className="caption ms-2 d-none d-md-block ">
-                    <h6 className="mb-0 caption-title">Austin Robertson</h6>
+                    <h6 className="mb-0 caption-title">{user?.name || ""}</h6>
                     <p
                       className="mb-0 caption-sub-title"
                       style={{ fontSize: "12px" }}
                     >
-                      Marketing Administrator
+                      {user?.designation.name || ""}
                     </p>
                   </div>
                 </Dropdown.Toggle>
