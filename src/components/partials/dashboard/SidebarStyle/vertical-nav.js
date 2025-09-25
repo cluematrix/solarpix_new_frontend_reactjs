@@ -385,7 +385,7 @@ const VerticalNav = memo((props) => {
               <PeopleIcon fontSize="small" />
             </i>
             <span className="item-name sidebar-font-size">
-              Opportunity Managment
+              Opportunity Management
             </span>
             <i className="right-icon">
               <svg

@@ -11,7 +11,7 @@ const EditDeal = () => {
   const [leads, setLeads] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [rates, setRates] = useState([]);
-  const [employees, setEmployees] = useState([]); // ✅ employees
+  const [employees, setEmployees] = useState([]); // employees
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({

@@ -17,77 +17,58 @@ const AddEditTaskModal = ({
   const [loading, setLoading] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
 
-  // ✅ Fetch dropdown data when modal opens
+  const priorityOptions = ["Low", "Medium", "High", "Critical"];
+  const taskTypeOptions = [
+    "Survey",
+    "Procurement",
+    "Installation",
+    "Testing",
+    "Inspection",
+    "Docs",
+  ];
+
   useEffect(() => {
-    if (show) fetchData();
+    if (show) fetchDropdownData();
   }, [show]);
 
-  const fetchData = async () => {
+  const fetchDropdownData = async () => {
     try {
       setLoading(true);
+      const catRes = await api.get("/api/v1/admin/taskCategory/active");
+      setCategoryOptions(catRes.data || []);
 
-      // Categories
-      // Fetch Task Categories
-      const categoryRes = await api.get("/api/v1/admin/taskCategory/active");
+      const projRes = await api.get("/api/v1/admin/project/active");
+      setProjectOptions(projRes.data.data || []);
 
-      // If backend returns array directly
-      if (Array.isArray(categoryRes.data)) {
-        setCategoryOptions(categoryRes.data);
-      }
-      // If backend wraps in { success, data }
-      else if (categoryRes.data.success) {
-        setCategoryOptions(categoryRes.data.data || categoryRes.data || []);
-      }
-
-      // Projects
-      const projectRes = await api.get("/api/v1/admin/project/active");
-      if (projectRes.data.success) {
-        setProjectOptions(projectRes.data.data || []);
-      }
-
-      // Employees
       const empRes = await api.get("/api/v1/admin/employee/active");
-      if (empRes.data.success) {
-        setMembersList(empRes.data.data || []);
-      }
+      setMembersList(empRes.data.data || []);
     } catch (err) {
-      console.error("Error fetching dropdowns:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Form field change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
-  // ✅ Toggle member selection (multi select)
-  const toggleMemberSelection = (id) => {
-    setFormData((prev) => {
-      const alreadySelected = prev.projectMembers?.includes(id);
-      return {
-        ...prev,
-        projectMembers: alreadySelected
-          ? prev.projectMembers.filter((m) => m !== id) // remove
-          : [...(prev.projectMembers || []), id], // add
-      };
-    });
+  const toggleMember = (id) => {
+    setFormData((prev) => ({
+      ...prev,
+      assign_to: prev.assign_to?.includes(id)
+        ? prev.assign_to.filter((m) => m !== id)
+        : [...(prev.assign_to || []), id],
+    }));
   };
 
-  // ✅ Show selected member names
   const selectedMemberNames = membersList
-    .filter((m) => formData.projectMembers?.includes(m.id))
+    .filter((m) => formData.assign_to?.includes(m.id))
     .map((m) => m.name);
 
-  // ✅ Submit form
   const handleSubmit = (e) => {
     e.preventDefault();
-    // send to parent (TaskList)
     onSave(formData);
   };
 
@@ -99,20 +80,14 @@ const AddEditTaskModal = ({
         </Modal.Header>
         <Modal.Body>
           {loading ? (
-            <div className="text-center my-5">
-              <Spinner animation="border" />
-            </div>
+            <Spinner animation="border" />
           ) : (
             <Form onSubmit={handleSubmit}>
               <Row>
-                {/* Title */}
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">
-                      Title <span className="text-danger">*</span>
-                    </Form.Label>
+                    <Form.Label>Title *</Form.Label>
                     <Form.Control
-                      type="text"
                       name="title"
                       value={formData.title || ""}
                       onChange={handleChange}
@@ -120,23 +95,18 @@ const AddEditTaskModal = ({
                     />
                   </Form.Group>
                 </Col>
-
-                {/* Category */}
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">
-                      Task Category <span className="text-danger">*</span>
-                    </Form.Label>
+                    <Form.Label>Category *</Form.Label>
                     <Form.Select
-                      name="category"
-                      value={formData.category || ""}
+                      name="task_category_id"
+                      value={formData.task_category_id || ""}
                       onChange={handleChange}
-                      required
                     >
                       <option value="">Select Category</option>
-                      {categoryOptions.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.category}
+                      {categoryOptions.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.category}
                         </option>
                       ))}
                     </Form.Select>
@@ -145,62 +115,43 @@ const AddEditTaskModal = ({
               </Row>
 
               <Row className="mt-2">
-                {/* Project */}
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">
-                      Project <span className="text-danger">*</span>
-                    </Form.Label>
+                    <Form.Label>Project *</Form.Label>
                     <Form.Select
-                      name="project"
-                      value={formData.project || ""}
+                      name="project_id"
+                      value={formData.project_id || ""}
                       onChange={handleChange}
                       required
                     >
                       <option value="">Select Project</option>
-                      {projectOptions.map((proj) => (
-                        <option key={proj.id} value={proj.id}>
-                          {proj.project_name}
+                      {projectOptions.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.project_name}
                         </option>
                       ))}
                     </Form.Select>
                   </Form.Group>
                 </Col>
-
-                {/* Start Date */}
                 <Col md={3}>
                   <Form.Group>
-                    <Form.Label className="pt-4">
-                      Start Date <span className="text-danger">*</span>
-                    </Form.Label>
+                    <Form.Label>Start Date *</Form.Label>
                     <Form.Control
                       type="date"
-                      name="startDate"
-                      value={formData.startDate || ""}
+                      name="start_date"
+                      value={formData.start_date || ""}
                       onChange={handleChange}
                       required
                     />
                   </Form.Group>
                 </Col>
-
-                {/* Due Date */}
                 <Col md={3}>
                   <Form.Group>
-                    <Form.Label className="pt-4">Due Date</Form.Label>
+                    <Form.Label>Due Date</Form.Label>
                     <Form.Control
                       type="date"
-                      name="dueDate"
-                      value={formData.dueDate || ""}
-                      onChange={handleChange}
-                      disabled={formData.withoutDueDate}
-                      required
-                    />
-                    <Form.Check
-                      className="mt-1"
-                      type="checkbox"
-                      label="Without Due Date"
-                      name="withoutDueDate"
-                      checked={formData.withoutDueDate || false}
+                      name="end_date"
+                      value={formData.end_date || ""}
                       onChange={handleChange}
                     />
                   </Form.Group>
@@ -208,45 +159,84 @@ const AddEditTaskModal = ({
               </Row>
 
               <Row className="mt-2">
-                {/* Status */}
-                <Col md={6}>
+                <Col md={4}>
                   <Form.Group>
-                    <Form.Label className="pt-4">
-                      Status <span className="text-danger">*</span>
-                    </Form.Label>
-
+                    <Form.Label>Status *</Form.Label>
                     <Form.Select
                       name="status"
-                      value={formData.status || ""}
+                      value={formData.status || "pending"}
                       onChange={handleChange}
-                      required
                     >
-                      {statusOptions.map((status) => (
-                        <option key={status.name} value={status.name}>
-                          {status.icon} {status.name}
+                      {statusOptions.map((s) => (
+                        <option key={s.name} value={s.name}>
+                          {s.icon} {s.name}
                         </option>
                       ))}
                     </Form.Select>
                   </Form.Group>
                 </Col>
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Priority *</Form.Label>
+                    <Form.Select
+                      name="priority"
+                      value={formData.priority || "Medium"}
+                      onChange={handleChange}
+                    >
+                      {priorityOptions.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label>Task Type *</Form.Label>
+                    <Form.Select
+                      name="task_type"
+                      value={formData.task_type || ""}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select Type</option>
+                      {taskTypeOptions.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row className="mt-2">
+                {/* <Col md={6}>
+                  <Form.Group>
+                    <Form.Label>Assigned By *</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="assign_by"
+                      value={formData.assign_by || ""}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Form.Group>
+                </Col> */}
                 <Col md={6}>
                   <Form.Group>
-                    <Form.Label className="pt-4">
-                      Assigned To <span className="text-danger">*</span>
-                    </Form.Label>
-                    <div className="d-flex align-items-center">
+                    <Form.Label>Assigned To *</Form.Label>
+                    <div className="d-flex">
                       <Form.Control
                         type="text"
                         value={
-                          selectedMemberNames.length > 0
-                            ? selectedMemberNames.join(", ")
-                            : "No members selected"
+                          selectedMemberNames.join(", ") ||
+                          "No members selected"
                         }
                         readOnly
                         required
                       />
                       <Button
-                        variant="outline-primary"
                         className="ms-2"
                         onClick={() => setShowMembersModal(true)}
                       >
@@ -257,13 +247,10 @@ const AddEditTaskModal = ({
                 </Col>
               </Row>
 
-              {/* Description */}
               <Row className="mt-2">
                 <Col md={12}>
                   <Form.Group>
-                    <Form.Label className="pt-4">
-                      Description <span className="text-danger">*</span>
-                    </Form.Label>
+                    <Form.Label>Description *</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={3}
@@ -271,19 +258,17 @@ const AddEditTaskModal = ({
                       value={formData.description || ""}
                       onChange={handleChange}
                       required
-                      style={{ color: "black" }}
                     />
                   </Form.Group>
                 </Col>
               </Row>
 
-              {/* Buttons */}
               <div className="text-end mt-3">
-                <Button variant="secondary" onClick={handleClose}>
+                {/* <Button variant="secondary" onClick={handleClose}>
                   Cancel
-                </Button>
-                <Button type="submit" variant="primary" className="ms-2">
-                  Save Task
+                </Button> */}
+                <Button variant="primary" type="submit" className="ms-2">
+                  Save
                 </Button>
               </div>
             </Form>
@@ -291,20 +276,19 @@ const AddEditTaskModal = ({
         </Modal.Body>
       </Modal>
 
-      {/* ✅ Members Selection Modal */}
+      {/* Members Modal */}
       <Modal show={showMembersModal} onHide={() => setShowMembersModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Select Project Members</Modal.Title>
+          <Modal.Title>Select Members</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {membersList.map((member) => (
+          {membersList.map((m) => (
             <Form.Check
-              id={member.id}
-              key={member.id}
+              key={m.id}
               type="checkbox"
-              label={member.name}
-              checked={formData.projectMembers?.includes(member.id)}
-              onChange={() => toggleMemberSelection(member.id)}
+              label={m.name}
+              checked={formData.assign_to?.includes(m.id)}
+              onChange={() => toggleMember(m.id)}
             />
           ))}
         </Modal.Body>
@@ -316,7 +300,7 @@ const AddEditTaskModal = ({
             Close
           </Button>
           <Button variant="primary" onClick={() => setShowMembersModal(false)}>
-            Save Selection
+            Save
           </Button>
         </Modal.Footer>
       </Modal>
