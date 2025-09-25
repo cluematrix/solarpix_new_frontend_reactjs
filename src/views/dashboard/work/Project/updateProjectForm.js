@@ -35,6 +35,7 @@ const UpdateProjectForm = ({
   const navigate = useNavigate();
   console.log("formDataAddProject", formData);
   const [loading, setLoading] = useState(true);
+  const [activeStep, setActiveStep] = React.useState(0);
   const [metaData, setMetaData] = useState({
     projectCategory: [],
     clientList: [],
@@ -42,38 +43,98 @@ const UpdateProjectForm = ({
     project: [],
   });
 
-  const validationSchema = Yup.object().shape({
-    short_code: Yup.string().required("Short Code is required"),
-    project_name: Yup.string().required("Project Name is required"),
-    start_date: Yup.date().required("Start Date is required"),
-    is_deadline: Yup.boolean().default(false),
-    end_date: Yup.date()
-      .nullable()
-      .when("is_deadline", (is_deadline, schema) => {
-        return !is_deadline
-          ? schema
-              .required("End Date is required")
-              .min(
-                Yup.ref("start_date"),
-                "End Date cannot be before Start Date"
-              )
-          : schema.nullable(); // if is_deadline is true, end_date not required
-      }),
-    project_category_id: Yup.string().required("Project Category is required"),
-    client_id: Yup.string().required("Customer is required"),
-    project_summary: Yup.string().required("Project Summary is required"),
-    project_budget: Yup.number()
-      .typeError("Project Budget must be a number")
-      .positive("Project Budget must be positive")
-      .required("Project Budget is required"),
-    hour_estimate: Yup.number()
-      .typeError("Hour Estimate must be a number")
-      .positive("Hour Estimate must be positive")
-      .required("Hour Estimate is required"),
-    assign_to: Yup.array()
-      .min(1, "At least one project member must be selected")
-      .required("Project Members are required"),
-  });
+  const validationSchemas = [
+    // Step-wise validation schemas (project info)
+    Yup.object().shape({
+      short_code: Yup.string().required("Short Code is required"),
+      project_name: Yup.string().required("Project Name is required"),
+      start_date: Yup.date().required("Start Date is required"),
+      is_deadline: Yup.boolean().default(false),
+      end_date: Yup.date()
+        .nullable()
+        .when("is_deadline", (is_deadline, schema) => {
+          return !is_deadline
+            ? schema
+                .required("End Date is required")
+                .min(
+                  Yup.ref("start_date"),
+                  "End Date cannot be before Start Date"
+                )
+            : schema.nullable(); // if is_deadline is true, end_date not required
+        }),
+      project_category_id: Yup.string().required(
+        "Project Category is required"
+      ),
+      client_id: Yup.string().required("Customer is required"),
+      project_remarks: Yup.string().required("Project remarks is required"),
+      estimate: Yup.number()
+        .typeError("Project estimate must be a number")
+        .positive("Project estimate must be positive")
+        .required("Project estimate is required"),
+    }),
+
+    // Step-wise validation schemas (material info)
+    Yup.object().shape({
+      stock_material: Yup.array()
+        .min(1, "At least one stock material must be selected")
+        .required("Stock material are required"),
+      company_name: Yup.string().required("Company Name is required"),
+      capacity: Yup.string().required("Capacity is required"),
+    }),
+
+    // Step-wise validation schemas (mseb info)
+    Yup.object().shape({
+      mseb_phone: Yup.number()
+        .typeError("Phone must be a number")
+        .min(1000000000, "Phone must be 10 digits")
+        .max(9999999999, "Phone must be 10 digits"),
+
+      mseb_email: Yup.string().email("Invalid email format"),
+    }),
+
+    // Step-wise validation schemas (net metering info)
+    Yup.object().shape({
+      net_metering_sanction_letter: Yup.mixed()
+        .nullable()
+        .test("fileType", "Only Pdf files are allowed", (value) => {
+          if (!value) return true;
+          return ["application/pdf"].includes(value.type);
+        }),
+    }),
+
+    // Step-wise validation schemas (nodal point info)
+    Yup.object().shape({
+      np_phone: Yup.number()
+        .typeError("Phone must be a number")
+        .min(1000000000, "Phone must be 10 digits")
+        .max(9999999999, "Phone must be 10 digits"),
+
+      np_email: Yup.string().email("Invalid email format"),
+    }),
+
+    // Step-wise validation schemas (staff management info)
+    Yup.object().shape({
+      co_ordinate: Yup.array()
+        .of(Yup.string())
+        .min(1, "Co-ordinate is required"),
+
+      structure_installer: Yup.array()
+        .of(Yup.string())
+        .min(1, "Structure installer is required"),
+
+      panel_wiring_installer: Yup.array()
+        .of(Yup.string())
+        .min(1, "Panel wiring installer is required"),
+
+      sepl_inspection_by: Yup.array()
+        .of(Yup.string())
+        .min(1, "Sepl inspection by is required"),
+
+      sepl_inspection_date: Yup.array()
+        .of(Yup.string())
+        .min(1, "Sepl inspection is required"),
+    }),
+  ];
 
   const onSubmit = async (values, { resetForm }) => {
     try {
@@ -91,10 +152,9 @@ const UpdateProjectForm = ({
 
   const formik = useFormik({
     initialValues,
-    validationSchema,
+    validationSchema: validationSchemas[activeStep],
     onSubmit,
   });
-
   const {
     values,
     errors,

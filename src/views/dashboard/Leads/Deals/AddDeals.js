@@ -448,9 +448,9 @@ const AddDeals = ({ editData }) => {
         </Row>
 
         {/* Save */}
-        <div className="text-end">
+        <div className="text-end mt-2">
           <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? "Saving..." : editData ? "Update Deal" : "Save Deal"}
+            {loading ? "Saving..." : editData ? "Update" : "Save"}
           </Button>
         </div>
       </Form>

@@ -225,20 +225,22 @@ export default function CustomizedSteppers({
     }
   };
 
-  //   const handleNext = async () => {
-  //     const valid = await formik.validateForm();
-  //     if (Object.keys(valid).length === 0) {
-  //       setActiveStep((prev) => prev + 1);
-  //     } else {
-  //       formik.setTouched(
-  //         Object.keys(validationSchemas[activeStep].fields).reduce(
-  //           (acc, key) => ({ ...acc, [key]: true }),
-  //           {}
-  //         )
-  //       );
-  //     }
-  //   };
+  const handleNextCustom = async () => {
+    const valid = await formik.validateForm();
+    if (Object.keys(valid).length === 0) {
+      setActiveStep((prev) => prev + 1);
+    } else {
+      formik.setTouched(
+        Object.keys(validationSchemas[activeStep].fields).reduce(
+          (acc, key) => ({ ...acc, [key]: true }),
+          {}
+        )
+      );
+    }
+  };
 
+  console.log("Formik Errors:", formik.errors);
+  console.log("Formik Values Main:", formik.values);
   return (
     <Stack sx={{ width: "100%", mb: 2 }} spacing={2}>
       <Stepper
@@ -270,11 +272,16 @@ export default function CustomizedSteppers({
           Back
         </Button>
         {activeStep === steps.length - 1 ? (
-          <Button color="success" onClick={() => alert("Form Submitted")}>
-            Save
+          <Button
+            color="success"
+            type="submit"
+            onClick={formik.handleSubmit}
+            disabled={formik.isSubmitting}
+          >
+            {formik.isSubmitting ? "Saving..." : "Save"}
           </Button>
         ) : (
-          <Button onClick={handleNext}>Next</Button>
+          <Button onClick={handleNextCustom}>Next</Button>
         )}
       </Box>
     </Stack>

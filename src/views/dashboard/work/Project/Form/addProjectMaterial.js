@@ -1,37 +1,48 @@
-import React, { useState } from "react";
-import { Badge, Button, Col, Form, Modal, Row } from "react-bootstrap";
+import React, { Fragment, useEffect, useState } from "react";
+import { Badge, Button, Col, Form, Modal, Row, Table } from "react-bootstrap";
 import CustomInput from "../../../../../components/Form/CustomInput";
-import CustomSelect from "../../../../../components/Form/CustomSelect";
-import CustomCheckbox from "../../../../../components/Form/CustomCheckbox";
 
-const AddProjectMaterial = ({
-  formik,
-  metaData,
-  employee,
-  formData,
-  // selectedMemberNames,
-}) => {
+const AddProjectMaterial = ({ formik, metaData }) => {
   const [stockModal, setStockModal] = useState(false);
 
-  const toggleStockSelection = (id) => {
-    const alreadySelected = formik.values.stock_material?.includes(id);
-    if (alreadySelected) {
-      formik.setFieldValue(
-        "stock_material",
-        formik.values.stock_material.filter((m) => m !== id)
-      );
+  console.log("formik.client_id", formik.values.client_id);
+
+  const selectedCustomer = metaData.clientList.find(
+    (c) => c.id == formik.values.client_id
+  );
+
+  console.log("selectedCustomer", selectedCustomer);
+  useEffect(() => {
+    if (selectedCustomer?.deal?.inv_cap) {
+      formik.setFieldValue("capacity", selectedCustomer.deal.inv_cap);
+    }
+  }, [selectedCustomer]);
+  // formik.setFieldValue("capacity", selectedCustomer?.deal?.inv_cap || "");
+
+  const toggleStockSelection = (stockId) => {
+    const current = formik.values.stock_material || [];
+
+    const exists = current.find((item) => item.id === stockId);
+    console.log("exists", exists);
+    if (exists) {
+      // unselect → remove from array
+      const updated = current.filter((item) => item.id !== stockId);
+      formik.setFieldValue("stock_material", updated);
     } else {
-      formik.setFieldValue("stock_material", [
-        ...formik.values.stock_material,
-        id,
-      ]);
+      // select → push with empty qty
+      const updated = [...current, { id: stockId, qty: null }];
+      formik.setFieldValue("stock_material", updated);
     }
   };
 
-  const selectedMemberNames = metaData.stock
-    .filter((m) => formik.values.stock_material?.includes(m.id))
-    .map((m) => m.material);
+  const selectedMemberNames =
+    metaData.stock
+      ?.filter((m) =>
+        formik.values.stock_material?.some((item) => item.id === m.id)
+      )
+      ?.map((m) => m.material) || [];
 
+  console.log("formik", formik.values);
   return (
     <Form>
       <div className="mb-3 mt-3 fw-light">
@@ -43,7 +54,7 @@ const AddProjectMaterial = ({
           <Form.Group>
             <Form.Label className="pt-4">Stock Material</Form.Label>
             <div>
-              {selectedMemberNames.length > 0 ? (
+              {!stockModal && selectedMemberNames.length > 0 ? (
                 selectedMemberNames.map((name) => (
                   <Badge key={name} bg="light" text="dark" className="me-2 p-1">
                     {name}
@@ -86,40 +97,83 @@ const AddProjectMaterial = ({
           />
         </Col>
         <Col md={4}>
-          <CustomSelect
+          <CustomInput
             label="Capacity"
             name="capacity"
-            value={formik.values.capacity}
+            value={selectedCustomer?.deal?.inv_cap || formik.values.capacity}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            options={metaData.projectCategory}
-            placeholder="--"
-            error={formik.errors.capacity}
+            placeholder="Enter Pin Code"
             touched={formik.touched.capacity}
-            lableName="category"
+            errors={formik.errors.capacity}
+            readOnly={true}
           />
         </Col>
       </Row>
 
-      <Modal show={stockModal} onHide={() => setStockModal(false)}>
+      <Modal
+        backdrop="static"
+        show={stockModal}
+        onHide={() => setStockModal(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Select Stock Material</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {metaData.stock?.map((stock) => (
-            <Form.Check
-              key={stock.id}
-              type="checkbox"
-              label={stock.material}
-              checked={formik.values.stock_material?.includes(stock.id)}
-              onChange={() => toggleStockSelection(stock.id)}
-            />
-          ))}
+          <Table hover responsive>
+            <thead className="table-light">
+              <tr className="align-top text-start">
+                <th>Name</th>
+                <th>Balance</th>
+                <th>Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {metaData.stock?.map((stock) => {
+                const selectedItem = formik.values.stock_material?.find(
+                  (item) => item.id === stock.id
+                );
+
+                return (
+                  <tr key={stock.id}>
+                    <td>
+                      <Form.Check
+                        type="checkbox"
+                        label={stock.material}
+                        checked={!!selectedItem} // agar object mila to true
+                        onChange={() => toggleStockSelection(stock.id)}
+                      />
+                    </td>
+
+                    <td>
+                      <span>{stock.balance}</span>
+                    </td>
+
+                    <td>
+                      <CustomInput
+                        type="number"
+                        placeholder="Qty"
+                        value={selectedItem?.qty || ""}
+                        onChange={(e) => {
+                          const newQty = e.target.value;
+                          const updated = formik.values.stock_material.map(
+                            (item) =>
+                              item.id === stock.id
+                                ? { ...item, qty: newQty }
+                                : item
+                          );
+                          formik.setFieldValue("stock_material", updated);
+                        }}
+                        disabled={!selectedItem} // if not select then disable
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setStockModal(false)}>
-            Close
-          </Button>
           <Button variant="primary" onClick={() => setStockModal(false)}>
             Save Selection
           </Button>

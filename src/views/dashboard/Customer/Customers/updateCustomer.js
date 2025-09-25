@@ -16,6 +16,7 @@ import CustomInput from "../../../../components/Form/CustomInput";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import CustomFileInput from "../../../../components/Form/CustomFileInput";
 import { IoNavigate } from "react-icons/io5";
+import DealList from "../../Leads/Deals/deals-list";
 
 const UpdateCustomer = () => {
   const navigate = useNavigate();
@@ -193,12 +194,12 @@ const UpdateCustomer = () => {
   return (
     <Card>
       <Card.Header>
-        <h5 className="mb-0">Update Customer</h5>
+        <h5 className="mb-0">Add Customer</h5>
       </Card.Header>
       <hr />
       <Card.Body className="pt-0">
         <Form onSubmit={handleSubmit}>
-          {/* Row 1 */}
+          {/* Row 1 {client_id, salutation, name} */}
           <Row>
             <Col md={4}>
               <CustomInput
@@ -207,6 +208,10 @@ const UpdateCustomer = () => {
                 value={values.client_id}
                 onChange={handleChange}
                 onBlur={handleBlur}
+                placeholder="Enter Customer ID"
+                touched={touched.client_id}
+                errors={errors.client_id}
+                required
                 disabled
               />
             </Col>
@@ -218,8 +223,10 @@ const UpdateCustomer = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 options={salutationData}
+                placeholder="--"
                 error={errors.salutation}
                 touched={touched.salutation}
+                required
                 valueName="value"
                 lableName="salutation"
               />
@@ -231,13 +238,15 @@ const UpdateCustomer = () => {
                 value={values.name}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.name}
+                placeholder="Enter Name"
                 touched={touched.name}
+                errors={errors.name}
+                required
               />
             </Col>
           </Row>
 
-          {/* Row 2 */}
+          {/* Row 2 {contact, email, password} */}
           <Row className="mt-3">
             <Col md={4}>
               <CustomInput
@@ -246,8 +255,10 @@ const UpdateCustomer = () => {
                 value={values.contact}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.contact}
+                placeholder="Enter Mobile Number"
                 touched={touched.contact}
+                errors={errors.contact}
+                required
               />
             </Col>
             <Col md={4}>
@@ -257,25 +268,29 @@ const UpdateCustomer = () => {
                 value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.email}
+                placeholder="Enter Email"
                 touched={touched.email}
+                errors={errors.email}
+                required
               />
             </Col>
             <Col md={4}>
               <CustomInput
                 label="Password"
-                type="password"
                 name="password"
+                type="password"
                 value={values.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.password}
+                placeholder="Enter Password"
                 touched={touched.password}
+                errors={errors.password}
+                required
               />
             </Col>
           </Row>
 
-          {/* Row 3 */}
+          {/* Row 3 {gender, address} */}
           <Row className="mt-3">
             <Col md={4}>
               <CustomRadioGroup
@@ -285,8 +300,9 @@ const UpdateCustomer = () => {
                 value={values.gender}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={errors.gender}
                 touched={touched.gender}
+                error={errors.gender}
+                required
               />
             </Col>
             <Col md={8}>
@@ -297,13 +313,16 @@ const UpdateCustomer = () => {
                 value={values.address}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.address}
+                placeholder="Enter Address"
                 touched={touched.address}
+                errors={errors.address}
+                required
+                row={2}
               />
             </Col>
           </Row>
 
-          {/* Row 4 */}
+          {/* Row 4 {city, state, pincode} */}
           <Row className="mt-3">
             <Col md={4}>
               <CustomInput
@@ -312,8 +331,10 @@ const UpdateCustomer = () => {
                 value={values.city}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.city}
+                placeholder="Enter City"
                 touched={touched.city}
+                errors={errors.city}
+                required
               />
             </Col>
             <Col md={4}>
@@ -323,47 +344,30 @@ const UpdateCustomer = () => {
                 value={values.state}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.state}
+                placeholder="Enter State"
                 touched={touched.state}
+                errors={errors.state}
+                required
               />
             </Col>
             <Col md={4}>
               <CustomInput
-                label="Pincode"
+                label="Pin Code"
                 name="pincode"
                 value={values.pincode}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errors={errors.pincode}
+                placeholder="Enter Pin Code"
                 touched={touched.pincode}
+                errors={errors.pincode}
+                required
               />
             </Col>
           </Row>
 
-          {/* Row 5 */}
+          {/* Row 5 {photo, category} */}
           <Row className="mt-3 mb-4">
-            <Col md={6}>
-              {preview && (
-                <div className="">
-                  <p
-                    className="mb-2"
-                    style={{ color: "#495057", fontSize: "14px" }}
-                  >
-                    Current Picture
-                  </p>
-                  <img
-                    src={preview}
-                    alt="Profile Preview"
-                    style={{
-                      maxWidth: "150px",
-                      maxHeight: "150px",
-                      borderRadius: "8px",
-                      objectFit: "cover",
-                      border: "1px solid #ddd",
-                    }}
-                  />
-                </div>
-              )}
+            <Col md={4}>
               <CustomFileInput
                 label="Profile Picture"
                 name="photo"
@@ -372,11 +376,11 @@ const UpdateCustomer = () => {
                   setFieldValue("photo", e.currentTarget.files[0])
                 }
                 onBlur={handleBlur}
-                error={errors.photo}
                 touched={touched.photo}
+                error={errors.photo}
               />
             </Col>
-            <Col md={6}>
+            <Col md={4}>
               <CustomSelect
                 label="Client Category"
                 name="client_category_id"
@@ -384,10 +388,28 @@ const UpdateCustomer = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 options={categories}
+                placeholder="--"
                 error={errors.client_category_id}
                 touched={touched.client_category_id}
+                required
                 valueName="id"
                 lableName="category"
+              />
+            </Col>
+            <Col md={4}>
+              <CustomSelect
+                label="Deal"
+                name="deal_id"
+                value={values.deal_id}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                options={DealList}
+                placeholder="--"
+                error={errors.deal_id}
+                touched={touched.deal_id}
+                required
+                valueName="id"
+                lableName="name"
               />
             </Col>
           </Row>
@@ -397,44 +419,11 @@ const UpdateCustomer = () => {
             <h5 className="mb-0">Document Details</h5>
           </Card.Header>
 
-          {/* Row 5 {docSelect} */}
+          {/* Row 5 {doc_upload(aadhaar), extra_doc(pan)} */}
           <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomRadioGroup
-                label="Select Document"
-                name="docSelect"
-                options={docTypeOptions}
-                value={values.docSelect}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                touched={touched.docSelect}
-                error={errors.docSelect}
-                required
-              />
-            </Col>
-          </Row>
-
-          {/* Row 5 {doc_no} */}
-          <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomInput
-                label={`Enter ${values.docSelect} No`}
-                name="doc_no"
-                value={values.doc_no}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder={`Enter ${values.docSelect} No`}
-                touched={touched.doc_no}
-                errors={errors.doc_no}
-                disabled={!values.docSelect}
-                required
-                title={!values.docSelect && `Choose doc type first`}
-              />
-            </Col>
-
             <Col md={4}>
               <CustomFileInput
-                label={`Upload ${values.docSelect} (Pdf)`}
+                label="Aadhaar Card (pdf)"
                 name="doc_upload"
                 // accept="application/pdf"
                 onChange={(e) =>
@@ -443,23 +432,55 @@ const UpdateCustomer = () => {
                 onBlur={handleBlur}
                 touched={touched.doc_upload}
                 error={errors.doc_upload}
-                disabled={!values.docSelect}
                 required
-                title={!values.docSelect && `Choose doc type first`}
               />
-              {previewPdf && (
-                <div className="">
-                  <a
-                    href={values?.doc_upload}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontSize: "12px", color: "black" }}
-                  >
-                    View PDF
-                    <IoNavigate />
-                  </a>
-                </div>
-              )}
+            </Col>
+
+            <Col md={4}>
+              <CustomFileInput
+                label="Pan Card (pdf)"
+                name="extra_doc"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("extra_doc", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.extra_doc}
+                error={errors.extra_doc}
+                required
+              />
+            </Col>
+          </Row>
+
+          {/* electric_bill, extra_file */}
+          <Row className="mt-3 mb-4">
+            <Col md={4}>
+              <CustomFileInput
+                label="Electricity Bill (pdf)"
+                name="electric_bill"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("electric_bill", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.electric_bill}
+                error={errors.electric_bill}
+                required
+              />
+            </Col>
+
+            <Col md={4}>
+              <CustomFileInput
+                label="NOC / Sale Deed (pdf)"
+                name="extra_file"
+                // accept="application/pdf"
+                onChange={(e) =>
+                  setFieldValue("extra_file", e.currentTarget.files[0])
+                }
+                onBlur={handleBlur}
+                touched={touched.extra_file}
+                error={errors.extra_file}
+              />
             </Col>
           </Row>
           <Row className="mt-3 mb-4">
@@ -477,11 +498,10 @@ const UpdateCustomer = () => {
               />
             </Col>
           </Row>
-
-          {/* Buttons */}
-          <div className="text-end">
+          {/* Save */}
+          <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update"}
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </div>
         </Form>

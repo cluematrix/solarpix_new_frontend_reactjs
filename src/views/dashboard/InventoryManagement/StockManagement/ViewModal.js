@@ -4,8 +4,8 @@ import { Modal, Row, Col } from "react-bootstrap";
 const ViewModal = ({ showView, setShowView, viewData }) => {
   return (
     <Modal show={showView} onHide={() => setShowView(false)} centered size="md">
-      <Modal.Header closeButton className="bg-light">
-        <Modal.Title className="fw-lighter text-primary fs-5">
+      <Modal.Header closeButton>
+        <Modal.Title className="fw-lighter fs-5">
           Stock Management Details
         </Modal.Title>
       </Modal.Header>
@@ -46,12 +46,6 @@ const ViewModal = ({ showView, setShowView, viewData }) => {
               Supplier:
             </Col>
             <Col xs={7}>{viewData.supplier?.name}</Col>
-          </Row>
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Client:
-            </Col>
-            <Col xs={7}>{viewData.client?.name}</Col>
           </Row>
         </div>
       </Modal.Body>

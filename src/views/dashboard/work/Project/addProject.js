@@ -9,11 +9,7 @@ import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import CustomizedSteppers from "./customizedSteppers";
 
-const AddProject = ({
-  setShowMembersModal,
-  handleClose,
-  selectedMemberNames,
-}) => {
+const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
   // Get formData from location state if available
   const location = useLocation();
   const formData = location.state?.formData || {};
@@ -31,7 +27,7 @@ const AddProject = ({
     estimate: "",
     day_count: 0, // auto-calc (frontend show only)
 
-    stock_material: [], // array of { product_id, qty }
+    stock_material: [], // array of { stock_id, qty }
     company_name: "",
     capacity: "",
 
@@ -45,24 +41,25 @@ const AddProject = ({
 
     net_metering_app_id: "",
     net_metering_app_date: "",
-    net_metering_sanction_letter: null, // file upload
-    net_metering_sanction_letter_status: "",
+    net_metering_sanction_letter: "", // file upload
+    net_metering_sanction_letter_status: "Pending",
 
     np_phone: "",
     np_reg_no: "",
     np_email: "",
     np_ref_code: "",
 
-    rts_doc_upload: null, // file upload
-    rts_doc_upload_status: "",
-    disbursement: "", // boolean checkbox
+    rts_doc_upload: "", // file upload
+    rts_doc_upload_status: "Pending",
+    disbursement: "Pending", // boolean checkbox
 
-    co_ordinate: "",
-    structure_installer: "",
-    panel_wiring_installer: "",
-    sepl_inspection_by: "",
+    co_ordinate: [],
+    structure_installer: [],
+    panel_wiring_installer: [],
+    sepl_inspection_by: [],
     sepl_inspection_date: "",
     sepl_inspection_remarks: "",
+    status: "Approval",
 
     ...formData, // Spread any existing formData to pre-fill
   };
@@ -117,35 +114,91 @@ const AddProject = ({
       capacity: Yup.string().required("Capacity is required"),
     }),
 
+    // Step-wise validation schemas (mseb info)
+    Yup.object().shape({
+      mseb_phone: Yup.number()
+        .typeError("Phone must be a number")
+        .min(1000000000, "Phone must be 10 digits")
+        .max(9999999999, "Phone must be 10 digits"),
+
+      mseb_email: Yup.string().email("Invalid email format"),
+    }),
+
+    // Step-wise validation schemas (net metering info)
+    Yup.object().shape({
+      net_metering_sanction_letter: Yup.mixed()
+        .nullable()
+        .test("fileType", "Only Pdf files are allowed", (value) => {
+          if (!value) return true;
+          return ["application/pdf"].includes(value.type);
+        })
+        .notRequired(),
+    }),
+
+    // Step-wise validation schemas (nodal point info)
+    Yup.object().shape({
+      np_phone: Yup.number()
+        .typeError("Phone must be a number")
+        .min(1000000000, "Phone must be 10 digits")
+        .max(9999999999, "Phone must be 10 digits"),
+
+      np_email: Yup.string().email("Invalid email format"),
+
+      rts_doc_upload: Yup.mixed()
+        .nullable()
+        .test("fileType", "Only Pdf files are allowed", (value) => {
+          if (!value) return true;
+          return ["application/pdf"].includes(value.type);
+        })
+        .notRequired(),
+    }),
+
     // Step-wise validation schemas (staff management info)
     Yup.object().shape({
-      co_ordinate: Yup.string().required("Co-ordinate is required"),
-      structure_installer: Yup.string().required(
-        "Structure installer is required"
-      ),
-      panel_wiring_installer: Yup.string().required(
-        "Panel wiring installer is required"
-      ),
-      sepl_inspection_by: Yup.string().required(
-        "SEPL inspection by is required"
-      ),
-      sepl_inspection_date: Yup.date().required(
-        "SEPL inspection date is required"
-      ),
+      co_ordinate: Yup.array()
+        .of(Yup.string())
+        .min(1, "Co-ordinate is required"),
+
+      structure_installer: Yup.array()
+        .of(Yup.string())
+        .min(1, "Structure installer is required"),
+
+      panel_wiring_installer: Yup.array()
+        .of(Yup.string())
+        .min(1, "Panel wiring installer is required"),
+
+      sepl_inspection_by: Yup.array()
+        .of(Yup.string())
+        .min(1, "Sepl inspection by is required"),
     }),
   ];
 
   const onSubmit = async (values, { resetForm }) => {
     try {
-      const res = await api.post("/api/v1/admin/project", values);
+      console.log("Submitting values:", values);
+      const formData = new FormData();
+
+      Object.keys(values).forEach((key) => {
+        const value = values[key];
+        if (value !== "" && value !== null && value !== undefined) {
+          if (value instanceof File) {
+            formData.append(key, value); // file
+          } else if (typeof value === "object") {
+            formData.append(key, JSON.stringify(value)); // fix
+          } else {
+            formData.append(key, value);
+          }
+        }
+      });
+
+      const res = await api.post("/api/v1/admin/project", formData);
       successToast(res.data.message || "Project added successfully");
 
       setMetaData({ project: res.data.data });
       resetForm();
-      handleClose();
       navigate("/project-list");
     } catch (err) {
-      console.error("Error adding employee:", err);
+      console.error("Error adding project:", err);
       errorToast(err.response?.data?.message || "Failed to add project");
     }
   };
@@ -215,18 +268,17 @@ const AddProject = ({
 
   //generate next short_code
   useEffect(() => {
-    // After metaData.project is loaded
     if (metaData.project && metaData.project.length > 0) {
-      // Get last short_code (assuming sorted by creation)
-      const lastShortCode = metaData.project[metaData.project.length - 1];
-      let lastId = lastShortCode.short_code || "SOLAR000";
-      // Extract number part
-      let num = parseInt(lastId.replace("SOLAR", ""), 10);
-      // Increment and pad with zeros
-      let nextId = "SOLAR" + String(num + 1).padStart(3, "0");
+      const lastShortCode =
+        metaData.project[metaData.project.length - 1]?.short_code || "SOLAR000";
+
+      // extract number safely
+      const match = lastShortCode.match(/\d+$/); // SOLAR123 → 123
+      const num = match ? parseInt(match[0], 10) : 0;
+
+      const nextId = "SOLAR" + String(num + 1).padStart(3, "0");
       formik.setFieldValue("short_code", nextId);
     } else {
-      // First project
       formik.setFieldValue("short_code", "SOLAR001");
     }
   }, [metaData.project]);

@@ -435,7 +435,6 @@ const StockManagementList = () => {
                             />
                             {/* View */}
                             <VisibilityIcon
-                              className="me-2"
                               onClick={() => handleView(item)}
                               color="info"
                               style={{ cursor: "pointer" }}

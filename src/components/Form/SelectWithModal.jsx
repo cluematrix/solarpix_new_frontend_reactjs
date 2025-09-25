@@ -31,7 +31,7 @@ const SelectWithModal = ({
     <Form.Group>
       <Form.Label className="pt-4">{label}</Form.Label>
       <div>
-        {selectedNames.length > 0 ? (
+        {!showModal && selectedNames.length > 0 ? (
           selectedNames.map((name) => (
             <Badge key={name} bg="light" text="dark" className="me-2 p-1">
               {name}
@@ -60,6 +60,7 @@ const SelectWithModal = ({
         <Modal.Body>
           {options?.map((opt) => (
             <Form.Check
+            id={opt.id}
               key={opt.id}
               type="checkbox"
               label={opt[optionLabel]}
@@ -69,9 +70,6 @@ const SelectWithModal = ({
           ))}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
           <Button variant="primary" onClick={() => setShowModal(false)}>
             Save Selection
           </Button>

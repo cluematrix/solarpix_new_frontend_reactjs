@@ -32,8 +32,13 @@ export const docTypeOptions = [
 
 export const kycDataOptions = [
   { id: "1", icon: "🟡", name: "Pending" },
-  { id: "2", icon: "🔵", name: "Approved" },
+  { id: "2", icon: "🟢", name: "Approved" },
   { id: "3", icon: "🔴", name: "Rejected" },
+];
+
+export const disbursementOptions = [
+  { id: "1", icon: "🟢", name: "Done" }, // Green circle
+  { id: "2", icon: "🟡", name: "Pending" }, // Red circle
 ];
 
 export const selectTypeData = [

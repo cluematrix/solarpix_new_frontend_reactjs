@@ -6,11 +6,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import {
-  docTypeOptions,
-  genderData,
-  salutationData,
-} from "../../../../mockData";
+import { genderData, salutationData } from "../../../../mockData";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
@@ -22,29 +18,7 @@ const AddCustomer = () => {
   const dealData = location.state?.deal || null;
   const leadData = location.state?.leadData || null;
 
-  console.log("leadData", leadData);
-  // const initialValues = {
-  //   client_id: "",
-  //   lead_id: leadData?.id || "",
-  //   salutation: leadData?.salutation || "",
-  //   name: leadData?.name || "",
-  //   email: leadData?.email || "",
-  //   password: "", // keep blank
-  //   contact: leadData?.contact || "",
-  //   address: leadData?.address || "",
-  //   gender: "", // lead may not have gender
-  //   city: leadData?.city || "",
-  //   state: leadData?.state || "",
-  //   pincode: leadData?.pincode || "",
-  //   photo: leadData?.photo || null,
-  //   client_category_id: leadData?.client_category_id || "",
-  //   doc_type: leadData?.doc_type || "",
-  //   doc_no: leadData?.doc_no || "",
-  //   doc_upload: leadData?.doc_upload || "",
-  //   description: leadData?.description || "",
-  //   kyc_status: leadData?.kyc_status || "Pending",
-  // };
-
+  console.log("dealData?.id", dealData?.id);
   const initialValues = {
     client_id: "",
     lead_id: dealData?.lead_id || leadData?.id || "",
@@ -68,6 +42,7 @@ const AddCustomer = () => {
     extra_file: leadData?.extra_file || "", // noc/sale deed card
     description: leadData?.description || "",
     kyc_status: leadData?.kyc_status || "Pending",
+    deal_id: dealData?.id || "",
   };
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -187,11 +162,11 @@ const AddCustomer = () => {
           api.get("/api/v1/admin/deal"), // assuming this returns all customers
         ]);
 
-        console.log("cust-re", custRes);
-        console.log("dealRes", dealRes.data.lead);
         setCategories(catRes.data);
         setCustomerList(custRes.data.data);
-        setDealList(dealRes.data);
+        dealData?.id
+          ? setDealList(dealRes.data)
+          : setDealList(dealRes.data.map((item) => item.lead));
       } catch (error) {
         errorToast("Error loading data");
       } finally {
@@ -236,6 +211,8 @@ const AddCustomer = () => {
   console.log("lead_id", values.lead_id);
   console.log("values", values);
   console.log("dealList", dealList);
+  console.log("deal_idValues", values.deal_id);
+
   return (
     <Card>
       <Card.Header>
@@ -441,22 +418,24 @@ const AddCustomer = () => {
                 lableName="category"
               />
             </Col>
-            <Col md={4}>
-              <CustomSelect
-                label="Deal"
-                name="deal_id"
-                value={values.deal_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={dealList}
-                placeholder="--"
-                error={errors.deal_id}
-                touched={touched.deal_id}
-                required
-                valueName="id"
-                lableName="deal_name"
-              />
-            </Col>
+            {!values.deal_id && (
+              <Col md={4}>
+                <CustomSelect
+                  label="Deal"
+                  name="deal_id"
+                  value={values.deal_id}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={dealList}
+                  placeholder="--"
+                  error={errors.deal_id}
+                  touched={touched.deal_id}
+                  required
+                  valueName="id"
+                  lableName="name"
+                />
+              </Col>
+            )}
           </Row>
 
           <hr />

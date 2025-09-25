@@ -1,6 +1,8 @@
 import React from "react";
 import { Col, Form, Row } from "react-bootstrap";
 import CustomInput from "../../../../../components/Form/CustomInput";
+import { disbursementOptions } from "../../../../../mockData";
+import CustomFileInput from "../../../../../components/Form/CustomFileInput";
 
 const AddProjectNp = ({ formik }) => {
   return (
@@ -9,9 +11,9 @@ const AddProjectNp = ({ formik }) => {
         <h6>Nodal Point Information: </h6>
       </div>
 
-      {/* Row 1 {np_ref_code, np_reg_no} */}
+      {/* Row 1 {np_ref_code, np_reg_no, disbursement} */}
       <Row>
-        <Col md={4}>
+        <Col md={4} className="h-100">
           <CustomInput
             label="Ref Code"
             name="np_ref_code"
@@ -24,7 +26,7 @@ const AddProjectNp = ({ formik }) => {
           />
         </Col>
 
-        <Col md={4}>
+        <Col md={4} className="h-100">
           <CustomInput
             label="Reg No"
             name="np_reg_no"
@@ -36,10 +38,28 @@ const AddProjectNp = ({ formik }) => {
             errors={formik.errors.np_reg_no}
           />
         </Col>
+        <Col md={4} className="h-100 d-flex align-items-end">
+          <div style={{ width: "100%" }}>
+            <Form.Label>Disbursement</Form.Label>
+            <Form.Select
+              name="disbursement"
+              value={formik.values?.disbursement}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className="form-control"
+            >
+              {disbursementOptions?.map((status) => (
+                <option key={status.name} value={status.name}>
+                  {status.icon} {status.name}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+        </Col>
       </Row>
 
-      {/* Row 2 {np_phone, np_email} */}
-      <Row>
+      {/* Row 2 {np_phone, np_email, rts_doc_upload} */}
+      <Row className="mt-3">
         <Col md={4}>
           <CustomInput
             label="Phone"
@@ -55,7 +75,7 @@ const AddProjectNp = ({ formik }) => {
 
         <Col md={4}>
           <CustomInput
-            label="Point Reg No"
+            label="Email"
             name="np_email"
             value={formik.values.np_email}
             onChange={formik.handleChange}
@@ -63,6 +83,19 @@ const AddProjectNp = ({ formik }) => {
             placeholder="Enter Email"
             touched={formik.touched.np_email}
             errors={formik.errors.np_email}
+          />
+        </Col>
+
+        <Col md={4}>
+          <CustomFileInput
+            label="RTS Document Upload"
+            name="rts_doc_upload"
+            onChange={(e) =>
+              formik.setFieldValue("rts_doc_upload", e.currentTarget.files[0])
+            }
+            onBlur={formik.handleBlur}
+            touched={formik.touched.rts_doc_upload}
+            error={formik.errors.rts_doc_upload}
           />
         </Col>
       </Row>

@@ -26,6 +26,7 @@ const AddProjectMetering = ({ formik }) => {
 
         <Col md={4}>
           <CustomInput
+            type="date"
             label="Net Metering App Date"
             name="net_metering_app_date"
             value={formik.values.net_metering_app_date}
@@ -40,7 +41,6 @@ const AddProjectMetering = ({ formik }) => {
           <CustomFileInput
             label="Net Metering Sanction Letter"
             name="net_metering_sanction_letter"
-            accept="image/*"
             onChange={(e) =>
               formik.setFieldValue(
                 "net_metering_sanction_letter",
@@ -48,8 +48,8 @@ const AddProjectMetering = ({ formik }) => {
               )
             }
             onBlur={formik.handleBlur}
-            touched={formik.touched.photo}
-            error={formik.errors.photo}
+            touched={formik.touched.net_metering_sanction_letter}
+            error={formik.errors.net_metering_sanction_letter}
           />
         </Col>
       </Row>
