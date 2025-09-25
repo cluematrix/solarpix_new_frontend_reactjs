@@ -376,7 +376,7 @@ const BrandList = () => {
         errors={errors}
         onSave={handleAddOrUpdateRole}
         modalTitle={editId ? "Update Brand" : "Add Brand"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
       />
 

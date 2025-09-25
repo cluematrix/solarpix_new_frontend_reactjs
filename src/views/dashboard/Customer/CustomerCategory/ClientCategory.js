@@ -352,7 +352,7 @@ const ClientCategory = () => {
         modalTitle={
           editId ? "Update Customer Category" : "Add New Customer Category"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         fieldLabel="Customer Category"
         placeholder="Enter category"
       />

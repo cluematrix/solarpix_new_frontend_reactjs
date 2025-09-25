@@ -55,9 +55,6 @@ const AddEditModal = ({
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
           <Button type="submit" variant="primary">
             {editData ? "Update" : "Save"}
           </Button>

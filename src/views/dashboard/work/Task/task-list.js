@@ -43,7 +43,7 @@ const TaskList = () => {
     assign_by: "",
     assign_to: [],
     task_category_id: "",
-    status: "pending",
+    status: "To Do",
     project_id: "",
   });
 
@@ -121,7 +121,7 @@ const TaskList = () => {
       assign_by: task.assign_by || "",
       assign_to: task.assign_to || [],
       task_category_id: task.task_category_id || "",
-      status: task.status || "pending",
+      status: task.status || "Incomplete",
       project_id: task.project_id || "",
     });
     setEditTask(task);
@@ -167,7 +167,7 @@ const TaskList = () => {
                     assign_by: "",
                     assign_to: [],
                     task_category_id: "",
-                    status: "pending",
+                    status: "To Do",
                     project_id: "",
                   });
                   setEditTask(null);

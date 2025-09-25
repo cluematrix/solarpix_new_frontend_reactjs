@@ -15,11 +15,8 @@ const DeleteModal = ({
       </Modal.Header>
       <Modal.Body>{modalMessage}</Modal.Body>
       <Modal.Footer>
-        {/* <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button> */}
         <Button variant="danger" onClick={onConfirm}>
-          Yes, Delete
+          Delete
         </Button>
       </Modal.Footer>
     </Modal>

@@ -335,7 +335,7 @@ const LeaveType = () => {
         setLeaveData={setLeaveData}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Leave Type" : "Add New Leave Type"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Modal */}

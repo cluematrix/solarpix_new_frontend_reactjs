@@ -182,9 +182,6 @@ const Admin = () => {
                     >
                       Save
                     </Button>{" "}
-                    <Button variant="danger" onClick={handleClose}>
-                      Cancel
-                    </Button>
                   </Modal.Body>
                 </Modal>
                 <Button
@@ -263,9 +260,6 @@ const Admin = () => {
                     >
                       Save
                     </Button>{" "}
-                    <Button variant="danger" onClick={handleClose1}>
-                      Cancel
-                    </Button>
                   </Modal.Body>
                 </Modal>
                 <Modal show={show2} onHide={handleClose2}>
@@ -290,7 +284,7 @@ const Admin = () => {
                             handleClose2();
                           }}
                         >
-                          Update
+                          Save
                         </Button>{" "}
                         <Button variant="danger" onClick={handleClose2}>
                           Cancel1
@@ -351,11 +345,8 @@ const Admin = () => {
                         handleClose3();
                       }}
                     >
-                      Update
+                      Save
                     </Button>{" "}
-                    <Button variant="danger" onClick={handleClose3}>
-                      Cancel
-                    </Button>
                   </Modal.Body>
                 </Modal>
               </div>

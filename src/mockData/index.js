@@ -35,3 +35,8 @@ export const kycDataOptions = [
   { id: "2", icon: "🔵", name: "Approved" },
   { id: "3", icon: "🔴", name: "Rejected" },
 ];
+
+export const selectTypeData = [
+  { id: "1", name: "Debit" },
+  { id: "2", name: "Credit" },
+];

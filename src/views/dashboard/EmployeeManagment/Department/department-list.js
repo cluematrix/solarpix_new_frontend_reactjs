@@ -350,7 +350,7 @@ const DepartmentList = () => {
         setRoleName={setRoleName}
         onSave={handleAddOrUpdateRole}
         modalTitle={editId ? "Update Department" : "Add New Department"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Confirmation Modal */}

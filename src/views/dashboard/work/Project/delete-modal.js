@@ -19,7 +19,7 @@ const DeleteModal = ({
           Cancel
         </Button> */}
         <Button variant="danger" onClick={onConfirm}>
-          Yes, Delete
+          Delete
         </Button>
       </Modal.Footer>
     </Modal>

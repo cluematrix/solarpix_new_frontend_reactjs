@@ -1,6 +1,6 @@
 // ViewFollowupModal.jsx
 import React from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Row, Col } from "react-bootstrap";
 
 const ViewFollowupModal = ({
   show,
@@ -12,50 +12,64 @@ const ViewFollowupModal = ({
   if (!followup) return null;
 
   const leadName = leads.find((l) => l.id === followup.lead_id)?.name || "—";
-
   const scheduledByName =
     employees.find((e) => e.id === followup.schedule_by_id)?.name || "—";
 
   return (
-    <Modal show={show} onHide={handleClose} centered backdrop="static">
+    <Modal
+      show={show}
+      onHide={handleClose}
+      centered
+      backdrop="static"
+      size="md"
+    >
       <Modal.Header closeButton>
-        <Modal.Title>View Follow-up Details</Modal.Title>
+        <Modal.Title className="fw-lighter  fs-5">
+          Follow-up Details
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form.Group className="mb-3">
-          <Form.Label>Lead Name</Form.Label>
-          <Form.Control type="text" value={leadName} readOnly />
-        </Form.Group>
+        <div className="px-2">
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Lead Name:
+            </Col>
+            <Col xs={7}>{leadName}</Col>
+          </Row>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Message</Form.Label>
-          <Form.Control type="text" value={followup.message || "—"} readOnly />
-        </Form.Group>
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Message:
+            </Col>
+            <Col xs={7}>{followup.message || "—"}</Col>
+          </Row>
 
-        {/* <Form.Group className="mb-3">
-          <Form.Label>Follow-up Date</Form.Label>
-          <Form.Control type="text" value={followup.followup_date || "—"} readOnly />
-        </Form.Group>
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Follow-up Date:
+            </Col>
+            <Col xs={7}>
+              {followup.followup_date
+                ? new Date(followup.followup_date).toLocaleDateString()
+                : "—"}
+            </Col>
+          </Row>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Scheduled By</Form.Label>
-          <Form.Control type="text" value={scheduledByName} readOnly />
-        </Form.Group> */}
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Scheduled By:
+            </Col>
+            <Col xs={7}>{scheduledByName}</Col>
+          </Row>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Outcome</Form.Label>
-          <Form.Control
-            type="text"
-            value={followup.out_comes || "—"}
-            readOnly
-          />
-        </Form.Group>
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Outcome:
+            </Col>
+            <Col xs={7}>{followup.out_comes || "—"}</Col>
+          </Row>
+        </div>
       </Modal.Body>
-      <Modal.Footer>
-        {/* <Button variant="secondary" onClick={handleClose}>
-          Close
-        </Button> */}
-      </Modal.Footer>
     </Modal>
   );
 };

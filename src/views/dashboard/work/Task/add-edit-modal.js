@@ -1,7 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Form, Button, Row, Col, Spinner } from "react-bootstrap";
+import { Modal, Form, Button, Row, Col } from "react-bootstrap";
 import api from "../../../../api/axios";
 import { statusOptions } from "../../../../mockData";
+
+// CSS for dimmed background when members modal is open
+const shadowStyle = {
+  boxShadow: "0 0 20px 10px rgba(0,0,0,0.5)",
+  opacity: 0.2, // dimmed effect
+  pointerEvents: "none", // disable interactions
+  transition: "opacity 0.3s ease, box-shadow 0.3s ease",
+};
+
+// Style for Members modal to ensure higher z-index
+const focusedModalStyle = {
+  zIndex: 1060,
+};
 
 const AddEditTaskModal = ({
   show,
@@ -74,224 +87,232 @@ const AddEditTaskModal = ({
 
   return (
     <>
-      <Modal show={show} onHide={handleClose} size="lg">
+      {/* Main Task Modal */}
+      <Modal
+        show={show}
+        onHide={handleClose}
+        size="lg"
+        style={showMembersModal ? shadowStyle : {}}
+      >
         <Modal.Header closeButton>
           <Modal.Title>{editData ? "Edit Task" : "Add Task"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {loading ? (
-            <Spinner animation="border" />
-          ) : (
-            <Form onSubmit={handleSubmit}>
-              <Row>
-                <Col md={6}>
-                  <Form.Group>
-                    <Form.Label>Title *</Form.Label>
-                    <Form.Control
-                      name="title"
-                      value={formData.title || ""}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group>
-                    <Form.Label>Category *</Form.Label>
-                    <Form.Select
-                      name="task_category_id"
-                      value={formData.task_category_id || ""}
-                      onChange={handleChange}
-                    >
-                      <option value="">Select Category</option>
-                      {categoryOptions.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.category}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
-              </Row>
+          <Form onSubmit={handleSubmit}>
+            <Row>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Title *</Form.Label>
+                  <Form.Control
+                    name="title"
+                    value={formData.title || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Category *</Form.Label>
+                  <Form.Select
+                    name="task_category_id"
+                    value={formData.task_category_id || ""}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categoryOptions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.category}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Project *</Form.Label>
+                  <Form.Select
+                    name="project_id"
+                    value={formData.project_id || ""}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Project</option>
+                    {projectOptions.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.project_name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
 
-              <Row className="mt-2">
-                <Col md={6}>
-                  <Form.Group>
-                    <Form.Label>Project *</Form.Label>
-                    <Form.Select
-                      name="project_id"
-                      value={formData.project_id || ""}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select Project</option>
-                      {projectOptions.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.project_name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group>
-                    <Form.Label>Start Date *</Form.Label>
-                    <Form.Control
-                      type="date"
-                      name="start_date"
-                      value={formData.start_date || ""}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group>
-                    <Form.Label>Due Date</Form.Label>
-                    <Form.Control
-                      type="date"
-                      name="end_date"
-                      value={formData.end_date || ""}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
+            <Row className="mt-2">
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Start Date *</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="start_date"
+                    value={formData.start_date || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Due Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="end_date"
+                    value={formData.end_date || ""}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Status *</Form.Label>
+                  <Form.Select
+                    name="status"
+                    value={formData.status || "To Do"}
+                    onChange={handleChange}
+                  >
+                    {statusOptions.map((s) => (
+                      <option key={s.name} value={s.name}>
+                        {s.icon} {s.name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
 
-              <Row className="mt-2">
-                <Col md={4}>
-                  <Form.Group>
-                    <Form.Label>Status *</Form.Label>
-                    <Form.Select
-                      name="status"
-                      value={formData.status || "pending"}
-                      onChange={handleChange}
-                    >
-                      {statusOptions.map((s) => (
-                        <option key={s.name} value={s.name}>
-                          {s.icon} {s.name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Form.Group>
-                    <Form.Label>Priority *</Form.Label>
-                    <Form.Select
-                      name="priority"
-                      value={formData.priority || "Medium"}
-                      onChange={handleChange}
-                    >
-                      {priorityOptions.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Form.Group>
-                    <Form.Label>Task Type *</Form.Label>
-                    <Form.Select
-                      name="task_type"
-                      value={formData.task_type || ""}
-                      onChange={handleChange}
-                    >
-                      <option value="">Select Type</option>
-                      {taskTypeOptions.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
-              </Row>
+            <Row className="mt-2">
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Priority *</Form.Label>
+                  <Form.Select
+                    name="priority"
+                    value={formData.priority || "Medium"}
+                    onChange={handleChange}
+                  >
+                    {priorityOptions.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Task Type *</Form.Label>
+                  <Form.Select
+                    name="task_type"
+                    value={formData.task_type || ""}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Type</option>
+                    {taskTypeOptions.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
 
-              <Row className="mt-2">
-                {/* <Col md={6}>
-                  <Form.Group>
-                    <Form.Label>Assigned By *</Form.Label>
+            <Row className="mt-2">
+              <Col>
+                <Form.Group>
+                  <Form.Label>Assigned To *</Form.Label>
+                  <div className="d-flex">
                     <Form.Control
                       type="text"
-                      name="assign_by"
-                      value={formData.assign_by || ""}
-                      onChange={handleChange}
+                      value={
+                        (!showMembersModal && selectedMemberNames.join(", ")) ||
+                        "No Members Selected"
+                      }
+                      readOnly
                       required
                     />
-                  </Form.Group>
-                </Col> */}
-                <Col md={6}>
-                  <Form.Group>
-                    <Form.Label>Assigned To *</Form.Label>
-                    <div className="d-flex">
-                      <Form.Control
-                        type="text"
-                        value={
-                          selectedMemberNames.join(", ") ||
-                          "No members selected"
-                        }
-                        readOnly
-                        required
-                      />
-                      <Button
-                        className="ms-2"
-                        onClick={() => setShowMembersModal(true)}
-                      >
-                        Select
-                      </Button>
-                    </div>
-                  </Form.Group>
-                </Col>
-              </Row>
+                    <Button
+                      className="ms-2"
+                      onClick={() => setShowMembersModal(true)}
+                      disabled={showMembersModal}
+                    >
+                      Select
+                    </Button>
+                  </div>
+                </Form.Group>
+              </Col>
+            </Row>
 
-              <Row className="mt-2">
-                <Col md={12}>
-                  <Form.Group>
-                    <Form.Label>Description *</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={3}
-                      name="description"
-                      value={formData.description || ""}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
+            <Row className="mt-2">
+              <Col md={12}>
+                <Form.Group>
+                  <Form.Label>Description *</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    name="description"
+                    value={formData.description || ""}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
 
-              <div className="text-end mt-3">
-                {/* <Button variant="secondary" onClick={handleClose}>
-                  Cancel
-                </Button> */}
-                <Button variant="primary" type="submit" className="ms-2">
-                  Save
-                </Button>
-              </div>
-            </Form>
-          )}
+            <div className="text-end mt-3">
+              <Button
+                variant="primary"
+                type="submit"
+                className="ms-2"
+                disabled={showMembersModal}
+              >
+                Save
+              </Button>
+            </div>
+          </Form>
         </Modal.Body>
       </Modal>
 
       {/* Members Modal */}
-      <Modal show={showMembersModal} onHide={() => setShowMembersModal(false)}>
+      <Modal
+        centered
+        show={showMembersModal}
+        onHide={() => setShowMembersModal(false)}
+        style={focusedModalStyle}
+        backdrop="static"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Select Members</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
           {membersList.map((m) => (
             <Form.Check
               key={m.id}
               type="checkbox"
-              label={m.name}
-              checked={formData.assign_to?.includes(m.id)}
-              onChange={() => toggleMember(m.id)}
-            />
+              id={`member-${m.id}`}
+              className="mb-2"
+            >
+              <Form.Check.Input
+                type="checkbox"
+                checked={formData.assign_to?.includes(m.id)}
+                onChange={() => toggleMember(m.id)}
+              />
+              <Form.Check.Label>{m.name}</Form.Check.Label>
+            </Form.Check>
           ))}
         </Modal.Body>
+
         <Modal.Footer>
           <Button
             variant="secondary"

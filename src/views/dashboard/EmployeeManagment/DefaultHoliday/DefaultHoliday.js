@@ -320,7 +320,7 @@ const DefaultHoliday = () => {
         modalTitle={
           editId ? "Update Default Holiday" : "Add New Default Holiday"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Confirmation Modal */}

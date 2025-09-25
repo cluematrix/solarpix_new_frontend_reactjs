@@ -198,9 +198,6 @@ const AddEditModal = ({
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button>
         <Button variant="primary" onClick={onSave}>
           {buttonLabel}
         </Button>

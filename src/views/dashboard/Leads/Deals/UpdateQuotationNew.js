@@ -206,7 +206,7 @@ const UpdateQuotationNew = () => {
     }));
   }, [formData.sol_amt, formData.inv_amt]);
 
-  // ------------------------ Handle Submit ------------------------
+  // ------------------------ Handle Save ------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -534,13 +534,10 @@ const UpdateQuotationNew = () => {
           </Col>
         </Row>
 
-        {/* Submit */}
+        {/* Save */}
         <div className="text-end">
-          <Button variant="secondary" onClick={() => navigate("/deals-list")}>
-            Cancel
-          </Button>{" "}
           <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Saving..." : "Update Quotation"}
+            {submitting ? "Saving..." : "Save"}
           </Button>
         </div>
       </Form>

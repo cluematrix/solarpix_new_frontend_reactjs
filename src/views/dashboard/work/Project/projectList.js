@@ -34,8 +34,11 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   const rolesPerPage = 10;
   const indexOfLastRole = currentPage * rolesPerPage;
   const indexOfFirstRole = indexOfLastRole - rolesPerPage;
-  const totalPages = Math.ceil(projectData.length / rolesPerPage);
-  const currentProject = projectData.slice(indexOfFirstRole, indexOfLastRole);
+  const totalPages = Math.ceil(projectData?.length / rolesPerPage);
+  // const currentProject =
+  //   projectData.length > 0
+  //     ? projectData?.slice(indexOfFirstRole, indexOfLastRole)
+  //     : [];
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -122,13 +125,11 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
       });
 
     if (deleteIndex !== null) {
-      setProjectData(projectData.filter((_, i) => i !== deleteIndex));
+      setProjectData(projectData?.filter((_, i) => i !== deleteIndex));
     }
     setShowDelete(false);
     setDeleteIndex(null);
   };
-
-  console.log("Current Project for Pagination:", currentProject);
 
   const handleToggleActive = async (id, status) => {
     const newStatus = !status;
@@ -219,14 +220,14 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {projectData.length === 0 ? (
+                        {projectData && projectData?.length === 0 ? (
                           <tr>
                             <td colSpan="8" className="text-center">
                               No projects available
                             </td>
                           </tr>
                         ) : (
-                          projectData.map((item, idx) => (
+                          projectData?.map((item, idx) => (
                             <tr key={idx}>
                               <td>{idx + 1}</td>
                               <td>{item.short_code || "--"}</td>
@@ -238,9 +239,9 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                               </td> */}
                               <td>
                                 <div className="d-flex align-items-center justify-content-center">
-                                  {item.assign_to_details
-                                    .slice(0, 3)
-                                    .map((ass, index) => (
+                                  {item?.assign_to_details
+                                    ?.slice(0, 3)
+                                    ?.map((ass, index) => (
                                       <img
                                         key={index}
                                         src={ass.photo || avatarPic}
@@ -262,7 +263,7 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                                       />
                                     ))}
 
-                                  {item.assign_to_details.length > 3 && (
+                                  {item.assign_to_details?.length > 3 && (
                                     <div
                                       className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark member-avatar"
                                       style={{
@@ -278,7 +279,7 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                                         )
                                       }
                                     >
-                                      +{item.assign_to_details.length - 3}
+                                      +{item.assign_to_details?.length - 3}
                                     </div>
                                   )}
                                 </div>

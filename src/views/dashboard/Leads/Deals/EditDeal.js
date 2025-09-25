@@ -505,13 +505,10 @@ const EditDeal = () => {
         <Row className="mb-3"> */}
         </Row>
 
-        {/* Submit */}
+        {/* Save */}
         <div className="text-end">
-          <Button variant="secondary" onClick={() => navigate("/deals-list")}>
-            Cancel
-          </Button>{" "}
           <Button variant="primary" type="submit">
-            Update
+            Save
           </Button>
         </div>
       </Form>

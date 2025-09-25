@@ -385,7 +385,7 @@ const InventoryCategoriesList = () => {
         modalTitle={
           editId ? "Update Inventory Category" : "Add New Inventory Category"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
       />
 

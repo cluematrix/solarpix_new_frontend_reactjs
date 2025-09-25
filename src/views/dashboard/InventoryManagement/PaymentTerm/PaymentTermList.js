@@ -382,7 +382,7 @@ const PaymentTermList = () => {
         errors={errors}
         onSave={handleAddOrUpdateRole}
         modalTitle={editId ? "Update Payment Term" : "Add New Payment Term"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
       />
 

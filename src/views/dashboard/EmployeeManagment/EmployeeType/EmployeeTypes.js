@@ -352,7 +352,7 @@ const EmployeeType = () => {
         setEmpType={setEmpType}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Employee Type" : "Add New Employee Type"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Confirmation Modal */}

@@ -18,7 +18,6 @@ import DeleteModal from "./delete-modal";
 import api from "../../../../../api/axios";
 import * as FaIcons from "react-icons/fa";
 
-
 const AwardList = () => {
   const [awards, setAwards] = useState([]);
   const [formData, setFormData] = useState({
@@ -255,7 +254,7 @@ const AwardList = () => {
         setFormData={setFormData}
         onSave={handleAddOrUpdateAward}
         modalTitle={editId ? "Update Award" : "Add Award"}
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
       />
 
       {/* Delete Modal */}

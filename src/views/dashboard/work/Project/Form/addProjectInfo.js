@@ -4,13 +4,7 @@ import CustomInput from "../../../../../components/Form/CustomInput";
 import CustomSelect from "../../../../../components/Form/CustomSelect";
 import CustomCheckbox from "../../../../../components/Form/CustomCheckbox";
 
-const AddProjectInfo = ({
-  formik,
-  metaData,
-  employee,
-  formData,
-  // selectedMemberNames,
-}) => {
+const AddProjectInfo = ({ formik, metaData }) => {
   return (
     <Form>
       <div className="mb-3 mt-3 fw-light">

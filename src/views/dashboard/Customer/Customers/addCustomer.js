@@ -73,6 +73,7 @@ const AddCustomer = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [customerList, setCustomerList] = useState([]); // store all customers
+  const [dealList, setDealList] = useState([]); // store all customers
 
   const validationSchema = Yup.object().shape({
     client_id: Yup.string().required("Customer ID is required"),
@@ -180,14 +181,17 @@ const AddCustomer = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [catRes, custRes] = await Promise.all([
+        const [catRes, custRes, dealRes] = await Promise.all([
           api.get("/api/v1/admin/clientCategory/active"),
           api.get("/api/v1/admin/client"), // assuming this returns all customers
+          api.get("/api/v1/admin/deal"), // assuming this returns all customers
         ]);
 
         console.log("cust-re", custRes);
-        setCategories(catRes.data || []);
-        setCustomerList(custRes.data.data || []);
+        console.log("dealRes", dealRes.data.lead);
+        setCategories(catRes.data);
+        setCustomerList(custRes.data.data);
+        setDealList(dealRes.data);
       } catch (error) {
         errorToast("Error loading data");
       } finally {
@@ -231,6 +235,7 @@ const AddCustomer = () => {
 
   console.log("lead_id", values.lead_id);
   console.log("values", values);
+  console.log("dealList", dealList);
   return (
     <Card>
       <Card.Header>
@@ -407,7 +412,7 @@ const AddCustomer = () => {
 
           {/* Row 5 {photo, category} */}
           <Row className="mt-3 mb-4">
-            <Col md={6}>
+            <Col md={4}>
               <CustomFileInput
                 label="Profile Picture"
                 name="photo"
@@ -420,7 +425,7 @@ const AddCustomer = () => {
                 error={errors.photo}
               />
             </Col>
-            <Col md={6}>
+            <Col md={4}>
               <CustomSelect
                 label="Client Category"
                 name="client_category_id"
@@ -434,6 +439,22 @@ const AddCustomer = () => {
                 required
                 valueName="id"
                 lableName="category"
+              />
+            </Col>
+            <Col md={4}>
+              <CustomSelect
+                label="Deal"
+                name="deal_id"
+                value={values.deal_id}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                options={dealList}
+                placeholder="--"
+                error={errors.deal_id}
+                touched={touched.deal_id}
+                required
+                valueName="id"
+                lableName="deal_name"
               />
             </Col>
           </Row>
@@ -522,17 +543,10 @@ const AddCustomer = () => {
               />
             </Col>
           </Row>
-          {/* Submit + Cancel */}
+          {/* Save */}
           <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
-            </Button>
-            <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate("/Customerlist")}
-            >
-              Cancel
             </Button>
           </div>
         </Form>

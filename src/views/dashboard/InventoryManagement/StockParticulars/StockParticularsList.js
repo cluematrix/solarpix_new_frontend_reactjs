@@ -386,7 +386,7 @@ const StockParticularList = () => {
         modalTitle={
           editId ? "Update Stock Particulars" : "Add New Stock Particulars"
         }
-        buttonLabel={editId ? "Update" : "Submit"}
+        buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
       />
 

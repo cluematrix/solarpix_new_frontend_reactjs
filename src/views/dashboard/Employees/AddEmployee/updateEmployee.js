@@ -646,17 +646,10 @@ const UpdateEmployee = () => {
             </Col>
           </Row>
 
-          {/* Submit + Cancel */}
+          {/* Save */}
           <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
-            </Button>
-            <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate("/employee-list")}
-            >
-              Cancel
             </Button>
           </div>
         </Form>

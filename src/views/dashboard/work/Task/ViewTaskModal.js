@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Button, Row, Col } from "react-bootstrap";
+import { Modal, Row, Col } from "react-bootstrap";
 import avatarPic from "../../../../assets/images/avatars/avatar-pic.jpg";
 
 const ViewTaskModal = ({ show, handleClose, task }) => {
@@ -9,94 +9,105 @@ const ViewTaskModal = ({ show, handleClose, task }) => {
     <Modal
       show={show}
       onHide={handleClose}
-      size="lg"
+      size="md"
       centered
       backdrop="static"
     >
       <Modal.Header closeButton>
-        <Modal.Title>Task Details</Modal.Title>
+        <Modal.Title className="fw-lighter  fs-5">Task Details</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Row className="mb-3">
-          <Col md={6}>
-            <strong>Title:</strong>
-            <div>{task.title || "-"}</div>
-          </Col>
-          <Col md={6}>
-            <strong>Project:</strong>
-            <div>{task.project?.project_name || "-"}</div>
-          </Col>
-        </Row>
+        <div className="px-2">
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Title:
+            </Col>
+            <Col xs={7}>{task.title || "-"}</Col>
+          </Row>
 
-        <Row className="mb-3">
-          <Col md={6}>
-            <strong>Priority:</strong>
-            <div>{task.priority || "-"}</div>
-          </Col>
-          <Col md={6}>
-            <strong>Status:</strong>
-            <div>{task.status || "-"}</div>
-          </Col>
-        </Row>
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Project:
+            </Col>
+            <Col xs={7}>{task.project?.project_name || "-"}</Col>
+          </Row>
 
-        <Row className="mb-3">
-          <Col md={6}>
-            <strong>Start Date:</strong>
-            <div>
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Priority:
+            </Col>
+            <Col xs={7}>{task.priority || "-"}</Col>
+          </Row>
+
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Status:
+            </Col>
+            <Col xs={7}>{task.status || "-"}</Col>
+          </Row>
+
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Start Date:
+            </Col>
+            <Col xs={7}>
               {task.start_date
                 ? new Date(task.start_date).toLocaleDateString()
                 : "-"}
-            </div>
-          </Col>
-          <Col md={6}>
-            <strong>End Date:</strong>
-            <div>
+            </Col>
+          </Row>
+
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              End Date:
+            </Col>
+            <Col xs={7}>
               {task.end_date
                 ? new Date(task.end_date).toLocaleDateString()
                 : "No Due Date"}
-            </div>
-          </Col>
-        </Row>
+            </Col>
+          </Row>
 
-        <Row className="mb-3">
-          <Col>
-            <strong>Description:</strong>
-            <div>{task.description || "No description provided."}</div>
-          </Col>
-        </Row>
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Description:
+            </Col>
+            <Col xs={7}>{task.description || "No description provided."}</Col>
+          </Row>
 
-        <Row className="mb-3">
-          <Col>
-            <strong>Assigned To:</strong>
-            <div className="d-flex flex-wrap">
-              {task.assign_to_details?.length > 0 ? (
-                task.assign_to_details.map((m, i) => (
-                  <div key={i} className="d-flex align-items-center me-3 mb-2">
-                    <img
-                      src={m.photo || avatarPic}
-                      alt={m.name}
-                      className="rounded-circle me-2"
-                      style={{
-                        width: "30px",
-                        height: "30px",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <span>{m.name}</span>
-                  </div>
-                ))
-              ) : (
-                <span>-</span>
-              )}
-            </div>
-          </Col>
-        </Row>
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Assigned To:
+            </Col>
+            <Col xs={7}>
+              <div className="d-flex flex-wrap">
+                {task.assign_to_details?.length > 0 ? (
+                  task.assign_to_details.map((m, i) => (
+                    <div
+                      key={i}
+                      className="d-flex align-items-center me-3 mb-2"
+                    >
+                      <img
+                        src={m.photo || avatarPic}
+                        alt={m.name}
+                        className="rounded-circle me-2"
+                        style={{
+                          width: "30px",
+                          height: "30px",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <span>{m.name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <span>-</span>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </div>
       </Modal.Body>
-      <Modal.Footer>
-        {/* <Button variant="secondary" onClick={handleClose}>
-          Close
-        </Button> */}
-      </Modal.Footer>
     </Modal>
   );
 };
