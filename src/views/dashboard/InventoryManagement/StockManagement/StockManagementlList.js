@@ -94,6 +94,7 @@ const StockManagementList = () => {
         then: (schema) =>
           schema
             .required("Credit is required")
+            .min(0, "Credit cannot be negative")
             .positive("Credit must be positive")
             .typeError("Credit must be a number"),
         otherwise: (schema) => schema.notRequired(),
@@ -106,6 +107,7 @@ const StockManagementList = () => {
         then: (schema) =>
           schema
             .required("Debit is required")
+            .min(0, "Debit cannot be negative")
             .positive("Debit must be positive")
             .typeError("Debit must be a number"),
         otherwise: (schema) => schema.notRequired(),
@@ -204,7 +206,7 @@ const StockManagementList = () => {
           supplierManagement: supplierManagementRes.data.filter(
             (s) => s.isActive
           ),
-          brand: brandRes.data.filter((t) => t.isActive),
+          brand: brandRes?.data?.data?.filter((t) => t.isActive),
           customer: customerRes.data.data.filter((e) => e.isActive),
         });
       } catch (error) {
@@ -301,13 +303,14 @@ const StockManagementList = () => {
     setViewData(notice);
     setShowView(true);
   };
+  console.log("formik.values.remark", formik.values.remark);
 
   const handleEdit = (index) => {
     const stock_management = userlist[index];
-    console.log("stock_management", stock_management);
+    console.log("stock_management.remark", stock_management.remark);
     formik.setValues({
-      Credit: stock_management.Credit,
-      Debit: stock_management.Debit,
+      Credit: null,
+      Debit: null,
       remark: stock_management.remark,
       balance: stock_management.balance,
       stock_material_id: stock_management.stock_material_id,
@@ -315,6 +318,7 @@ const StockManagementList = () => {
       supplier_management_id: stock_management.supplier_management_id,
       brand_id: stock_management.brand_id,
       client_id: stock_management.client_id,
+      select_type: "Debit",
     });
     setEditId(stock_management.id || stock_management._id);
     setShowAddEdit(true);
@@ -367,6 +371,8 @@ const StockManagementList = () => {
     );
   }
 
+  console.log("stockMaterial", metaData.stockMaterial);
+
   return (
     <>
       <Row className="mt-4">
@@ -393,8 +399,8 @@ const StockManagementList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Credit</th>
-                      <th>Debit</th>
+                      {/* <th>Credit</th> */}
+                      {/* <th>Debit</th> */}
                       <th>Balance</th>
                       <th>Stock Material</th>
                       <th>Status</th>
@@ -412,9 +418,9 @@ const StockManagementList = () => {
                       currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>{item.Credit}</td>
-                          <td>{item.Debit}</td>
-                          <td>{item.balance}</td>
+                          {/* <td>{item.Credit}</td> */}
+                          {/* <td>{item.Debit}</td> */}
+                          <td>{item.material.balance}</td>
                           <td>{item.material.material}</td>
                           <td>
                             <span

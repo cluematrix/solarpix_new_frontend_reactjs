@@ -10,7 +10,6 @@ const AddEditModal = ({
   handleClose,
   onSave,
   modalTitle,
-  buttonLabel,
   loading,
   formik,
   stockMaterial,
@@ -20,39 +19,56 @@ const AddEditModal = ({
   customer,
 }) => {
   console.log("formik.values", formik.values);
-  console.log("formik.errors", formik.errors);
-  // Balance calculate useEffect
+  const [originalBalance, setOriginalBalance] = React.useState(0);
+
   useEffect(() => {
-    const selectedMaterial = stockMaterial.find((m) => {
-      console.log("m.id", m.id);
-      console.log(
-        "formik.values.stock_material_id",
-        formik.values.stock_material_id
-      );
-      return m.id == formik.values.stock_material_id;
-    });
-
-    console.log("selectedMaterial.balance", selectedMaterial);
-    if (!selectedMaterial) return;
-
-    let baseBalance = selectedMaterial.balance || 0;
-    let newBalance = baseBalance;
-
-    if (formik.values.select_type == "Credit" && formik.values.Credit) {
-      newBalance = baseBalance + Number(formik.values.Credit);
+    if (
+      formik.values.select_type === "Credit" &&
+      formik.values.balance === ""
+    ) {
       formik.setFieldValue("Debit", 0);
-    } else if (formik.values.select_type == "Debit" && formik.values.Debit) {
-      newBalance = baseBalance - Number(formik.values.Debit);
-      formik.setFieldValue("Credit", 0);
+      formik.setFieldValue("balance", formik.values.Credit);
     }
-
-    formik.setFieldValue("balance", newBalance);
+    if (formik.values.select_type === "Debit" && formik.values.balance === "") {
+      formik.setFieldValue("Credit", 0);
+      formik.setFieldValue("balance", formik.values.Debit);
+    }
   }, [
-    formik.values.stock_material_id,
+    formik.values.select_type,
     formik.values.Credit,
     formik.values.Debit,
+    formik,
+  ]);
+
+  useEffect(() => {
+    if (show && formik.values.balance !== "") {
+      setOriginalBalance(Number(formik.values.balance)); // DB wala balance safe karo
+    }
+  }, [show]);
+
+  //run only update time
+  useEffect(() => {
+    const { select_type, Credit, Debit } = formik.values;
+
+    // Jab tak user kuch type nahi kare, kuch mat karo
+    if (Credit === null && Debit === null) return;
+
+    let updatedBalance = originalBalance;
+
+    if (select_type === "Credit" && Credit !== null) {
+      updatedBalance = originalBalance + Number(Credit || 0); // ✅ add credit
+    }
+
+    if (select_type === "Debit" && Debit !== null) {
+      updatedBalance = originalBalance - Number(Debit || 0); // ✅ minus debit
+    }
+
+    formik.setFieldValue("balance", updatedBalance);
+  }, [
     formik.values.select_type,
-    stockMaterial,
+    formik.values.Credit,
+    formik.values.Debit,
+    originalBalance,
   ]);
 
   return (
@@ -143,6 +159,7 @@ const AddEditModal = ({
               {formik.values.select_type === "Credit" ? (
                 <CustomInput
                   type="number"
+                  min={0}
                   label="Credit"
                   name="Credit"
                   value={formik.values.Credit}
@@ -155,6 +172,7 @@ const AddEditModal = ({
               ) : (
                 <CustomInput
                   type="number"
+                  min={0}
                   label="Debit"
                   name="Debit"
                   value={formik.values.Debit}
@@ -172,7 +190,6 @@ const AddEditModal = ({
                 label="Balance"
                 name="balance"
                 value={formik.values.balance}
-                onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 placeholder="Balance"
                 touched={formik.touched.balance}
