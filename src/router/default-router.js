@@ -106,12 +106,9 @@ import AddDeals from "../views/dashboard/Leads/Deals/AddDeals";
 import EditDeal from "../views/dashboard/Leads/Deals/EditDeal";
 import UpdateQuotationNew from "../views/dashboard/Leads/Deals/UpdateQuotationNew";
 import AddProject from "../views/dashboard/work/Project/addProject";
-<<<<<<< HEAD
 import WarehouseList from "../views/dashboard/InventoryManagement/Warehouse/WarehouseList";
-=======
 import ProjectProfile from "../views/dashboard/work/Project/projectProfile";
 
->>>>>>> cfbeed02307ec1a6d59d060ea2e6cba41cec0466
 // employee profile 01 Sep
 
 export const DefaultRouter = [
