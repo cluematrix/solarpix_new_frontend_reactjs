@@ -3,8 +3,7 @@ import { Col, Form, Row } from "react-bootstrap";
 import SelectWithModal from "../../../../../components/Form/SelectWithModal";
 import CustomInput from "../../../../../components/Form/CustomInput";
 
-const AddProjectMembers = ({ formik, employee, formData }) => {
-  console.log("Employee List:", employee);
+const AddProjectMembers = ({ formik, metaData }) => {
   return (
     <Form>
       <Row>
@@ -13,7 +12,7 @@ const AddProjectMembers = ({ formik, employee, formData }) => {
             label="Coordinate Members"
             formik={formik}
             formikField="co_ordinate"
-            options={employee} // employee list
+            options={metaData?.employee} // employee list
             optionLabel="name"
           />
         </Col>
@@ -22,7 +21,7 @@ const AddProjectMembers = ({ formik, employee, formData }) => {
             label="Structure Installer"
             formik={formik}
             formikField="structure_installer"
-            options={employee}
+            options={metaData?.employee}
             optionLabel="name"
           />
         </Col>
@@ -31,7 +30,7 @@ const AddProjectMembers = ({ formik, employee, formData }) => {
             label="Panel Wiring Installer"
             formik={formik}
             formikField="panel_wiring_installer"
-            options={employee}
+            options={metaData?.employee}
             optionLabel="name"
           />
         </Col>
@@ -43,7 +42,7 @@ const AddProjectMembers = ({ formik, employee, formData }) => {
             label="SEPL Inspection By"
             formik={formik}
             formikField="sepl_inspection_by"
-            options={employee}
+            options={metaData?.employee}
             optionLabel="name"
           />
         </Col>

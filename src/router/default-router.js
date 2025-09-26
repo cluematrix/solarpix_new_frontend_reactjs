@@ -106,6 +106,7 @@ import AddDeals from "../views/dashboard/Leads/Deals/AddDeals";
 import EditDeal from "../views/dashboard/Leads/Deals/EditDeal";
 import UpdateQuotationNew from "../views/dashboard/Leads/Deals/UpdateQuotationNew";
 import AddProject from "../views/dashboard/work/Project/addProject";
+import ProjectProfile from "../views/dashboard/work/Project/projectProfile";
 
 // employee profile 01 Sep
 
@@ -331,6 +332,14 @@ export const DefaultRouter = [
       {
         path: "/project-list",
         element: <ProjectList />,
+      },
+      {
+        path: "/project-list/view-project/:id",
+        element: <ProjectProfile />,
+      },
+      {
+        path: "/project-list/edit-project/:id",
+        element: <AddProject />,
       },
       {
         path: "/add-project",
