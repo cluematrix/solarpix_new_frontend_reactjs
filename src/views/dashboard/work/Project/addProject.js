@@ -1,7 +1,7 @@
 // Created by: Sufyan 02 Sep 2025
 import React, { useState, useEffect } from "react";
-import { Card } from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Card, Spinner } from "react-bootstrap";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../../api/axios";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -10,13 +10,11 @@ import { errorToast } from "../../../../components/Toast/errorToast";
 import CustomizedSteppers from "./customizedSteppers";
 
 const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
-  // Get formData from location state if available
-  const location = useLocation();
-  const formData = location.state?.formData || {};
+  const { id } = useParams();
   const [activeStep, setActiveStep] = React.useState(0);
+  const [formData, setFormData] = useState({});
 
   const initialValues = {
-    short_code: "",
     project_name: "",
     is_deadline: false,
     start_date: "", // (date_of_contract)
@@ -73,12 +71,12 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
     employeeList: [],
     project: [],
     stock: [],
+    employee: [],
   });
 
   const validationSchemas = [
     // Step-wise validation schemas (project info)
     Yup.object().shape({
-      short_code: Yup.string().required("Short Code is required"),
       project_name: Yup.string().required("Project Name is required"),
       start_date: Yup.date().required("Start Date is required"),
       is_deadline: Yup.boolean().default(false),
@@ -206,37 +204,51 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
   const formik = useFormik({
     initialValues,
     validationSchema: validationSchemas[activeStep],
+    enableReinitialize: true,
     onSubmit,
   });
 
-  const { values, setFieldValue } = formik;
-
-  // fetch employee
-  const fetchEmployee = async () => {
+  //  Fetch project by ID
+  const getProjectById = async () => {
     try {
-      const res = await api.get("/api/v1/admin/employee");
-      setEmployee(res.data.data || []);
-    } catch (err) {
-      console.error("Error fetching employee:", err);
+      setLoading(true);
+      const res = await api.get(`/api/v1/admin/project/${id}`);
+      setFormData(res.data.data || {});
+    } catch (error) {
+      console.error("Fetch Project Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  //  Call APIs after ID is available
   useEffect(() => {
-    fetchEmployee();
-  }, []);
+    if (id) {
+      getProjectById();
+    } else {
+      console.warn("ID not found in route params!");
+    }
+  }, [id]);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
         setLoading(true);
-        const [projectCatRes, clientRes, empListRes, projectRes, stockRes] =
-          await Promise.all([
-            api.get("/api/v1/admin/projectCategory"),
-            api.get("/api/v1/admin/client"),
-            api.get("/api/v1/admin/employee"),
-            api.get("/api/v1/admin/project"),
-            api.get("/api/v1/admin/stockMaterial"),
-          ]);
+        const [
+          projectCatRes,
+          clientRes,
+          empListRes,
+          projectRes,
+          stockRes,
+          empRes,
+        ] = await Promise.all([
+          api.get("/api/v1/admin/projectCategory"),
+          api.get("/api/v1/admin/client"),
+          api.get("/api/v1/admin/employee"),
+          api.get("/api/v1/admin/project"),
+          api.get("/api/v1/admin/stockMaterial"),
+          api.get("/api/v1/admin/employee"),
+        ]);
         setMetaData({
           projectCategory: projectCatRes.data.data.filter((d) => d.isActive),
           clientList: clientRes.data.data.filter((d) => d.isActive),
@@ -244,6 +256,7 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
           project: projectRes.data.data.filter((e) => e.isActive),
           client: clientRes.data.data.filter((e) => e.isActive),
           stock: stockRes.data.filter((e) => e.isActive),
+          employee: empRes.data.data.filter((e) => e.isActive),
         });
       } catch (error) {
         errorToast("Error loading data");
@@ -256,44 +269,14 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
     fetchAll();
   }, []);
 
-  useEffect(() => {
-    const employee_id = String(sessionStorage.getItem("employee_id"));
-    console.log("employee_id from sessionStorage", employee_id);
-    console.log("values.assign_by", values.assign_by);
-    if (formData?.projectMembers) {
-      setFieldValue("assign_to", formData.projectMembers);
-      setFieldValue("assign_by", employee_id);
-    }
-  }, [formData?.projectMembers, setFieldValue]);
-
-  //generate next short_code
-  useEffect(() => {
-    if (metaData.project && metaData.project.length > 0) {
-      // ✅ Get all short codes
-      const codes = metaData.project.map((p) => p.short_code);
-
-      // ✅ Sort them by numeric part (descending)
-      const sorted = codes.sort((a, b) => {
-        const numA = parseInt(a.match(/\d+$/)?.[0] || 0, 10);
-        const numB = parseInt(b.match(/\d+$/)?.[0] || 0, 10);
-        return numB - numA;
-      });
-
-      // ✅ Take the highest one
-      const lastShortCode = sorted[0];
-      console.log("lastShortCode", lastShortCode);
-
-      // ✅ Extract number and increment
-      const match = lastShortCode.match(/\d+$/);
-      const num = match ? parseInt(match[0], 10) : 0;
-
-      const nextId = "SOLAR" + String(num + 1).padStart(3, "0");
-      formik.setFieldValue("short_code", nextId);
-    } else {
-      formik.setFieldValue("short_code", "SOLAR001");
-    }
-  }, [metaData.project]);
-
+  if (loading) {
+    return (
+      <div className="text-center mt-5">
+        <Spinner animation="border" />
+      </div>
+    );
+  }
+  console.log("formData in main:", formData);
   return (
     <>
       <Card>

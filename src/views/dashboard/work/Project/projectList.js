@@ -94,13 +94,14 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   };
 
   const handleEdit = (index, item) => {
-    setFormData(item);
-    setEditIndex(index);
-    setShowAddEdit(true);
-    setOpenEditModalData(true);
-    navigate("/add-project", {
-      state: { formData: item },
-    });
+    // setFormData(item);
+    // setEditIndex(index);
+    // setShowAddEdit(true);
+    // setOpenEditModalData(true);
+    // navigate("/add-project", {
+    //   state: { formData: item },
+    // });
+    navigate(`/project-list/edit-project/${item.id}`);
   };
 
   // delete modal
@@ -163,8 +164,10 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
 
   // navigate to view page
   const handleView = (item) => {
-    setNavigateId(!navigateId);
-    setViewProjectData(item);
+    console.log("itemView_id", item.id);
+    navigate(`/project-list/view-project/${item.id}`);
+    // setNavigateId(!navigateId);
+    // setViewProjectData(item);
   };
 
   // navigate to employee profile tab
@@ -175,192 +178,192 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
 
   return (
     <>
-      {navigateId ? (
+      {/* {navigateId ? (
         <ProjectProfile viewProjectData={viewProjectData} />
-      ) : (
-        <Row className="mt-4">
-          <Col sm="12">
-            <Card>
-              <Card.Header
-                className="d-flex justify-content-between"
-                style={{ padding: "15px 15px 0px 15px" }}
+      ) : ( */}
+      <Row className="mt-4">
+        <Col sm="12">
+          <Card>
+            <Card.Header
+              className="d-flex justify-content-between"
+              style={{ padding: "15px 15px 0px 15px" }}
+            >
+              <h5 className="card-title fw-lighter">Projects</h5>
+              <Button
+                className="btn-primary"
+                onClick={() => {
+                  setShowAddEdit(true);
+                  setOpenEditModalData(false);
+                  navigate("/add-project");
+                }}
               >
-                <h5 className="card-title fw-lighter">Projects</h5>
-                <Button
-                  className="btn-primary"
-                  onClick={() => {
-                    setShowAddEdit(true);
-                    setOpenEditModalData(false);
-                    navigate("/add-project");
-                  }}
-                >
-                  + Add Project
-                </Button>
-              </Card.Header>
+                + Add Project
+              </Button>
+            </Card.Header>
 
-              <Card.Body className="px-0 pt-3">
-                {loading ? (
-                  <div className="loader-div">
-                    <Spinner animation="border" className="spinner" />
-                  </div>
-                ) : (
-                  <div className="table-responsive">
-                    <Table hover responsive className="table">
-                      <thead>
-                        <tr className="table-gray">
-                          <th>Sr. No.</th>
-                          <th>Short Code</th>
-                          <th>Project Name</th>
-                          <th>Member</th>
-                          <th>Start Date</th>
-                          <th>End Date</th>
-                          <th>Deadline</th>
-                          <th>Status</th>
-                          <th>Action</th>
+            <Card.Body className="px-0 pt-3">
+              {loading ? (
+                <div className="loader-div">
+                  <Spinner animation="border" className="spinner" />
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <Table hover responsive className="table">
+                    <thead>
+                      <tr className="table-gray">
+                        <th>Sr. No.</th>
+                        <th>Short Code</th>
+                        <th>Project Name</th>
+                        <th>Member</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {projectData && projectData?.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center">
+                            No projects available
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {projectData && projectData?.length === 0 ? (
-                          <tr>
-                            <td colSpan="8" className="text-center">
-                              No projects available
-                            </td>
-                          </tr>
-                        ) : (
-                          projectData?.map((item, idx) => (
-                            <tr key={idx}>
-                              <td>{idx + 1}</td>
-                              <td>{item.short_code || "--"}</td>
-                              <td>{item.project_name || "--"}</td>
-                              {/* <td>
+                      ) : (
+                        projectData?.map((item, idx) => (
+                          <tr key={idx}>
+                            <td>{idx + 1}</td>
+                            <td>{item.short_code || "--"}</td>
+                            <td>{item.project_name || "--"}</td>
+                            {/* <td>
                                 {item.assign_to_details.map(
                                   (ass) => ass.name
                                 ) || "--"}
                               </td> */}
-                              <td>
-                                <div className="d-flex align-items-center justify-content-center">
-                                  {item?.assign_to_details
-                                    ?.slice(0, 3)
-                                    ?.map((ass, index) => (
-                                      <img
-                                        key={index}
-                                        src={ass.photo || avatarPic}
-                                        alt={ass.name}
-                                        title={ass.name}
-                                        className="rounded-circle me-1 avatar-hover"
-                                        style={{
-                                          width: "25px",
-                                          height: "25px",
-                                          objectFit: "cover",
-                                          border: "1px solid #ccc",
-                                          cursor: "pointer",
-                                          zIndex: 10 - index,
-                                          marginLeft: "-15px",
-                                        }}
-                                        onClick={() =>
-                                          handleNavigateToProfile(ass)
-                                        }
-                                      />
-                                    ))}
-
-                                  {item.assign_to_details?.length > 3 && (
-                                    <div
-                                      className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark member-avatar"
+                            <td>
+                              <div className="d-flex align-items-center justify-content-center">
+                                {item?.assign_to_details
+                                  ?.slice(0, 3)
+                                  ?.map((ass, index) => (
+                                    <img
+                                      key={index}
+                                      src={ass.photo || avatarPic}
+                                      alt={ass.name}
+                                      title={ass.name}
+                                      className="rounded-circle me-1 avatar-hover"
                                       style={{
                                         width: "25px",
                                         height: "25px",
-                                        fontSize: "12px",
+                                        objectFit: "cover",
                                         border: "1px solid #ccc",
                                         cursor: "pointer",
+                                        zIndex: 10 - index,
+                                        marginLeft: "-15px",
                                       }}
                                       onClick={() =>
-                                        handleNavigateToProfile(
-                                          item.assign_to_details
-                                        )
+                                        handleNavigateToProfile(ass)
                                       }
-                                    >
-                                      +{item.assign_to_details?.length - 3}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
+                                    />
+                                  ))}
 
-                              <td>{item.start_date || "--"}</td>
-                              <td>{item.end_date || "--"}</td>
-                              <td className="text-center">
-                                {item.is_deadline || "--"}
-                              </td>
-                              <td>
-                                <span
-                                  className={`status-dot ${
-                                    item.isActive ? "active" : "inactive"
-                                  }`}
-                                ></span>
-                                {item.isActive ? "Active" : "Inactive"}
-                              </td>
-                              <td className="d-flex align-items-center">
-                                <Form.Check
-                                  type="switch"
-                                  id={`active-switch-${item.id}`}
-                                  checked={item.isActive}
-                                  onChange={() =>
-                                    handleToggleActive(item.id, item.isActive)
-                                  }
-                                />
-                                <CreateTwoToneIcon
-                                  className="me-1"
-                                  onClick={() => handleEdit(idx, item)}
-                                  color="primary"
-                                  style={{ cursor: "pointer" }}
-                                />
-                                <DeleteRoundedIcon
-                                  onClick={() => openDeleteModal(item.id, idx)}
-                                  color="error"
-                                  style={{ cursor: "pointer" }}
-                                />
-                                <VisibilityIcon
-                                  onClick={() => handleView(item)}
-                                  color="primary"
-                                  style={{
-                                    cursor: "pointer",
-                                    margin: "0px 5px",
-                                  }}
-                                />
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </Table>
-                  </div>
-                )}
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <Pagination className="justify-content-center mt-3">
-                    <Pagination.Prev
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    />
-                    {[...Array(totalPages)].map((_, i) => (
-                      <Pagination.Item
-                        key={i + 1}
-                        active={i + 1 === currentPage}
-                        onClick={() => handlePageChange(i + 1)}
-                      >
-                        {i + 1}
-                      </Pagination.Item>
-                    ))}
-                    <Pagination.Next
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    />
-                  </Pagination>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      )}
+                                {item.assign_to_details?.length > 3 && (
+                                  <div
+                                    className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark member-avatar"
+                                    style={{
+                                      width: "25px",
+                                      height: "25px",
+                                      fontSize: "12px",
+                                      border: "1px solid #ccc",
+                                      cursor: "pointer",
+                                    }}
+                                    onClick={() =>
+                                      handleNavigateToProfile(
+                                        item.assign_to_details
+                                      )
+                                    }
+                                  >
+                                    +{item.assign_to_details?.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+
+                            <td>{item.start_date || "--"}</td>
+                            <td>{item.end_date || "--"}</td>
+                            <td className="text-center">
+                              {item.is_deadline || "--"}
+                            </td>
+                            <td>
+                              <span
+                                className={`status-dot ${
+                                  item.isActive ? "active" : "inactive"
+                                }`}
+                              ></span>
+                              {item.isActive ? "Active" : "Inactive"}
+                            </td>
+                            <td className="d-flex align-items-center">
+                              <Form.Check
+                                type="switch"
+                                id={`active-switch-${item.id}`}
+                                checked={item.isActive}
+                                onChange={() =>
+                                  handleToggleActive(item.id, item.isActive)
+                                }
+                              />
+                              <CreateTwoToneIcon
+                                className="me-1"
+                                onClick={() => handleEdit(idx, item)}
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                              <DeleteRoundedIcon
+                                onClick={() => openDeleteModal(item.id, idx)}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                              <VisibilityIcon
+                                onClick={() => handleView(item)}
+                                color="primary"
+                                style={{
+                                  cursor: "pointer",
+                                  margin: "0px 5px",
+                                }}
+                              />
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+              )}
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.Prev
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  />
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => handlePageChange(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      {/* )} */}
 
       {/* Add/Edit Modal */}
       <AddEditModal

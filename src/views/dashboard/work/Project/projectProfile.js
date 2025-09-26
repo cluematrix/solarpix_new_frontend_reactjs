@@ -14,40 +14,62 @@ import {
 } from "recharts";
 import { GrStorage } from "react-icons/gr";
 import { FaClock } from "react-icons/fa";
+import { useParams } from "react-router-dom";
 
-const ProjectProfile = ({ viewProjectData }) => {
-  console.log("viewProjectData", viewProjectData);
+const ProjectProfile = () => {
+  const { id } = useParams();
+
+  const [viewProjectData, setViewProjectData] = useState({});
   const [client, setClient] = useState([]);
   const [loading, setLoading] = useState(false);
-  console.log("viewProjectData", viewProjectData);
 
-  const getClient = async () => {
+  //  Fetch project by ID
+  const getProjectById = async () => {
     try {
-      // setLoading(true);
-      const res = await api.get(`/api/v1/admin/clientCategory`);
-      console.log("API Response:", res);
-      setClient(res.data || []);
+      setLoading(true);
+      const res = await api.get(`/api/v1/admin/project/${id}`);
+      setViewProjectData(res.data.data || {});
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("Fetch Project Error:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  //  Fetch client categories
+  const getClient = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/api/v1/admin/clientCategory`);
+      console.log("Client Category Response:", res.data);
+      setClient(res.data || []);
+    } catch (error) {
+      console.error("Fetch Client Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //  Call APIs after ID is available
   useEffect(() => {
-    getClient();
-  }, []);
+    if (id) {
+      getProjectById();
+      getClient();
+    } else {
+      console.warn("ID not found in route params!");
+    }
+  }, [id]);
 
-  console.log("client", client);
+  console.log("client list:", client);
+  console.log("project data:", viewProjectData);
 
+  // Safe filter with optional chaining
   const filteredClientCategory =
-    client &&
-    client.filter((item) => {
-      console.log("filteredClientById", item.id, viewProjectData.category.id);
-      return item.id == Number(viewProjectData.category.id);
-    });
+    client?.filter(
+      (item) => item.id == Number(viewProjectData?.category?.id)
+    ) || [];
 
-  console.log("filteredClientCategory", filteredClientCategory);
+  console.log("filteredClientCategory:", filteredClientCategory);
 
   if (loading) {
     return (
@@ -56,7 +78,7 @@ const ProjectProfile = ({ viewProjectData }) => {
       </div>
     );
   }
-  console.log("Project Data:", viewProjectData);
+
   const COLORS = ["#28a745", "#ffc107", "#dc3545"];
 
   const taskData = [
@@ -82,7 +104,7 @@ const ProjectProfile = ({ viewProjectData }) => {
         <Col md={6}>
           <Card className="pt-3 pb-0 px-3">
             <h5>Project Progress</h5>
-            <div className="text-center d-flex  p-3 justify-content-between align-items-center w-100">
+            <div className="text-center d-flex p-3 justify-content-between align-items-center w-100">
               <h4 className="w-25" style={{ color: "#28a745" }}>
                 97%
               </h4>
@@ -91,34 +113,37 @@ const ProjectProfile = ({ viewProjectData }) => {
                 <div>
                   <p>Start Date:</p>
                   <p className="text-black">
-                    {" "}
-                    {viewProjectData.start_date || "--"}
+                    {viewProjectData?.start_date || "--"}
                   </p>
                 </div>
                 <div>
                   <p>End Date:</p>
                   <p className="text-black">
-                    {" "}
-                    {viewProjectData.end_date || "--"}
+                    {viewProjectData?.end_date || "--"}
                   </p>
                 </div>
               </div>
             </div>
           </Card>
         </Col>
+
         <Col md={6}>
           <Card className="p-3">
             <h5>Customer</h5>
             <div className="d-flex align-items-center">
-              <img
-                src={viewProjectData.client.photo}
-                alt="Customer"
-                className="rounded-circle me-3 w-25 mt-2"
-              />
+              {viewProjectData?.client?.photo && (
+                <img
+                  src={viewProjectData?.client?.photo}
+                  alt="Customer"
+                  className="rounded-circle me-3 w-25 mt-2"
+                />
+              )}
               <div>
-                <h6>{viewProjectData.client.name || "--"}</h6>
+                <h6>{viewProjectData?.client?.name || "--"}</h6>
                 <p className="mb-0">
-                  {filteredClientCategory.map((item) => item.category)}
+                  {filteredClientCategory
+                    ?.map((item) => item.category)
+                    .join(", ")}
                 </p>
               </div>
             </div>
@@ -142,6 +167,7 @@ const ProjectProfile = ({ viewProjectData }) => {
             </ResponsiveContainer>
           </Card>
         </Col>
+
         <Col md={6}>
           <h5 className="mb-3">Statistics</h5>
           <Row>
@@ -151,7 +177,7 @@ const ProjectProfile = ({ viewProjectData }) => {
                   <p className="text-black">Project Budget</p>
                   <div className="d-flex justify-content-between align-items-baseline">
                     <p className="text-primary">
-                      ${viewProjectData.project_budget || "--"}
+                      ${viewProjectData?.project_budget || "--"}
                     </p>
                     <GrStorage />
                   </div>
@@ -164,7 +190,7 @@ const ProjectProfile = ({ viewProjectData }) => {
                   <p className="text-black">Hours Logged</p>
                   <div className="d-flex justify-content-between align-items-baseline">
                     <p className="text-primary">
-                      {viewProjectData.hour_estimate}
+                      {viewProjectData?.hour_estimate || "--"}
                     </p>
                     <FaClock />
                   </div>
@@ -233,7 +259,7 @@ const ProjectProfile = ({ viewProjectData }) => {
           <Card className="p-3">
             <h5>Project Details</h5>
             <p className="text-black mt-2" style={{ fontSize: "13px" }}>
-              {viewProjectData.project_summary || "No summary available."}
+              {viewProjectData?.project_summary || "No summary available."}
             </p>
           </Card>
         </Col>

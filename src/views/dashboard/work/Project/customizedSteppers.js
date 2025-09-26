@@ -6,9 +6,6 @@ import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Check from "@mui/icons-material/Check";
-import SettingsIcon from "@mui/icons-material/Settings";
-import GroupAddIcon from "@mui/icons-material/GroupAdd";
-import VideoLabelIcon from "@mui/icons-material/VideoLabel";
 import StepConnector, {
   stepConnectorClasses,
 } from "@mui/material/StepConnector";
@@ -186,8 +183,6 @@ ColorlibStepIcon.propTypes = {
 export default function CustomizedSteppers({
   formik,
   metaData,
-  selectedMemberNames,
-  setShowMembersModal,
   employee,
   activeStep,
   setActiveStep,
@@ -203,7 +198,7 @@ export default function CustomizedSteppers({
     "Staff Assignment",
   ];
 
-  const handleNext = () => setActiveStep((prev) => prev + 1);
+  // const handleNext = () => setActiveStep((prev) => prev + 1);
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const renderStepContent = (step) => {
@@ -219,7 +214,7 @@ export default function CustomizedSteppers({
       case 4:
         return <AddProjectNp formik={formik} />;
       case 5:
-        return <AddProjectMembers formik={formik} employee={employee} />;
+        return <AddProjectMembers formik={formik} metaData={metaData} />;
       default:
         return "Unknown Step";
     }

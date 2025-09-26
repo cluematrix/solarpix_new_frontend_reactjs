@@ -14,21 +14,6 @@ const AddProjectInfo = ({ formik, metaData }) => {
       <Row>
         <Col md={4}>
           <CustomInput
-            label="Short Code"
-            name="short_code"
-            value={formik.values.short_code}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Your Short Code"
-            touched={formik.touched.short_code}
-            errors={formik.errors.short_code}
-            required={true}
-            readOnly={true}
-          />
-        </Col>
-
-        <Col md={4}>
-          <CustomInput
             label="Project Name"
             name="project_name"
             value={formik.values.project_name}
@@ -52,6 +37,20 @@ const AddProjectInfo = ({ formik, metaData }) => {
             error={formik.errors.project_category_id}
             touched={formik.touched.project_category_id}
             lableName="category"
+            required={true}
+          />
+        </Col>
+        <Col md={4}>
+          <CustomSelect
+            label="Customer"
+            name="client_id"
+            value={formik.values.client_id}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            options={metaData.clientList}
+            placeholder="--"
+            error={formik.errors.client_id}
+            touched={formik.touched.client_id}
             required={true}
           />
         </Col>
@@ -108,20 +107,6 @@ const AddProjectInfo = ({ formik, metaData }) => {
 
       {/* Row 5  client_id, estimate, project_remarks*/}
       <Row className="mt-3">
-        <Col md={4}>
-          <CustomSelect
-            label="Customer"
-            name="client_id"
-            value={formik.values.client_id}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            options={metaData.clientList}
-            placeholder="--"
-            error={formik.errors.client_id}
-            touched={formik.touched.client_id}
-            required={true}
-          />
-        </Col>
         <Col md={4}>
           <CustomInput
             label="Estimate"
