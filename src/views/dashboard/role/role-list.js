@@ -6,6 +6,7 @@ import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../api/axios";
 import { useLocation } from "react-router";
+import { toast } from "react-toastify"; // ✅ added toast
 
 const RoleList = () => {
   const [userlist, setUserlist] = useState([]);
@@ -37,10 +38,6 @@ const RoleList = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
-
-      // ✅ Match current role + route
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
@@ -61,13 +58,12 @@ const RoleList = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); //  Stop loader after API call
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     setLoading(true);
-
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -86,6 +82,7 @@ const RoleList = () => {
       })
       .catch((err) => {
         console.error("Error fetching roles:", err);
+        toast.error("Failed to fetch roles");
         setUserlist([]);
       });
   };
@@ -95,37 +92,38 @@ const RoleList = () => {
   }, []);
 
   // Toggle Active/Inactive
-  const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus === 1 ? 0 : 1;
-    setUserlist((prev) =>
-      prev.map((dept) =>
-        dept.id === id ? { ...dept, isActive: newStatus } : dept
-      )
-    );
-    api.put(`/api/v1/admin/role/${id}`, { isActive: newStatus }).catch(() => {
-      // rollback if fails
-      setUserlist((prev) =>
-        prev.map((dept) =>
-          dept.id === id ? { ...dept, isActive: currentStatus } : dept
-        )
-      );
-    });
+  const handleToggleActive = async (id, currentStatus) => {
+    const newStatus = Number(currentStatus) === 1 ? false : true; // backend expects boolean
+    try {
+      await api.put(`/api/v1/admin/role/${id}`, { isActive: newStatus });
+      toast.success("Status updated successfully");
+      fetchRoles();
+    } catch (err) {
+      console.error("Update failed:", err);
+      toast.error("Failed to update status");
+    }
   };
 
   // Add or Update Role
-  const handleAddOrUpdateRole = () => {
-    if (!roleName.trim()) return;
+  const handleAddOrUpdateRole = async () => {
+    if (!roleName.trim()) {
+      toast.error("Please enter a role name");
+      return;
+    }
 
-    if (editId) {
-      api.put(`/api/v1/admin/role/${editId}`, { name: roleName }).then(() => {
-        fetchRoles();
-        resetForm();
-      });
-    } else {
-      api.post("/api/v1/admin/role", { name: roleName }).then(() => {
-        fetchRoles();
-        resetForm();
-      });
+    try {
+      if (editId) {
+        await api.put(`/api/v1/admin/role/${editId}`, { name: roleName });
+        toast.success("Role updated successfully");
+      } else {
+        await api.post("/api/v1/admin/role", { name: roleName });
+        toast.success("Role added successfully");
+      }
+      fetchRoles();
+      resetForm();
+    } catch (err) {
+      console.error("Error saving role:", err);
+      toast.error("Failed to save role");
     }
   };
 
@@ -139,12 +137,17 @@ const RoleList = () => {
   };
 
   // Delete
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteId) return;
-    api.delete(`/api/v1/admin/role/${deleteId}`).then(() => {
+    try {
+      await api.delete(`/api/v1/admin/role/${deleteId}`);
+      toast.success("Role deleted successfully");
       fetchRoles();
       setShowDelete(false);
-    });
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete role");
+    }
   };
 
   const resetForm = () => {
@@ -154,7 +157,6 @@ const RoleList = () => {
     setEditId(null);
   };
 
-  //  Loader while checking permissions
   if (loading) {
     return (
       <div className="loader-div">
@@ -182,7 +184,7 @@ const RoleList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Roles </h5>
+              <h5 className="card-title fw-lighter">Roles</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -217,31 +219,37 @@ const RoleList = () => {
                           <td>{idx + 1}</td>
                           <td>{item.name}</td>
                           <td>
-                            {item.id === 1 ? (
-                              <span className="badge bg-success">Active</span> // 🚫 no toggle for Admin
-                            ) : (
-                              <Form.Check
-                                type="switch"
-                                id={`active-switch-${item.id}`}
-                                checked={item.isActive === 1}
-                                onChange={() =>
-                                  handleToggleActive(item.id, item.isActive)
-                                }
-                                label={item.isActive ? "Active" : "Inactive"}
-                              />
-                            )}
+                            {" "}
+                            <span
+                              className={`status-dot ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                            ></span>
+                            {Number(item.isActive) === 1
+                              ? "Active"
+                              : "Inactive"}
                           </td>
                           <td>
                             {item.id !== 1 && (
-                              <>
+                              <div className="d-flex align-items-center gap-2">
+                                {/* Toggle Switch */}
+                                <Form.Check
+                                  type="switch"
+                                  id={`active-switch-${item.id}`}
+                                  checked={item.isActive === 1}
+                                  onChange={() =>
+                                    handleToggleActive(item.id, item.isActive)
+                                  }
+                                />
+                                {/* Edit */}
                                 {permissions.edit && (
                                   <CreateTwoToneIcon
-                                    className="me-2"
                                     onClick={() => handleEdit(idx)}
                                     color="primary"
                                     style={{ cursor: "pointer" }}
                                   />
                                 )}
+                                {/* Delete */}
                                 {permissions.del && (
                                   <DeleteRoundedIcon
                                     onClick={() => {
@@ -253,7 +261,7 @@ const RoleList = () => {
                                     style={{ cursor: "pointer" }}
                                   />
                                 )}
-                              </>
+                              </div>
                             )}
                           </td>
                         </tr>

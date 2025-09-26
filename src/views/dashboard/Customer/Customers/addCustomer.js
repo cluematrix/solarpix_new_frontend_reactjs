@@ -20,7 +20,7 @@ const AddCustomer = () => {
 
   console.log("dealData?.id", dealData?.id);
   const initialValues = {
-    client_id: "",
+    // client_id: "",
     lead_id: dealData?.lead_id || leadData?.id || "",
     salutation: leadData?.salutation || "",
     name: leadData?.name || dealData?.deal_name || "",
@@ -51,7 +51,7 @@ const AddCustomer = () => {
   const [dealList, setDealList] = useState([]); // store all customers
 
   const validationSchema = Yup.object().shape({
-    client_id: Yup.string().required("Customer ID is required"),
+    // client_id: Yup.string().required("Customer ID is required"),
     salutation: Yup.string().required("Salutation is required"),
     name: Yup.string().required("Name is required"),
     gender: Yup.string().required("Gender is required"),
@@ -177,28 +177,28 @@ const AddCustomer = () => {
   }, []);
 
   // ✅ Auto-generate next Client ID
-  useEffect(() => {
-    if (customerList && customerList.length > 0) {
-      // Extract numeric parts from all client_id values
-      const nums = customerList.map((c) => {
-        const num = parseInt(c.client_id?.replace("CUSTO", ""), 10);
-        return isNaN(num) ? 0 : num;
-      });
-      console.log("list of ", customerList);
-      // Find maximum number
-      const maxNum = Math.max(...nums);
+  // useEffect(() => {
+  //   if (customerList && customerList.length > 0) {
+  //     // Extract numeric parts from all client_id values
+  //     const nums = customerList.map((c) => {
+  //       const num = parseInt(c.client_id?.replace("CUSTO", ""), 10);
+  //       return isNaN(num) ? 0 : num;
+  //     });
+  //     console.log("list of ", customerList);
+  //     // Find maximum number
+  //     const maxNum = Math.max(...nums);
 
-      // Generate next ID
-      const nextId = "CUSTO" + String(maxNum + 1).padStart(3, "0");
+  //     // Generate next ID
+  //     const nextId = "CUSTO" + String(maxNum + 1).padStart(3, "0");
 
-      setFieldValue("client_id", nextId);
+  //     setFieldValue("client_id", nextId);
 
-      console.log("Last max client_id number:", maxNum, " → Next:", nextId);
-    } else {
-      // First customer
-      setFieldValue("client_id", "CUSTO001");
-    }
-  }, [customerList, setFieldValue]);
+  //     console.log("Last max client_id number:", maxNum, " → Next:", nextId);
+  //   } else {
+  //     // First customer
+  //     setFieldValue("client_id", "CUSTO001");
+  //   }
+  // }, [customerList, setFieldValue]);
 
   if (loading) {
     return (
@@ -223,7 +223,7 @@ const AddCustomer = () => {
         <Form onSubmit={handleSubmit}>
           {/* Row 1 {client_id, salutation, name} */}
           <Row>
-            <Col md={4}>
+            {/* <Col md={4}>
               <CustomInput
                 label="Customer ID"
                 name="client_id"
@@ -236,7 +236,7 @@ const AddCustomer = () => {
                 required
                 disabled
               />
-            </Col>
+            </Col> */}
             <Col md={4}>
               <CustomSelect
                 label="Salutation"

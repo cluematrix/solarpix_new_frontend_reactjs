@@ -18,7 +18,7 @@ import CustomFileInput from "../../../../components/Form/CustomFileInput";
 
 const UpdateEmployee = () => {
   const initialValues = {
-    emp_id: "",
+    // emp_id: "",
     salutation: "",
     name: "",
     email: "",
@@ -65,7 +65,7 @@ const UpdateEmployee = () => {
   const navigate = useNavigate();
 
   const validationSchema = Yup.object().shape({
-    emp_id: Yup.string().required("Employee ID is required"),
+    // emp_id: Yup.string().required("Employee ID is required"),
     salutation: Yup.string().required("Salutation is required"),
     name: Yup.string().required("Name is required"),
     gender: Yup.string().required("Gender is required"),
@@ -234,7 +234,7 @@ const UpdateEmployee = () => {
         <Form onSubmit={handleSubmit}>
           {/* Row 1 {emp_id, salutation, name} */}
           <Row>
-            <Col md={4}>
+            {/* <Col md={4}>
               <CustomInput
                 label="Employee ID"
                 name="emp_id"
@@ -246,7 +246,7 @@ const UpdateEmployee = () => {
                 errors={errors.emp_id}
                 required={true}
               />
-            </Col>
+            </Col> */}
 
             <Col md={4}>
               <CustomSelect

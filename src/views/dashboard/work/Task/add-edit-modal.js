@@ -2,19 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, Button, Row, Col } from "react-bootstrap";
 import api from "../../../../api/axios";
 import { statusOptions } from "../../../../mockData";
-
-// CSS for dimmed background when members modal is open
-const shadowStyle = {
-  boxShadow: "0 0 20px 10px rgba(0,0,0,0.5)",
-  opacity: 0.2, // dimmed effect
-  pointerEvents: "none", // disable interactions
-  transition: "opacity 0.3s ease, box-shadow 0.3s ease",
-};
-
-// Style for Members modal to ensure higher z-index
-const focusedModalStyle = {
-  zIndex: 1060,
-};
+import "./AddEditTaskModal.css"; // We'll add CSS for dim effect
 
 const AddEditTaskModal = ({
   show,
@@ -92,7 +80,7 @@ const AddEditTaskModal = ({
         show={show}
         onHide={handleClose}
         size="lg"
-        style={showMembersModal ? shadowStyle : {}}
+        dialogClassName={showMembersModal ? "dimmed" : ""}
       >
         <Modal.Header closeButton>
           <Modal.Title>{editData ? "Edit Task" : "Add Task"}</Modal.Title>
@@ -288,7 +276,6 @@ const AddEditTaskModal = ({
         centered
         show={showMembersModal}
         onHide={() => setShowMembersModal(false)}
-        style={focusedModalStyle}
         backdrop="static"
       >
         <Modal.Header closeButton>
