@@ -106,7 +106,7 @@ import AddDeals from "../views/dashboard/Leads/Deals/AddDeals";
 import EditDeal from "../views/dashboard/Leads/Deals/EditDeal";
 import UpdateQuotationNew from "../views/dashboard/Leads/Deals/UpdateQuotationNew";
 import AddProject from "../views/dashboard/work/Project/addProject";
-
+import WarehouseList from "../views/dashboard/InventoryManagement/Warehouse/WarehouseList";
 // employee profile 01 Sep
 
 export const DefaultRouter = [
@@ -278,6 +278,10 @@ export const DefaultRouter = [
         element: <StockManagementList />,
       },
 
+      {
+        path: "/WarehouseList",
+        element: <WarehouseList  />,
+      },
       // notice
       {
         path: "/notice-board",

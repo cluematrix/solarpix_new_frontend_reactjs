@@ -101,7 +101,7 @@ const QuotationModal = ({ show, handleClose, deal }) => {
           {/* Header */}
           <Row className="align-items-center border-bottom pb-2 mb-2">
             <Col xs={8}>
-              <h6 className="fw-bold">Company Name:</h6>
+              <h6 className="fw-bold">Solarpix Energy Pvt. Ltd.</h6>
               <div>Address: 312, Ratan Apt no 3, Ganeshpeth, Nagpur-440018</div>
               <div>Phone: 9096941011 / 9552383397</div>
               <div>Email: office.solarpix@gmail.com</div>

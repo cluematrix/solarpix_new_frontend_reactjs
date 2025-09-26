@@ -23,6 +23,7 @@ export const statusOptions = [
   { icon: "🔴", name: "Incomplete" },
   { icon: "🟡", name: "To Do" },
   { icon: "🔵", name: "Doing" },
+  { icon: "🟢", name: "Completed" },
 ];
 
 export const docTypeOptions = [

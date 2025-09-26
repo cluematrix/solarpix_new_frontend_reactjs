@@ -43,7 +43,7 @@ const TaskList = () => {
     assign_by: "",
     assign_to: [],
     task_category_id: "",
-    status: "To Do",
+    status: "Incomplete",
     project_id: "",
   });
 
@@ -167,7 +167,7 @@ const TaskList = () => {
                     assign_by: "",
                     assign_to: [],
                     task_category_id: "",
-                    status: "To Do",
+                    status: "Incomplete",
                     project_id: "",
                   });
                   setEditTask(null);
@@ -190,8 +190,10 @@ const TaskList = () => {
                         <th>Sr. No.</th>
                         <th>Title</th>
                         <th>Project</th>
+                        <th>Task Type</th>
                         <th>Assigned To</th>
                         <th>Status</th>
+
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -208,6 +210,7 @@ const TaskList = () => {
                             <td>{idx + 1}</td>
                             <td>{task.title}</td>
                             <td>{task.project?.project_name || "-"}</td>
+                            <td>{task.task_type || "-"}</td>
                             <td className="text-center">
                               <div className="d-flex justify-content-center">
                                 {task.assign_to_details
@@ -247,6 +250,7 @@ const TaskList = () => {
                                 )}
                               </div>
                             </td>
+
                             <td>
                               <Form.Select
                                 size="sm"

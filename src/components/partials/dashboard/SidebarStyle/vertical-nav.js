@@ -750,6 +750,23 @@ const VerticalNav = memo((props) => {
                   </span>
                 </Link>
               </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/WarehouseList" ? "active" : ""
+                  } nav-link`}
+                  to="/WarehouseList"
+                >
+                  <i className="icon">
+                    <MdReceiptLong fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <MdReceiptLong fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Warehouse</span>
+                </Link>
+              </li>
             </ul>
           </Accordion.Collapse>
         </Accordion.Item>
