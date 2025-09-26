@@ -78,25 +78,28 @@ input {
   padding: .3rem
 }
 
-.errors-text{
-  color:red;
+.errors-text {
+  color: red;
   font-size: 11px;
 }
 
 
 /* Page wrapper */
 .page-wrapper {
-  min-height: 100vh;          /* full screen */
+  min-height: 100vh;
+  /* full screen */
   display: flex;
   flex-direction: column;
 }
 
 /* Main content will stretch */
 .main-content {
-  flex: 1;                    /* take remaining space */
+  flex: 1;
+  /* take remaining space */
 }
 
 /* Footer stick bottom */
 .footer {
-  margin-top: auto;           /* push footer down */
+  margin-top: auto;
+  /* push footer down */
 }

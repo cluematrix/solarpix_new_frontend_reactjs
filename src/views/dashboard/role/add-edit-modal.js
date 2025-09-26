@@ -24,6 +24,7 @@ const AddEditModal = ({
               placeholder="Enter role name"
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
+              required
             />
           </Form.Group>
         </Form>

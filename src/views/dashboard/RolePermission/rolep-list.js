@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Table, Form, Button, Spinner } from "react-bootstrap";
 import api from "../../../api/axios";
+import { toast } from "react-toastify";
 
 const RolePermissionList = () => {
   const [roles, setRoles] = useState([]);
@@ -11,7 +12,6 @@ const RolePermissionList = () => {
   const [loadingModules, setLoadingModules] = useState(true);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
 
-  //  Match backend field names
   const permissionTypes = [
     { label: "View", field: "view" },
     { label: "Add", field: "add" },
@@ -19,13 +19,12 @@ const RolePermissionList = () => {
     { label: "Delete", field: "del" },
   ];
 
-  //  fetch roles
+  // fetch roles
   useEffect(() => {
     const fetchRoles = async () => {
       try {
         const res = await api.get("/api/v1/admin/role/active");
         if (res.data && Array.isArray(res.data)) {
-          console.log(res);
           const activeRoles = res.data.filter(
             (r) => r.isActive === 1 || r.isActive === true
           );
@@ -63,7 +62,7 @@ const RolePermissionList = () => {
     fetchModules();
   }, []);
 
-  //  fetch permissions for selected role
+  // fetch permissions
   const fetchPermissions = async (roleId) => {
     setLoadingPermissions(true);
     try {
@@ -102,6 +101,19 @@ const RolePermissionList = () => {
     }));
   };
 
+  // Select All for module
+  const handleSelectAll = (moduleId) => {
+    const current = permissions[moduleId] || {};
+    const allSelected = permissionTypes.every((p) => current[p.field]);
+    setPermissions((prev) => ({
+      ...prev,
+      [moduleId]: permissionTypes.reduce(
+        (acc, p) => ({ ...acc, [p.field]: !allSelected }),
+        {}
+      ),
+    }));
+  };
+
   const handleSelectRole = (e) => {
     const roleId = e.target.value;
     setSelectedRole(roleId);
@@ -112,10 +124,8 @@ const RolePermissionList = () => {
     }
   };
 
-  //  FIXED: Added catch block
   const handleSave = async () => {
     try {
-      // Convert permissions state into JSON payload
       const payloadArray = Object.entries(permissions).map(
         ([moduleId, perms]) => {
           const module = modules.find((m) => m.id === parseInt(moduleId));
@@ -126,8 +136,8 @@ const RolePermissionList = () => {
             add: perms.add || false,
             edit: perms.edit || false,
             del: perms.del || false,
-            display_name: module?.display_name || null, // include display_name
-            route: module?.route || null, // include route
+            display_name: module?.display_name || null,
+            route: module?.route || null,
           };
         }
       );
@@ -136,17 +146,14 @@ const RolePermissionList = () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      alert("Permissions updated successfully!");
+      toast.success("Permissions updated successfully");
     } catch (err) {
       console.error("Error saving permissions:", err);
-      alert("Failed to save permissions.");
+      toast.error("Failed to save permissions");
     }
   };
-
   return (
     <Card className="p-3 shadow-sm mt-4">
-      {/* Role dropdown */}
-      {/* Role dropdown */}
       <Row className="mb-3">
         <Col md={4}>
           <Form.Group>
@@ -162,7 +169,7 @@ const RolePermissionList = () => {
               <Form.Select value={selectedRole} onChange={handleSelectRole}>
                 <option value="">-- Select Role --</option>
                 {roles
-                  .filter((role) => role.id !== 1) // Exclude Admin from dropdown
+                  .filter((role) => role.id !== 1)
                   .map((role) => (
                     <option key={role.id} value={role.id}>
                       {role.name}
@@ -174,7 +181,6 @@ const RolePermissionList = () => {
         </Col>
       </Row>
 
-      {/* Permissions table */}
       {selectedRole && (
         <>
           <h5 className="mb-3">
@@ -194,6 +200,7 @@ const RolePermissionList = () => {
               <thead className="table-light">
                 <tr>
                   <th>Module</th>
+                  <th className="text-center">Select All</th>
                   {permissionTypes.map((perm) => (
                     <th key={perm.field} className="text-center">
                       {perm.label}
@@ -202,24 +209,35 @@ const RolePermissionList = () => {
                 </tr>
               </thead>
               <tbody>
-                {modules.map((module) => (
-                  <tr key={module.id}>
-                    <td>{module.display_name}</td>
-                    {permissionTypes.map((perm) => (
-                      <td key={perm.field} className="text-center">
+                {modules.map((module) => {
+                  const modulePerms = permissions[module.id] || {};
+                  const allSelected = permissionTypes.every(
+                    (p) => modulePerms[p.field]
+                  );
+                  return (
+                    <tr key={module.id}>
+                      <td>{module.display_name}</td>
+                      <td className="text-center">
                         <Form.Check
                           type="checkbox"
-                          checked={Boolean(
-                            permissions[module.id]?.[perm.field]
-                          )}
-                          onChange={() =>
-                            handlePermissionChange(module.id, perm.field)
-                          }
+                          checked={allSelected}
+                          onChange={() => handleSelectAll(module.id)}
                         />
                       </td>
-                    ))}
-                  </tr>
-                ))}
+                      {permissionTypes.map((perm) => (
+                        <td key={perm.field} className="text-center">
+                          <Form.Check
+                            type="checkbox"
+                            checked={Boolean(modulePerms[perm.field])}
+                            onChange={() =>
+                              handlePermissionChange(module.id, perm.field)
+                            }
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
           )}

@@ -18,7 +18,7 @@ import CustomFileInput from "../../../../components/Form/CustomFileInput";
 
 const AddEmployee = () => {
   const initialValues = {
-    emp_id: "",
+    // emp_id: "",
     salutation: "",
     name: "",
     contact: "",
@@ -62,7 +62,7 @@ const AddEmployee = () => {
   });
 
   const validationSchema = Yup.object().shape({
-    emp_id: Yup.string().required("Employee ID is required"),
+    // emp_id: Yup.string().required("Employee ID is required"),
     salutation: Yup.string().required("Salutation is required"),
     name: Yup.string().required("Name is required"),
     gender: Yup.string().required("Gender is required"),
@@ -199,22 +199,22 @@ const AddEmployee = () => {
     fetchAll();
   }, []);
 
-  useEffect(() => {
-    // After metaData.employeeList is loaded
-    if (metaData.employeeList && metaData.employeeList.length > 0) {
-      // Get last emp_id (assuming sorted by creation)
-      const lastEmp = metaData.employeeList[metaData.employeeList.length - 1];
-      let lastId = lastEmp.emp_id || "SOLAR000";
-      // Extract number part
-      let num = parseInt(lastId.replace("SOLAR", ""), 10);
-      // Increment and pad with zeros
-      let nextId = "SOLAR" + String(num + 1).padStart(3, "0");
-      formik.setFieldValue("emp_id", nextId);
-    } else {
-      // First employee
-      formik.setFieldValue("emp_id", "SOLAR001");
-    }
-  }, [metaData.employeeList]);
+  // useEffect(() => {
+  //   // After metaData.employeeList is loaded
+  //   if (metaData.employeeList && metaData.employeeList.length > 0) {
+  //     // Get last emp_id (assuming sorted by creation)
+  //     const lastEmp = metaData.employeeList[metaData.employeeList.length - 1];
+  //     let lastId = lastEmp.emp_id || "SOLAR000";
+  //     // Extract number part
+  //     let num = parseInt(lastId.replace("SOLAR", ""), 10);
+  //     // Increment and pad with zeros
+  //     let nextId = "SOLAR" + String(num + 1).padStart(3, "0");
+  //     formik.setFieldValue("emp_id", nextId);
+  //   } else {
+  //     // First employee
+  //     formik.setFieldValue("emp_id", "SOLAR001");
+  //   }
+  // }, [metaData.employeeList]);
 
   const today = new Date();
   today.setFullYear(today.getFullYear() - 18);
@@ -239,7 +239,7 @@ const AddEmployee = () => {
           <Form onSubmit={handleSubmit}>
             {/* Row 1 {emp_id, salutation, name} */}
             <Row>
-              <Col md={4}>
+              {/* <Col md={4}>
                 <CustomInput
                   label="Employee ID"
                   name="emp_id"
@@ -252,7 +252,7 @@ const AddEmployee = () => {
                   required={true}
                   readOnly={true}
                 />
-              </Col>
+              </Col> */}
 
               <Col md={4}>
                 <CustomSelect

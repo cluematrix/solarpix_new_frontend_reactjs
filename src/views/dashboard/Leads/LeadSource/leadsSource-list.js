@@ -99,9 +99,21 @@ const LeadSourceList = () => {
     fetchLeadSources();
   }, []);
 
-  // ✅ Save or Update
+
   const handleSave = async (data) => {
     try {
+      // 🔹 Check if lead_source already exists (case-insensitive)
+      const isDuplicate = leadSources.some(
+        (item) =>
+          item.lead_source.toLowerCase().trim() ===
+            data.lead_source.toLowerCase().trim() && item.id !== editId // allow same name for the one being edited
+      );
+
+      if (isDuplicate) {
+        toast.error("Lead Source already exists!");
+        return;
+      }
+
       if (editId) {
         await api.put(`/api/v1/admin/leadSource/${editId}`, data);
         toast.success("Lead Source updated successfully");
@@ -109,6 +121,7 @@ const LeadSourceList = () => {
         await api.post("/api/v1/admin/leadSource", data);
         toast.success("Lead Source added successfully");
       }
+
       fetchLeadSources();
       setShowAddEdit(false);
       setFormData({ lead_source: "" });

@@ -68,7 +68,7 @@ const AddEditModal = ({
         ) : (
           <Form onSubmit={handleSubmit}>
             <Row className="mb-3">
-              <Col md={4}>
+              {/* <Col md={4}>
                 <Form.Group>
                   <Form.Label>Enquiry Number</Form.Label>
                   <Form.Control
@@ -78,7 +78,7 @@ const AddEditModal = ({
                     readOnly
                   />
                 </Form.Group>
-              </Col>
+              </Col> */}
 
               <Col md={4}>
                 <Form.Group>

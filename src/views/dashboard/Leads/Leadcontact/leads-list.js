@@ -62,7 +62,7 @@ const LeadsList = () => {
     customer_remark: "",
     last_call: "",
     priority: "",
-    enquiry_number: "",
+    // enquiry_number: "",
     isActive: true,
     isDelete: false,
   });
@@ -119,30 +119,30 @@ const LeadsList = () => {
     navigate("/add-customer", { state: { leadData: lead } });
   };
 
-  const generateEnquiryNumber = (leadList = []) => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.toLocaleString("en-US", { month: "short" }).toUpperCase();
-    const nextYear = (year + 1).toString().slice(-2);
-    const currentYear = year.toString().slice(-2);
-    let sequence = 1;
+  // const generateEnquiryNumber = (leadList = []) => {
+  //   const now = new Date();
+  //   const year = now.getFullYear();
+  //   const month = now.toLocaleString("en-US", { month: "short" }).toUpperCase();
+  //   const nextYear = (year + 1).toString().slice(-2);
+  //   const currentYear = year.toString().slice(-2);
+  //   let sequence = 1;
 
-    if (leadList.length > 0) {
-      const lastLead = [...leadList].sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      )[0];
-      const lastNumber = lastLead?.lead_number || lastLead?.enquiry_number;
-      if (lastNumber) {
-        const parts = lastNumber.split("/");
-        const lastSeq = parseInt(parts[3] || "0", 10);
-        if (!isNaN(lastSeq)) sequence = lastSeq + 1;
-      }
-    }
+  //   if (leadList.length > 0) {
+  //     const lastLead = [...leadList].sort(
+  //       (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  //     )[0];
+  //     const lastNumber = lastLead?.lead_number || lastLead?.enquiry_number;
+  //     if (lastNumber) {
+  //       const parts = lastNumber.split("/");
+  //       const lastSeq = parseInt(parts[3] || "0", 10);
+  //       if (!isNaN(lastSeq)) sequence = lastSeq + 1;
+  //     }
+  //   }
 
-    return `SEPL/${currentYear}-${nextYear}/${month}/${String(
-      sequence
-    ).padStart(3, "0")}`;
-  };
+  //   return `SEPL/${currentYear}-${nextYear}/${month}/${String(
+  //     sequence
+  //   ).padStart(3, "0")}`;
+  // };
 
   // Fetch dropdowns
   const fetchDropdowns = async () => {
@@ -209,7 +209,7 @@ const LeadsList = () => {
       customer_remark: "",
       last_call: "",
       priority: "",
-      enquiry_number: generateEnquiryNumber(leadList),
+      // enquiry_number: generateEnquiryNumber(leadList),
       isActive: true,
       isDelete: false,
     });
@@ -241,7 +241,7 @@ const LeadsList = () => {
       customer_remark: data.customer_remark,
       last_call: data.last_call,
       priority: data.priority,
-      lead_number: data.enquiry_number,
+      // lead_number: data.enquiry_number,
       isActive: data.isActive,
       isDelete: data.isDelete,
     };
@@ -287,7 +287,7 @@ const LeadsList = () => {
       customer_remark: lead.customer_remark || "",
       last_call: lead.last_call || "",
       priority: lead.priority || "",
-      enquiry_number: lead.lead_number || lead.enquiry_number || "",
+      // enquiry_number: lead.lead_number || lead.enquiry_number || "",
       isActive: lead.isActive,
       isDelete: lead.isDelete,
     });

@@ -402,7 +402,7 @@ const Header = memo((props) => {
                       className="mb-0 caption-sub-title"
                       style={{ fontSize: "12px" }}
                     >
-                      {user?.designation.name || ""}
+                      {user?.designation?.name || "Employee"}
                     </p>
                   </div>
                 </Dropdown.Toggle>
