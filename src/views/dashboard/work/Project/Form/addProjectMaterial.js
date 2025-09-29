@@ -54,7 +54,7 @@ const AddProjectMaterial = ({ formik, metaData }) => {
       <Row>
         <Col md={4}>
           <Form.Group>
-            <Form.Label className="pt-4">Stock Material</Form.Label>
+            <Form.Label className="pt-4">Procurement</Form.Label>
             <div>
               {!stockModal && selectedMemberNames.length > 0 ? (
                 selectedMemberNames.map((name) => (
@@ -64,7 +64,7 @@ const AddProjectMaterial = ({ formik, metaData }) => {
                 ))
               ) : (
                 <p className="text-muted" style={{ fontSize: "13px" }}>
-                  No stock selected
+                  No Procurement selected
                 </p>
               )}
             </div>
@@ -73,7 +73,7 @@ const AddProjectMaterial = ({ formik, metaData }) => {
               className="mt-2"
               onClick={() => setStockModal(true)}
             >
-              Select Stock
+              Select Procurement
             </Button>
           </Form.Group>
           {formik.touched.stock_material && formik.errors.stock_material && (
@@ -86,7 +86,7 @@ const AddProjectMaterial = ({ formik, metaData }) => {
 
       {/* Row 2, {company_name, capacity } */}
       <Row className="mt-3">
-        <Col md={4}>
+        {/* <Col md={4}>
           <CustomInput
             label="Company Name"
             name="company_name"
@@ -97,7 +97,7 @@ const AddProjectMaterial = ({ formik, metaData }) => {
             touched={formik.touched.company_name}
             errors={formik.errors.company_name}
           />
-        </Col>
+        </Col> */}
         <Col md={4}>
           <CustomInput
             label="Capacity"
@@ -105,7 +105,7 @@ const AddProjectMaterial = ({ formik, metaData }) => {
             value={selectedCustomer?.deal?.inv_cap || formik.values.capacity}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter Pin Code"
+            placeholder="Enter Capacity"
             touched={formik.touched.capacity}
             errors={formik.errors.capacity}
             readOnly={true}

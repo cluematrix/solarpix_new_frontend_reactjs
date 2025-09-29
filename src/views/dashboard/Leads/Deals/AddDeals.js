@@ -243,7 +243,7 @@ const AddDeals = ({ editData }) => {
 
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Lead *</Form.Label>
+              <Form.Label>Customer *</Form.Label>
               <Form.Select
                 name="lead_id"
                 value={formData.lead_id}
@@ -262,7 +262,7 @@ const AddDeals = ({ editData }) => {
             </Form.Group>
           </Col>
 
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Group>
               <Form.Label>Status *</Form.Label>
               <Form.Select
@@ -277,10 +277,8 @@ const AddDeals = ({ editData }) => {
                 ))}
               </Form.Select>
             </Form.Group>
-          </Col>
-        </Row>
+          </Col> */}
 
-        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Assign To *</Form.Label>
@@ -299,6 +297,9 @@ const AddDeals = ({ editData }) => {
               </Form.Select>
             </Form.Group>
           </Col>
+        </Row>
+
+        <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
               <Form.Label>Site Visit Date & Time</Form.Label>

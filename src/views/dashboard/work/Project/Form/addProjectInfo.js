@@ -111,7 +111,7 @@ const AddProjectInfo = ({ formik, metaData }) => {
       <Row className="mt-3">
         <Col md={4}>
           <CustomInput
-            label="Estimate"
+            label="As per Sales Order"
             name="estimate"
             value={formik.values.estimate}
             onChange={formik.handleChange}

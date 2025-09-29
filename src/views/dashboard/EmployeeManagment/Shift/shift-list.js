@@ -246,10 +246,10 @@ const ShiftList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Shifts</h5>
+              <h5 className="card-title fw-lighter">Office Time</h5>
               {permissions.add && (
                 <Button onClick={() => setShowAddEdit(true)}>
-                  + Add Shift
+                  + Add Office Time
                 </Button>
               )}
             </Card.Header>
