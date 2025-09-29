@@ -426,7 +426,7 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">Follow Up</span>
                 </Link>
               </li>
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/RateList" ? "active" : ""
@@ -444,7 +444,7 @@ const VerticalNav = memo((props) => {
                     Default Rate
                   </span>
                 </Link>
-              </li>
+              </li> */}
               {/* <li className="nav-item">
                 <Link
                   className={`${
@@ -729,7 +729,7 @@ const VerticalNav = memo((props) => {
                     {" "}
                     <FaTrademark fontSize="small" />{" "}
                   </i>
-                  <span className="item-name sidebar-font-size">Brand</span>
+                  <span className="item-name sidebar-font-size">Make</span>
                 </Link>
               </li>
               <li className="nav-item">
@@ -891,7 +891,9 @@ const VerticalNav = memo((props) => {
                   <i className="sidenav-mini-icon">
                     <BrowseGalleryIcon fontSize="small" />
                   </i>
-                  <span className="item-name sidebar-font-size">Shift</span>
+                  <span className="item-name sidebar-font-size">
+                    Office Time
+                  </span>
                 </Link>
               </li>
 
@@ -1115,7 +1117,7 @@ const VerticalNav = memo((props) => {
           </CustomToggle>
           <Accordion.Collapse eventKey="sidebar-auth2">
             <ul className="sub-nav">
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/taskcategory-list" ? "active" : ""
@@ -1133,7 +1135,7 @@ const VerticalNav = memo((props) => {
                     Task Category
                   </span>
                 </Link>
-              </li>
+              </li> */}
 
               <li className="nav-item">
                 <Link

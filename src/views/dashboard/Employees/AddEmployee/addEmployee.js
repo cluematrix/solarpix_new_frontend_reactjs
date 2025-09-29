@@ -465,7 +465,7 @@ const AddEmployee = () => {
                 />
               </Col>
 
-              <Col md={4}>
+              {/* <Col md={4}>
                 <CustomInput
                   label="Skill"
                   name="skill"
@@ -475,7 +475,7 @@ const AddEmployee = () => {
                   placeholder="Enter Skill"
                   touched={touched.skill}
                 />
-              </Col>
+              </Col> */}
             </Row>
 
             <hr />
@@ -517,7 +517,7 @@ const AddEmployee = () => {
                 />
               </Col>
 
-              <Col md={4}>
+              {/* <Col md={4}>
                 <CustomInput
                   type="date"
                   label="Probation End Date"
@@ -530,7 +530,7 @@ const AddEmployee = () => {
                   errors={errors.probation_end_date}
                   required={true}
                 />
-              </Col>
+              </Col> */}
             </Row>
 
             {/* Row 4 {reporting_to, department_id, designation_id}*/}
@@ -583,7 +583,7 @@ const AddEmployee = () => {
             <Row className="mt-3">
               <Col md={4}>
                 <CustomSelect
-                  label="Shift"
+                  label="Office Time"
                   name="shift_id"
                   value={values.shift_id}
                   onChange={handleChange}
