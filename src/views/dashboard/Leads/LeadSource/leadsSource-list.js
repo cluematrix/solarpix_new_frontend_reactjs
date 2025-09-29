@@ -10,13 +10,14 @@ import {
   Spinner,
   Table,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios"; // adjust path
+import AddIcon from "@mui/icons-material/Add";
 
 const LeadSourceList = () => {
   const { pathname } = useLocation();
@@ -50,10 +51,11 @@ const LeadSourceList = () => {
 
       const roleId = String(sessionStorage.getItem("roleId"));
 
+      console.log("data", data);
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "Lead-Source-List"
       );
 
       if (matchedPermission) {
@@ -77,7 +79,7 @@ const LeadSourceList = () => {
   useEffect(() => {
     setLoading(true);
     FETCHPERMISSION();
-  }, [pathname]);
+  }, []);
 
   // ✅ Fetch list from API
   const fetchLeadSources = async () => {
@@ -98,7 +100,6 @@ const LeadSourceList = () => {
   useEffect(() => {
     fetchLeadSources();
   }, []);
-
 
   const handleSave = async (data) => {
     try {
@@ -213,7 +214,7 @@ const LeadSourceList = () => {
                     setShowAddEdit(true);
                   }}
                 >
-                  + Add Lead Source
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -241,17 +242,22 @@ const LeadSourceList = () => {
                         <tr key={item.id}>
                           <td>{indexOfFirstItem + idx + 1}</td>
                           <td>{item.lead_source}</td>
-                          <td>
-                            {" "}
+                          <td style={{ minWidth: "50px" }}>
                             <span
                               className={`status-dot ${
                                 item.isActive ? "active" : "inactive"
                               }`}
+                              style={{ marginRight: "6px" }}
                             ></span>
-                            {Number(item.isActive) === 1
-                              ? "Active"
-                              : "Inactive"}
+                            <span
+                              style={{ display: "inline-block", width: "60px" }}
+                            >
+                              {Number(item.isActive) === 1
+                                ? "Active"
+                                : "Inactive"}
+                            </span>
                           </td>
+
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
@@ -352,7 +358,11 @@ const LeadSourceList = () => {
       />
 
       {/* Toast */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        transition={Slide}
+        autoClose={3000}
+      />
     </>
   );
 };

@@ -98,6 +98,16 @@ input {
   /* take remaining space */
 }
 
+/* table style */
+.table-hover tbody tr:hover {
+  background-color: #f1f3f5; /* ya koi bhi hover color */
+}
+
+.table-hover tbody tr:hover td {
+  color: #000 !important; /* black forcefully */
+}
+
+
 /* Footer stick bottom */
 .footer {
   margin-top: auto;

@@ -51,13 +51,12 @@ const ClientCategory = () => {
 
       const roleId = String(sessionStorage.getItem("roleId"));
       console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
 
-      // ✅ Match current role + route
+      //  Match current role + display_name
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "ClientCategoryList"
       );
 
       if (matchedPermission) {
@@ -81,7 +80,7 @@ const ClientCategory = () => {
     setLoading(true);
 
     FETCHPERMISSION();
-  }, [pathname]);
+  }, []);
 
   // 🔄 Fetch Client Categories
   const fetchClientCategories = () => {
@@ -234,7 +233,7 @@ const ClientCategory = () => {
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + Add Category
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -262,7 +261,21 @@ const ClientCategory = () => {
                         <tr key={item.id}>
                           <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.category}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
+                          <td style={{ minWidth: "50px" }}>
+                            <span
+                              className={`status-dot ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                              style={{ marginRight: "6px" }}
+                            ></span>
+                            <span
+                              style={{ display: "inline-block", width: "60px" }}
+                            >
+                              {Number(item.isActive) === 1
+                                ? "Active"
+                                : "Inactive"}
+                            </span>
+                          </td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
@@ -273,11 +286,9 @@ const ClientCategory = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-1"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
                                 onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}

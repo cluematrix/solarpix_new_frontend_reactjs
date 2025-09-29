@@ -108,6 +108,7 @@ import UpdateQuotationNew from "../views/dashboard/Leads/Deals/UpdateQuotationNe
 import AddProject from "../views/dashboard/work/Project/addProject";
 import WarehouseList from "../views/dashboard/InventoryManagement/Warehouse/WarehouseList";
 import ProjectProfile from "../views/dashboard/work/Project/projectProfile";
+import SettingsSidebarWithTabs from "../views/dashboard/SettingPage/SettingsSidebarWithTabs";
 
 // employee profile 01 Sep
 
@@ -128,6 +129,12 @@ export const DefaultRouter = [
       {
         path: "dashboard/special-pages/billing",
         element: <Billing />,
+      },
+
+      // setting page
+      {
+        path: "dashboard/app/settings",
+        element: <SettingsSidebarWithTabs />,
       },
       {
         path: "dashboard/special-pages/calender",
@@ -282,7 +289,7 @@ export const DefaultRouter = [
 
       {
         path: "/WarehouseList",
-        element: <WarehouseList  />,
+        element: <WarehouseList />,
       },
       // notice
       {
@@ -309,10 +316,10 @@ export const DefaultRouter = [
         element: <UpdateCustomer />,
       },
 
-      {
-        path: "/clientCategory-list",
-        element: <ClientCategory />,
-      },
+      // {
+      //   path: "/clientCategory-list",
+      //   element: <ClientCategory />,
+      // },
       {
         path: "/clientSubCategory-list",
         element: <ClientSubCategory />,
@@ -393,10 +400,10 @@ export const DefaultRouter = [
         element: <RequirementList />,
       },
 
-      {
-        path: "/leadsSource-list",
-        element: <LeadSourceList />,
-      },
+      // {
+      //   path: "/leadsSource-list",
+      //   element: <LeadSourceList />,
+      // },
 
       {
         path: "/dealstages-list",

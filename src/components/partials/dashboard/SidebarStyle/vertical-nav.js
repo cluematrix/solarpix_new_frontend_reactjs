@@ -1,5 +1,5 @@
 import React, { useState, useContext, memo, Fragment } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import BrowseGalleryIcon from "@mui/icons-material/BrowseGallery";
@@ -41,6 +41,9 @@ import {
   AccordionContext,
 } from "react-bootstrap";
 
+//setting icon
+import SettingsIcon from "@mui/icons-material/Settings";
+
 function CustomToggle({ children, eventKey, onClick }) {
   const { activeEventKey } = useContext(AccordionContext);
 
@@ -70,7 +73,7 @@ const VerticalNav = memo((props) => {
   const [active, setActive] = useState("");
   //location
   let location = useLocation();
-
+  const navigate = useNavigate();
   const roleIdsss = sessionStorage.getItem("roleId");
   console.log(roleIdsss);
 
@@ -309,7 +312,7 @@ const VerticalNav = memo((props) => {
           </CustomToggle>
           <Accordion.Collapse eventKey="sidebar-leads">
             <ul className="sub-nav">
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/leadsSource-list" ? "active" : ""
@@ -327,7 +330,7 @@ const VerticalNav = memo((props) => {
                     Lead Source
                   </span>
                 </Link>
-              </li>
+              </li> */}
 
               <li className="nav-item">
                 <Link
@@ -1337,6 +1340,26 @@ const VerticalNav = memo((props) => {
               </li>
             </ul>
           </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* Setting - created 29/09 by sufyan */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-setting"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          // onClick={() => setActive("auth")}
+          onClick={() => navigate("/dashboard/app/settings")}
+        >
+          <CustomToggle
+            eventKey="sidebar-setting"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <SettingsIcon fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">Setting</span>
+          </CustomToggle>
         </Accordion.Item>
       </Accordion>
     </Fragment>

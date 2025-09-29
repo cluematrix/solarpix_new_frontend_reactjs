@@ -46,3 +46,39 @@ export const selectTypeData = [
   { id: "1", name: "Debit" },
   { id: "2", name: "Credit" },
 ];
+
+// Sidebar list
+export const sidebarItems = [
+  "Lead",
+  "Customer",
+  "Tax",
+  "Account",
+  "Inventory",
+  "Task",
+  "Project",
+  "Employee",
+  "Holiday",
+  "Branch",
+];
+
+// Tabs config –
+export const tabConfig = {
+  Lead: ["Source", "Requirement", "Unit", "Status"],
+  Customer: ["Categories"],
+  Tax: ["GST Treatment", "Tax Preference", "TDS"],
+  Account: ["Type"],
+  Inventory: ["Reason"],
+  Task: ["Type"],
+  Project: [
+    "Category",
+    "Document",
+    "MSEB",
+    "NM",
+    "NP",
+    "Billing Method",
+    "Installation Status",
+  ],
+  Employee: ["Employee Type", "Department", "Designation", "Office Time"],
+  Holiday: ["Default Holiday"],
+  Branch: ["Branch"],
+};

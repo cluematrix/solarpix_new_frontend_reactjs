@@ -19,7 +19,13 @@ const AddEditModal = ({
   };
 
   return (
-    <Modal centered show={show} onHide={handleClose} backdrop="static">
+    <Modal
+      centered
+      show={show}
+      onHide={handleClose}
+      backdrop="static"
+      style={{ zIndex: "9999" }}
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           {editData ? "Edit Lead Source" : "Add Lead Source"}
@@ -28,10 +34,13 @@ const AddEditModal = ({
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
           <Form.Group>
-            <Form.Label>Lead Source</Form.Label>
+            <Form.Label>
+              Lead Source <span className="text-danger">*</span>
+            </Form.Label>
             <Form.Control
               type="text"
               name="lead_source"
+              placeholder="Enter Lead Source"
               value={formData.lead_source}
               onChange={handleChange}
               required
