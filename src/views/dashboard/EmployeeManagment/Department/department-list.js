@@ -52,10 +52,16 @@ const DepartmentList = () => {
       console.log(pathname, "current pathname");
 
       // ✅ Match current role + route
+      // const matchedPermission = data.find(
+      //   (perm) =>
+      //     String(perm.role_id) === roleId &&
+      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
+      // );
+
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "Department List" // 👈 change this string as per your DB config
       );
 
       if (matchedPermission) {
@@ -237,7 +243,7 @@ const DepartmentList = () => {
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + New Department
+                  + New
                 </Button>
               )}
             </Card.Header>

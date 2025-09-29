@@ -4,8 +4,10 @@ import { Modal, Form, Button } from "react-bootstrap";
 const AddEditModal = ({
   show,
   handleClose,
-  roleName,
-  setRoleName,
+  gstName,
+  setGstName,
+  gstDesc,
+  setGstDesc,
   onSave,
   modalTitle,
   buttonLabel,
@@ -22,16 +24,24 @@ const AddEditModal = ({
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group controlId="formRoleName">
-            <Form.Label className="custom-form-label">
-              Designation Name
-            </Form.Label>
+          <Form.Group controlId="formGstName" className="mb-3">
+            <Form.Label>GST Name</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter designation name"
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              className="custom-form-control"
+              placeholder="Enter GST Name"
+              value={gstName}
+              onChange={(e) => setGstName(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group controlId="formGstDesc">
+            <Form.Label>Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              placeholder="Enter Description"
+              value={gstDesc}
+              onChange={(e) => setGstDesc(e.target.value)}
+              rows={3}
             />
           </Form.Group>
         </Modal.Body>

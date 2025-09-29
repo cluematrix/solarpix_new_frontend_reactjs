@@ -54,10 +54,15 @@ const ShiftList = () => {
       console.log(pathname, "current pathname");
 
       // ✅ Match current role + route
+      // const matchedPermission = data.find(
+      //   (perm) =>
+      //     String(perm.role_id) === roleId &&
+      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
+      // );
+
       const matchedPermission = data.find(
         (perm) =>
-          String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          String(perm.role_id) === roleId && perm.display_name === "Office Time" // 👈 change this string as per your DB config
       );
 
       if (matchedPermission) {
@@ -247,11 +252,11 @@ const ShiftList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Office Time</h5>
-              {permissions.add && (
+              {/* {permissions.add && (
                 <Button onClick={() => setShowAddEdit(true)}>
-                  + Add Office Time
+                  + New
                 </Button>
-              )}
+              )} */}
             </Card.Header>
             <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
@@ -262,7 +267,7 @@ const ShiftList = () => {
                       <th>Shift Name</th>
                       <th>Start Time</th>
                       <th>End Time</th>
-                      <th>Status</th>
+                      {/* <th>Status</th> */}
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -280,15 +285,15 @@ const ShiftList = () => {
                           <td>{item.shift_name}</td>
                           <td>{formatTime12Hour(item.start_time)}</td>
                           <td>{formatTime12Hour(item.end_time)}</td>
-                          <td>
+                          {/* <td>
                             {item.is_active === 1 ? (
                               <Badge bg="success">Active</Badge>
                             ) : (
                               <Badge bg="danger">Inactive</Badge>
                             )}
-                          </td>
+                          </td> */}
                           <td className="d-flex align-items-center">
-                            <Form.Check
+                            {/* <Form.Check
                               type="switch"
                               id={`status-switch-${item.id}`}
                               checked={item.is_active === 1}
@@ -296,7 +301,7 @@ const ShiftList = () => {
                                 handleToggleStatus(item.id, item.is_active)
                               }
                               className="me-3"
-                            />
+                            /> */}
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"

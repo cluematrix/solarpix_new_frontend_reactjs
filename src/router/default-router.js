@@ -12,7 +12,6 @@ import RolePList from "../views/dashboard/RolePermission/rolep-list";
 //Master 10 Aug
 import DepartmentList from "../views/dashboard/EmployeeManagment/Department/department-list"; //10 Aug
 import ShiftList from "../views/dashboard/EmployeeManagment/Shift/shift-list"; //12 Aug
-import DesignationList from "../views/dashboard/EmployeeManagment/Designation/designation-list"; //10 Aug
 import EmployeeType from "../views/dashboard/EmployeeManagment/EmployeeType/EmployeeTypes";
 import LeaveType from "../views/dashboard/EmployeeManagment/LeaveType/LeaveTypes";
 import AwardList from "../views/dashboard/EmployeeManagment/Award/awards/award-list";
@@ -189,11 +188,6 @@ export const DefaultRouter = [
         element: <DepartmentList />,
       },
 
-      //08 Aug 2025
-      {
-        path: "/designation-list",
-        element: <DesignationList />,
-      },
 
       //08 Aug 2025
       {

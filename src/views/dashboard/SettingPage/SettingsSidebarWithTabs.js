@@ -17,6 +17,17 @@ import SearchIcon from "@mui/icons-material/Search";
 import { sidebarItems, tabConfig } from "../../../mockData";
 import LeadSourceList from "../Leads/LeadSource/leadsSource-list";
 import ClientCategory from "../Customer/CustomerCategory/ClientCategory";
+import RequirementLeadList from "../Leads/requirementLead/RequirementLeadList";
+import UnitList from "../Leads/Unit/UnitList";
+import LeadStatusList from "../Leads/LeadStatus/LeadStatusList";
+import EmployeeType from "../EmployeeManagment/EmployeeType/EmployeeTypes";
+import DepartmentList from "../EmployeeManagment/Department/department-list";
+import ShiftList from "../EmployeeManagment/Shift/shift-list";
+import DesignationList from "../EmployeeManagment/Designation/designationList";
+import TaskCategory from "../work/TaskCategory/TaskCategory";
+import BillingMethodList from "../work/BillingMethod/BillingMethodList.js";
+import InstallationStatusList from "../work/InstallationStatus/InstallationStatusList";
+import GSTTreatmentList from "../Customer/GstTreatment/GSTTreatmentList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -133,6 +144,21 @@ export default function SettingsSidebarWithTabs() {
                 <LeadSourceList />
               </>
             )}
+            {activeSidebar === "Lead" && activeTab === 1 && (
+              <>
+                <RequirementLeadList />
+              </>
+            )}
+            {activeSidebar === "Lead" && activeTab === 2 && (
+              <>
+                <UnitList />
+              </>
+            )}
+            {activeSidebar === "Lead" && activeTab === 3 && (
+              <>
+                <LeadStatusList />
+              </>
+            )}
             {activeSidebar === "Customer" && activeTab === 0 && (
               <>
                 <ClientCategory />
@@ -151,6 +177,50 @@ export default function SettingsSidebarWithTabs() {
             )}
             {activeSidebar === "Leads" && activeTab === 1 && (
               <div>📑 Reports Component render here</div>
+            )}
+
+            {activeSidebar === "Employee" && activeTab === 0 && (
+              <>
+                <EmployeeType />
+              </>
+            )}
+            {activeSidebar === "Employee" && activeTab === 1 && (
+              <>
+                <DepartmentList />
+              </>
+            )}
+            {activeSidebar === "Employee" && activeTab === 2 && (
+              <>
+                <DesignationList />
+              </>
+            )}
+
+            {activeSidebar === "Employee" && activeTab === 3 && (
+              <>
+                <ShiftList />
+              </>
+            )}
+
+            {activeSidebar === "Task" && activeTab === 0 && (
+              <>
+                <TaskCategory />
+              </>
+            )}
+
+            {activeSidebar === "Project" && activeTab === 5 && (
+              <>
+                <BillingMethodList />
+              </>
+            )}
+            {activeSidebar === "Project" && activeTab === 6 && (
+              <>
+                <InstallationStatusList />
+              </>
+            )}
+            {activeSidebar === "Tax" && activeTab === 0 && (
+              <>
+                <GSTTreatmentList />
+              </>
             )}
           </Box>
         </Paper>

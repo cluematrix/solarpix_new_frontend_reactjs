@@ -1,43 +1,42 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router";
 import {
   Card,
   Row,
   Col,
   Button,
   Form,
-  Pagination,
   Spinner,
   Table,
+  Pagination,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
-import { useLocation } from "react-router";
 
-const EmployeeType = () => {
-  const [userlist, setUserlist] = useState([]);
-  const [empType, setEmpType] = useState("");
+const UnitList = () => {
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
+
+  const [units, setUnits] = useState([]);
+  const [formData, setFormData] = useState({ unit: "" });
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // 🔹 Pagination state
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { pathname } = useLocation();
-  const [permissions, setPermissions] = useState(null);
-
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Fetch Role Permissions
+  // Fetch Permission
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -50,16 +49,11 @@ const EmployeeType = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
-
-      // ✅ Match current role + route
-    const matchedPermission = data.find(
-      (perm) =>
-        String(perm.role_id) === roleId &&
-        perm.display_name === "Employee Type List" // 👈 change this string as per your DB config
-    );
-
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.display_name === "Unit List"
+      );
 
       if (matchedPermission) {
         setPermissions({
@@ -75,134 +69,111 @@ const EmployeeType = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); // ✅ Stop loader after API call
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     setLoading(true);
     FETCHPERMISSION();
-  }, [pathname]);
+  }, []);
 
-  // 🔄 Fetch Employee Types
-  const fetchEmployeeTypes = () => {
-    api
-      .get("/api/v1/admin/employmentType")
-      .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-        setUserlist(data);
-      })
-      .catch((err) => {
-        console.error("Error fetching employee types:", err);
-        toast.error("Failed to fetch employee types");
-        setUserlist([]);
-      });
+  // Fetch list
+  const fetchUnits = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/unit");
+      if (Array.isArray(res.data)) {
+        setUnits(res.data);
+      } else if (Array.isArray(res.data.data)) {
+        setUnits(res.data.data);
+      } else {
+        setUnits([]);
+      }
+    } catch (err) {
+      console.error("Error fetching units", err);
+    }
   };
 
   useEffect(() => {
-    fetchEmployeeTypes();
+    fetchUnits();
   }, []);
 
-  // ✅ Toggle Active/Inactive
-  const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus ? 0 : 1;
-    setUserlist((prev) =>
-      prev.map((et) => (et.id === id ? { ...et, isActive: newStatus } : et))
-    );
+  // Save
+  const handleSave = async (data) => {
+    try {
+      // Duplicate check
+      const isDuplicate = units.some(
+        (item) =>
+          item.unit.toLowerCase().trim() === data.unit.toLowerCase().trim() &&
+          item.id !== editId
+      );
+      if (isDuplicate) {
+        toast.error("Unit already exists!");
+        return;
+      }
 
-    api
-      .put(`/api/v1/admin/employmentType/${id}`, { isActive: newStatus })
-      .then(() => {
-        toast.success("Status updated successfully");
-      })
-      .catch((err) => {
-        console.error("Update failed:", err);
-        toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
-        setUserlist((prev) =>
-          prev.map((et) =>
-            et.id === id ? { ...et, isActive: currentStatus } : et
-          )
-        );
-      });
-  };
+      if (editId) {
+        await api.put(`/api/v1/admin/unit/${editId}`, data);
+        toast.success("Unit updated successfully");
+      } else {
+        await api.post("/api/v1/admin/unit", data);
+        toast.success("Unit added successfully");
+      }
 
-  // ✅ Add or Update
-  const handleAddOrUpdate = () => {
-    if (!empType.trim()) {
-      toast.warning("Employee type is required");
-      return;
-    }
-
-    if (editId) {
-      api
-        .put(`/api/v1/admin/employmentType/${editId}`, { emp_type: empType })
-        .then(() => {
-          toast.success("Employee type updated successfully");
-          fetchEmployeeTypes();
-          resetForm();
-        })
-        .catch((err) => {
-          console.error("Error updating employee type:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update employee type"
-          );
-        });
-    } else {
-      api
-        .post("/api/v1/admin/employmentType", { emp_type: empType })
-        .then(() => {
-          toast.success("Employee type added successfully");
-          fetchEmployeeTypes();
-          resetForm();
-        })
-        .catch((err) => {
-          console.error("Error adding employee type:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to add employee type"
-          );
-        });
+      fetchUnits();
+      setShowAddEdit(false);
+      setFormData({ unit: "" });
+      setEditId(null);
+    } catch (err) {
+      console.error("Error saving unit", err);
+      toast.error("Failed to save unit");
     }
   };
 
-  const handleEdit = (index) => {
-    const emp = userlist[index];
-    setEmpType(emp.emp_type);
-    setEditId(emp.id);
+  // Edit
+  const handleEdit = (id) => {
+    const req = units.find((x) => x.id === id);
+    setFormData({ unit: req.unit });
+    setEditId(id);
     setShowAddEdit(true);
   };
 
-  // ✅ Delete
-  const handleDeleteConfirm = () => {
-    if (!deleteId) return;
-    api
-      .delete(`/api/v1/admin/employmentType/${deleteId}`)
-      .then(() => {
-        toast.success("Employee type deleted successfully");
-        fetchEmployeeTypes();
-        setShowDelete(false);
-      })
-      .catch((err) => {
-        console.error("Error deleting employee type:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to delete employee type"
-        );
+  // Delete
+  const handleDeleteConfirm = async () => {
+    try {
+      await api.delete(`/api/v1/admin/unit/${deleteId}`);
+      toast.success("Unit deleted successfully");
+      fetchUnits();
+      setShowDelete(false);
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Error deleting unit", err);
+      toast.error("Failed to delete unit");
+    }
+  };
+
+  // Toggle Active/Inactive
+  const handleToggleActive = async (id, currentStatus) => {
+    const newStatus = Number(currentStatus) === 1 ? false : true;
+
+    try {
+      await api.put(`/api/v1/admin/unit/${id}`, {
+        isActive: newStatus,
       });
+      toast.success("Status updated successfully");
+      fetchUnits();
+    } catch (err) {
+      console.error("Update failed:", err);
+      toast.error("Failed to update status");
+    }
   };
 
-  const resetForm = () => {
-    setShowAddEdit(false);
-    setEmpType("");
-    setEditId(null);
-  };
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = units.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(units.length / itemsPerPage);
 
-  // 🔹 Pagination logic
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentItems = userlist.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(userlist.length / itemsPerPage);
-
-  //  Loader while checking permissions
   if (loading) {
     return (
       <div className="loader-div">
@@ -210,6 +181,7 @@ const EmployeeType = () => {
       </div>
     );
   }
+
   if (!permissions?.view) {
     return (
       <div
@@ -230,13 +202,17 @@ const EmployeeType = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Employee Type</h5>
+              <h5 className="card-title">Units</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
-                  onClick={() => setShowAddEdit(true)}
+                  onClick={() => {
+                    setFormData({ unit: "" });
+                    setEditId(null);
+                    setShowAddEdit(true);
+                  }}
                 >
-                  + Add Type
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -247,7 +223,7 @@ const EmployeeType = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Employee Type</th>
+                      <th>Unit</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -255,42 +231,51 @@ const EmployeeType = () => {
                   <tbody>
                     {currentItems.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center">
-                          No Employee Type available
+                        <td colSpan="6" className="text-center">
+                          No Units Available
                         </td>
                       </tr>
                     ) : (
                       currentItems.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{indexOfFirst + idx + 1}</td>
-                          <td>{item.emp_type}</td>
-                          <td>{item.isActive ? "Active" : "Inactive"}</td>
+                          <td>{indexOfFirstItem + idx + 1}</td>
+                          <td>{item.unit}</td>
+                          <td style={{ minWidth: "50px" }}>
+                            <span
+                              className={`status-dot ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                              style={{ marginRight: "6px" }}
+                            ></span>
+                            <span
+                              style={{ display: "inline-block", width: "60px" }}
+                            >
+                              {Number(item.isActive) === 1
+                                ? "Active"
+                                : "Inactive"}
+                            </span>
+                          </td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={
-                                item.isActive === 1 || item.isActive === true
-                              }
+                              checked={Number(item.isActive) === 1}
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
                             />
-
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(indexOfFirst + idx)}
+                                className="ms-2"
+                                onClick={() => handleEdit(item.id)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
-
                             {permissions.del && (
                               <DeleteRoundedIcon
+                                className="ms-2"
                                 onClick={() => {
-                                  setDeleteIndex(indexOfFirst + idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
@@ -306,7 +291,6 @@ const EmployeeType = () => {
                 </Table>
               </div>
 
-              {/* 🔹 Pagination UI */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
                   <Pagination.First
@@ -319,13 +303,13 @@ const EmployeeType = () => {
                     }
                     disabled={currentPage === 1}
                   />
-                  {[...Array(totalPages).keys()].map((num) => (
+                  {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
-                      key={num + 1}
-                      active={num + 1 === currentPage}
-                      onClick={() => setCurrentPage(num + 1)}
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
                     >
-                      {num + 1}
+                      {i + 1}
                     </Pagination.Item>
                   ))}
                   <Pagination.Next
@@ -348,35 +332,35 @@ const EmployeeType = () => {
       {/* Add/Edit Modal */}
       <AddEditModal
         show={showAddEdit}
-        handleClose={resetForm}
-        empType={empType}
-        setEmpType={setEmpType}
-        onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update Employee Type" : "Add New Employee Type"}
-        buttonLabel={editId ? "Update" : "Save"}
+        handleClose={() => setShowAddEdit(false)}
+        formData={formData}
+        setFormData={setFormData}
+        onSave={handleSave}
+        editData={!!editId}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
-        handleClose={() => {
-          setShowDelete(false);
-          setDeleteIndex(null);
-          setDeleteId(null);
-        }}
+        handleClose={() => setShowDelete(false)}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Employee Type"
+        modalTitle="Delete Unit"
         modalMessage={
-          deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete "${userlist[deleteIndex].emp_type}"?`
+          deleteId
+            ? `Are you sure you want to delete unit "${
+                units.find((x) => x.id === deleteId)?.unit
+              }"?`
             : ""
         }
       />
 
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        transition={Slide}
+        autoClose={3000}
+      />
     </>
   );
 };
 
-export default EmployeeType;
+export default UnitList;

@@ -4,8 +4,8 @@ import { Modal, Form, Button } from "react-bootstrap";
 const AddEditModal = ({
   show,
   handleClose,
-  roleName,
-  setRoleName,
+  methodName,
+  setMethodName,
   onSave,
   modalTitle,
   buttonLabel,
@@ -22,15 +22,15 @@ const AddEditModal = ({
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group controlId="formRoleName">
+          <Form.Group controlId="formMethodName">
             <Form.Label className="custom-form-label">
-              Designation Name
+              Billing Method
             </Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter designation name"
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
+              placeholder="Enter Billing Method"
+              value={methodName}
+              onChange={(e) => setMethodName(e.target.value)}
               className="custom-form-control"
             />
           </Form.Group>

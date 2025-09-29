@@ -55,7 +55,7 @@ const LeadSourceList = () => {
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.display_name === "Lead-Source-List"
+          perm.display_name === "Lead Source List"
       );
 
       if (matchedPermission) {
