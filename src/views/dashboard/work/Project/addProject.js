@@ -64,7 +64,6 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [employee, setEmployee] = useState([]);
   const [metaData, setMetaData] = useState({
     projectCategory: [],
     clientList: [],
@@ -277,6 +276,10 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
     );
   }
   console.log("formData in main:", formData);
+  console.log(
+    "formik.values.net_metering_sanction_letter",
+    formik.values.net_metering_sanction_letter
+  );
   return (
     <>
       <Card>
@@ -286,7 +289,6 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
             metaData={metaData}
             selectedMemberNames={selectedMemberNames}
             setShowMembersModal={setShowMembersModal}
-            employee={employee}
             activeStep={activeStep}
             setActiveStep={setActiveStep}
             validationSchemas={validationSchemas}

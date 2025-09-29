@@ -183,7 +183,6 @@ ColorlibStepIcon.propTypes = {
 export default function CustomizedSteppers({
   formik,
   metaData,
-  employee,
   activeStep,
   setActiveStep,
   validationSchemas,
