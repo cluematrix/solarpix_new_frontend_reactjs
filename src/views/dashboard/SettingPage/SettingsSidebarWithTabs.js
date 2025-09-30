@@ -27,7 +27,12 @@ import DesignationList from "../EmployeeManagment/Designation/designationList";
 import TaskCategory from "../work/TaskCategory/TaskCategory";
 import BillingMethodList from "../work/BillingMethod/BillingMethodList.js";
 import InstallationStatusList from "../work/InstallationStatus/InstallationStatusList";
-import GSTTreatmentList from "../Customer/GstTreatment/GSTTreatmentList";
+import GSTTreatmentList from "../Tax/GstTreatment/GSTTreatmentList";
+import TaxPreferenceList from "../Tax/TaxPreference/TaxPreferenceList";
+import TDSList from "../Tax/tds/TDSList";
+import BranchList from "../Branch/branches/BranchList";
+import DefaultHoliday from "../EmployeeManagment/DefaultHoliday/DefaultHoliday";
+import ReasonList from "../InventoryManagement/Reason/ReasonList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -220,6 +225,34 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Tax" && activeTab === 0 && (
               <>
                 <GSTTreatmentList />
+              </>
+            )}
+            {activeSidebar === "Tax" && activeTab === 1 && (
+              <>
+                <TaxPreferenceList />
+              </>
+            )}
+            {activeSidebar === "Tax" && activeTab === 2 && (
+              <>
+                <TDSList />
+              </>
+            )}
+
+            {activeSidebar === "Branch" && activeTab === 0 && (
+              <>
+                <BranchList />
+              </>
+            )}
+
+            {activeSidebar === "Holiday" && activeTab === 0 && (
+              <>
+                <DefaultHoliday />
+              </>
+            )}
+
+                {activeSidebar === "Inventory" && activeTab === 0 && (
+              <>
+                <ReasonList />
               </>
             )}
           </Box>

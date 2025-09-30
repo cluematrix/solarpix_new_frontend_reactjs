@@ -205,7 +205,7 @@ const RequirementLeadList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title">Requirement Leads</h5>
+              <h5 className="card-title">Requirement</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"

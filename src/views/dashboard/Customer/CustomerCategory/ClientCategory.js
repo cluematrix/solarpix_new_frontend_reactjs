@@ -227,7 +227,7 @@ const ClientCategory = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Customer Categories</h5>
+              <h5 className="card-title fw-lighter">Categories</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"

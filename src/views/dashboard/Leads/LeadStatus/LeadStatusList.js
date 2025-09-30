@@ -202,7 +202,7 @@ const LeadStatusList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title">Lead Status</h5>
+              <h5 className="card-title">Status</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"

@@ -188,7 +188,6 @@ export const DefaultRouter = [
         element: <DepartmentList />,
       },
 
-
       //08 Aug 2025
       {
         path: "/EmployeeType",

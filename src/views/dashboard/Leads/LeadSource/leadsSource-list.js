@@ -204,7 +204,7 @@ const LeadSourceList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title">Lead Sources </h5>
+              <h5 className="card-title">Sources</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"

@@ -5,14 +5,13 @@ import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
-import DeleteModal from "../GstTreatment/delete-modal";
+import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
 
-const GSTTreatmentList = () => {
-  const [gstList, setGstList] = useState([]);
-  const [gstName, setGstName] = useState("");
-  const [gstDesc, setGstDesc] = useState("");
+const BranchList = () => {
+  const [branchList, setBranchList] = useState([]);
+  const [branchName, setBranchName] = useState("");
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -29,10 +28,10 @@ const GSTTreatmentList = () => {
   const rowsPerPage = 10;
   const indexOfLast = currentPage * rowsPerPage;
   const indexOfFirst = indexOfLast - rowsPerPage;
-  const currentData = gstList.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(gstList.length / rowsPerPage);
+  const currentData = branchList.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(branchList.length / rowsPerPage);
 
-  // 🔑 PERMISSION CHECK
+  // 🔑 Permission Check
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -48,8 +47,7 @@ const GSTTreatmentList = () => {
 
       const matchedPermission = data.find(
         (perm) =>
-          String(perm.role_id) === roleId &&
-          perm.display_name === "GST Treatment List"
+          String(perm.role_id) === roleId && perm.display_name === "Branch List"
       );
 
       if (matchedPermission) {
@@ -75,126 +73,118 @@ const GSTTreatmentList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch GST Treatments
-  const fetchGST = () => {
+  // Fetch Branches
+  const fetchBranches = () => {
     api
-      .get("/api/v1/admin/GSTTreatment")
+      .get("/api/v1/admin/branch")
       .then((res) => {
         if (Array.isArray(res.data)) {
-          setGstList(res.data);
+          setBranchList(res.data);
         } else if (Array.isArray(res.data.data)) {
-          setGstList(res.data.data);
+          setBranchList(res.data.data);
         } else {
-          setGstList([]);
+          setBranchList([]);
         }
       })
       .catch((err) => {
-        console.error("Error fetching GST Treatments:", err);
-        setGstList([]);
+        console.error("Error fetching branches:", err);
+        setBranchList([]);
       });
   };
 
   useEffect(() => {
-    fetchGST();
+    fetchBranches();
   }, []);
 
   // Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
 
-    setGstList((prev) =>
-      prev.map((gst) => (gst.id === id ? { ...gst, isActive: newStatus } : gst))
+    setBranchList((prev) =>
+      prev.map((branch) =>
+        branch.id === id ? { ...branch, isActive: newStatus } : branch
+      )
     );
 
     api
-      .put(`/api/v1/admin/GSTTreatment/${id}`, { isActive: newStatus })
+      .put(`/api/v1/admin/branch/${id}`, { isActive: newStatus })
       .then(() => {
         toast.success("Status updated successfully");
       })
       .catch((err) => {
         console.error("Update failed:", err);
         toast.error(err.response?.data?.message || "Failed to update status");
-        setGstList((prev) =>
-          prev.map((gst) =>
-            gst.id === id ? { ...gst, isActive: currentStatus } : gst
+        setBranchList((prev) =>
+          prev.map((branch) =>
+            branch.id === id ? { ...branch, isActive: currentStatus } : branch
           )
         );
       });
   };
 
-  // Add / Update GST Treatment
+  // Add / Update Branch
   const handleAddOrUpdate = () => {
-    if (!gstName.trim()) {
-      toast.warning("GST Name is required");
+    if (!branchName.trim()) {
+      toast.warning("Branch Name is required");
       return;
     }
 
     if (editId) {
       api
-        .put(`/api/v1/admin/GSTTreatment/${editId}`, {
-          GST_name: gstName,
-          description: gstDesc,
+        .put(`/api/v1/admin/branch/${editId}`, {
+          branch_name: branchName,
         })
         .then(() => {
-          toast.success("GST Treatment updated successfully");
-          fetchGST();
+          toast.success("Branch updated successfully");
+          fetchBranches();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error updating GST Treatment:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update GST Treatment"
-          );
+          console.error("Error updating branch:", err);
+          toast.error(err.response?.data?.message || "Failed to update branch");
         });
     } else {
       api
-        .post("/api/v1/admin/GSTTreatment", {
-          GST_name: gstName,
-          description: gstDesc,
+        .post("/api/v1/admin/branch", {
+          branch_name: branchName,
         })
         .then(() => {
-          toast.success("GST Treatment added successfully");
-          fetchGST();
+          toast.success("Branch added successfully");
+          fetchBranches();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error adding GST Treatment:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to add GST Treatment"
-          );
+          console.error("Error adding branch:", err);
+          toast.error(err.response?.data?.message || "Failed to add branch");
         });
     }
   };
 
   const handleEdit = (index) => {
-    const gst = gstList[index];
-    setGstName(gst.GST_name);
-    setGstDesc(gst.description || "");
-    setEditId(gst.id);
+    const branch = branchList[index];
+    setBranchName(branch.branch_name);
+    setEditId(branch.id);
     setShowAddEdit(true);
   };
 
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/GSTTreatment/${deleteId}`)
+      .delete(`/api/v1/admin/branch/${deleteId}`)
       .then(() => {
-        toast.success("GST Treatment deleted successfully");
-        fetchGST();
+        toast.success("Branch deleted successfully");
+        fetchBranches();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting GST Treatment:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to delete GST Treatment"
-        );
+        console.error("Error deleting branch:", err);
+        toast.error(err.response?.data?.message || "Failed to delete branch");
       });
   };
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setGstName("");
-    setGstDesc("");
+    setBranchName("");
     setEditId(null);
   };
 
@@ -223,7 +213,7 @@ const GSTTreatmentList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title fw-lighter">GST Treatment</h5>
+              <h5 className="card-title fw-lighter">Branch</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -240,25 +230,23 @@ const GSTTreatmentList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>GST Name</th>
-                      <th>Description</th>
+                      <th>Branch Name</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {gstList.length === 0 ? (
+                    {branchList.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center">
-                          No GST Treatment available
+                        <td colSpan="4" className="text-center">
+                          No branches available
                         </td>
                       </tr>
                     ) : (
                       currentData.map((item, idx) => (
                         <tr key={item.id}>
                           <td>{idx + 1}</td>
-                          <td>{item.GST_name}</td>
-                          <td>{item.description}</td>
+                          <td>{item.branch_name}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
                             <Form.Check
@@ -338,12 +326,10 @@ const GSTTreatmentList = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        gstName={gstName}
-        setGstName={setGstName}
-        gstDesc={gstDesc}
-        setGstDesc={setGstDesc}
+        branchName={branchName}
+        setBranchName={setBranchName}
         onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update GST Treatment" : "Add New GST Treatment"}
+        modalTitle={editId ? "Update Branch" : "Add New Branch"}
         buttonLabel={editId ? "Update" : "Save"}
       />
 
@@ -356,10 +342,10 @@ const GSTTreatmentList = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete GST Treatment"
+        modalTitle="Delete Branch"
         modalMessage={
-          deleteIndex !== null && gstList[deleteIndex]
-            ? `Are you sure you want to delete "${gstList[deleteIndex].GST_name}"?`
+          deleteIndex !== null && branchList[deleteIndex]
+            ? `Are you sure you want to delete "${branchList[deleteIndex].branch_name}"?`
             : ""
         }
       />
@@ -373,4 +359,4 @@ const GSTTreatmentList = () => {
   );
 };
 
-export default GSTTreatmentList;
+export default BranchList;
