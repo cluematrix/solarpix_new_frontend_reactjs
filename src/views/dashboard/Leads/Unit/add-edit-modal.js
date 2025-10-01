@@ -25,7 +25,7 @@ const AddEditModal = ({
             <Form.Label>Unit</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter Unit (e.g. kg, gram, %)"
+              placeholder="Enter Unit (e.g. kg, g, lt)"
               value={formData.unit}
               onChange={(e) =>
                 setFormData({ ...formData, unit: e.target.value })

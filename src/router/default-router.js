@@ -108,6 +108,7 @@ import AddProject from "../views/dashboard/work/Project/addProject";
 import WarehouseList from "../views/dashboard/InventoryManagement/Warehouse/WarehouseList";
 import ProjectProfile from "../views/dashboard/work/Project/projectProfile";
 import SettingsSidebarWithTabs from "../views/dashboard/SettingPage/SettingsSidebarWithTabs";
+import AddSupplier from "../views/dashboard/InventoryManagement/SupplierManagement/AddSupplier";
 
 // employee profile 01 Sep
 
@@ -262,6 +263,14 @@ export const DefaultRouter = [
       {
         path: "supplier-management-list",
         element: <SupplierManagementList />,
+      },
+        {
+        path: "add-supplier",
+        element: <AddSupplier />,
+      },
+          {
+        path: "supplier-management/edit/:id",
+        element: <AddSupplier />,
       },
       {
         path: "payment-terms-list",
