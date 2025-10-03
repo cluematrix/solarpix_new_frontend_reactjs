@@ -1,27 +1,17 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Form,
-  Spinner,
-  Table,
-  Pagination,
-} from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { Card, Row, Col, Button, Form, Spinner, Table } from "react-bootstrap";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
-import DeleteModal from "./delete-modal";
+import DeleteModal from "../BillingMethod/delete-modal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
 
-const TaskCategory = () => {
-  const [categoryList, setCategoryList] = useState([]);
-  const [category, setCategory] = useState("");
+const BillingMethodList = () => {
+  const [billingMethods, setBillingMethods] = useState([]);
+  const [methodName, setMethodName] = useState("");
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -31,19 +21,17 @@ const TaskCategory = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
-
-  // 🔹 Pagination States
-  const [currentPage, setCurrentPage] = useState(1);
-  const categoriesPerPage = 10;
-
-  const indexOfLast = currentPage * categoriesPerPage;
-  const indexOfFirst = indexOfLast - categoriesPerPage;
-  const currentCategories = categoryList.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(categoryList.length / categoriesPerPage);
-
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Fetch Role Permissions
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = billingMethods.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(billingMethods.length / rowsPerPage);
+
+  // 🔑 PERMISSION CHECK
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -56,20 +44,11 @@ const TaskCategory = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
-
-      // ✅ Match current role + route
-      // const matchedPermission = data.find(
-      //   (perm) =>
-      //     String(perm.role_id) === roleId &&
-      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
-      // );
 
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.display_name === "Task Category" // 👈 change this string as per your DB config
+          perm.display_name === "Billing Method List" // 👈 match with DB
       );
 
       if (matchedPermission) {
@@ -86,124 +65,133 @@ const TaskCategory = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); //  Stop loader after API call
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     setLoading(true);
-
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Task Categories
-  const fetchTaskCategories = () => {
+  // Fetch Billing Methods
+  const fetchBillingMethods = () => {
     api
-      .get("/api/v1/admin/taskCategory")
+      .get("/api/v1/admin/billingMethod/")
       .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-        setCategoryList(data);
+        if (Array.isArray(res.data)) {
+          setBillingMethods(res.data);
+        } else if (Array.isArray(res.data.data)) {
+          setBillingMethods(res.data.data);
+        } else {
+          setBillingMethods([]);
+        }
       })
       .catch((err) => {
-        console.error("Error fetching task categories:", err);
-        toast.error("Failed to fetch categories");
-        setCategoryList([]);
+        console.error("Error fetching billing methods:", err);
+        setBillingMethods([]);
       });
   };
 
   useEffect(() => {
-    fetchTaskCategories();
+    fetchBillingMethods();
   }, []);
 
-  // ✅ Toggle Active/Inactive
+  // Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus ? 0 : 1;
-    setCategoryList((prev) =>
-      prev.map((cat) => (cat.id === id ? { ...cat, isActive: newStatus } : cat))
+    const newStatus = currentStatus === 1 ? 0 : 1;
+
+    // Optimistic update
+    setBillingMethods((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, isActive: newStatus } : m))
     );
 
     api
-      .put(`/api/v1/admin/taskCategory/${id}`, { isActive: newStatus })
-      .then(() => toast.success("Status updated successfully"))
+      .put(`/api/v1/admin/billingMethod/${id}`, { isActive: newStatus })
+      .then(() => {
+        toast.success("Status updated successfully");
+      })
       .catch((err) => {
         console.error("Update failed:", err);
-        toast.error("Failed to update status");
-        setCategoryList((prev) =>
-          prev.map((cat) =>
-            cat.id === id ? { ...cat, isActive: currentStatus } : cat
-          )
+        toast.error(err.response?.data?.message || "Failed to update status");
+        // Rollback
+        setBillingMethods((prev) =>
+          prev.map((m) => (m.id === id ? { ...m, isActive: currentStatus } : m))
         );
       });
   };
 
-  // ✅ Add or Update
+  // Add / Update Billing Method
   const handleAddOrUpdate = () => {
-    if (!category.trim()) {
-      toast.error("Category name is required");
+    if (!methodName.trim()) {
+      toast.warning("Billing Method name is required");
       return;
     }
 
     if (editId) {
       api
-        .put(`/api/v1/admin/taskCategory/${editId}`, { category })
+        .put(`/api/v1/admin/billingMethod/${editId}`, {
+          billing_method: methodName,
+        })
         .then(() => {
-          toast.success("Task category updated successfully");
-          fetchTaskCategories();
+          toast.success("Billing Method updated successfully");
+          fetchBillingMethods();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error updating task category:", err);
-          toast.error("Failed to update category");
+          console.error("Error updating billing method:", err);
+          toast.error(
+            err.response?.data?.message || "Failed to update billing method"
+          );
         });
     } else {
       api
-        .post("/api/v1/admin/taskCategory", { category })
+        .post("/api/v1/admin/billingMethod/", { billing_method: methodName })
         .then(() => {
-          toast.success("Task category added successfully");
-          fetchTaskCategories();
+          toast.success("Billing Method added successfully");
+          fetchBillingMethods();
           resetForm();
         })
         .catch((err) => {
-          console.error("Error adding task category:", err);
-          if (err.response?.data?.message) {
-            toast.error(err.response.data.message);
-          } else {
-            toast.error("Failed to add category");
-          }
+          console.error("Error adding billing method:", err);
+          toast.error(
+            err.response?.data?.message || "Failed to add billing method"
+          );
         });
     }
   };
 
-  // ✅ Edit
   const handleEdit = (index) => {
-    const cat = categoryList[index];
-    setCategory(cat.category);
-    setEditId(cat.id);
+    const method = billingMethods[index];
+    setMethodName(method.billing_method);
+    setEditId(method.id);
     setShowAddEdit(true);
   };
 
-  // ✅ Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
-      .delete(`/api/v1/admin/taskCategory/${deleteId}`)
+      .delete(`/api/v1/admin/billingMethod/${deleteId}`)
       .then(() => {
-        toast.success("Task category deleted successfully");
-        fetchTaskCategories();
+        toast.success("Billing Method deleted successfully");
+        fetchBillingMethods();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting task category:", err);
-        toast.error("Failed to delete category");
+        console.error("Error deleting billing method:", err);
+        toast.error(
+          err.response?.data?.message || "Failed to delete billing method"
+        );
       });
   };
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setCategory("");
+    setMethodName("");
     setEditId(null);
   };
 
-  //  Loader while checking permissions
+  // Loader
   if (loading) {
     return (
       <div className="loader-div">
@@ -223,22 +211,13 @@ const TaskCategory = () => {
     );
   }
 
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
   return (
     <>
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header
-              className="d-flex justify-content-between"
-              style={{ padding: "15px 15px 0px 15px" }}
-            >
-              <h5 className="card-title fw-lighter">Type </h5>
+            <Card.Header className="d-flex justify-content-between">
+              <h5 className="card-title fw-lighter">Billing Methods</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -255,31 +234,29 @@ const TaskCategory = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Type</th>
+                      <th>Billing Method</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentCategories.length === 0 ? (
+                    {billingMethods.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
-                          No Task Type available
+                          No Billing Method available
                         </td>
                       </tr>
                     ) : (
-                      currentCategories.map((item, idx) => (
+                      currentData.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{indexOfFirst + idx + 1}</td>
-                          <td>{item.category}</td>
+                          <td>{idx + 1}</td>
+                          <td>{item.billing_method}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={
-                                item.isActive === 1 || item.isActive === true
-                              }
+                              checked={item.isActive === 1}
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
@@ -289,7 +266,7 @@ const TaskCategory = () => {
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(indexOfFirst + idx)}
+                                onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -298,7 +275,7 @@ const TaskCategory = () => {
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(indexOfFirst + idx);
+                                  setDeleteIndex(idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
@@ -314,14 +291,14 @@ const TaskCategory = () => {
                 </Table>
               </div>
 
-              {/* Pagination Controls */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="d-flex justify-content-end mt-3 me-3">
                   <Button
                     variant="secondary"
                     size="sm"
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                    onClick={() => setCurrentPage((p) => p - 1)}
                   >
                     Previous
                   </Button>
@@ -340,33 +317,11 @@ const TaskCategory = () => {
                     variant="secondary"
                     size="sm"
                     disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    onClick={() => setCurrentPage((p) => p + 1)}
                   >
                     Next
                   </Button>
                 </div>
-              )}
-
-              {totalPages > 1 && (
-                <Pagination className="justify-content-center mt-3">
-                  <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  />
-                  {[...Array(totalPages)].map((_, i) => (
-                    <Pagination.Item
-                      key={i + 1}
-                      active={i + 1 === currentPage}
-                      onClick={() => handlePageChange(i + 1)}
-                    >
-                      {i + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  />
-                </Pagination>
               )}
             </Card.Body>
           </Card>
@@ -377,16 +332,14 @@ const TaskCategory = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        value={category}
-        setValue={setCategory}
+        methodName={methodName}
+        setMethodName={setMethodName}
         onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update Task Category" : "Add New Task Category"}
+        modalTitle={editId ? "Update Billing Method" : "Add New Billing Method"}
         buttonLabel={editId ? "Update" : "Save"}
-        fieldLabel="Task Category"
-        placeholder="Enter category"
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
         handleClose={() => {
@@ -395,18 +348,22 @@ const TaskCategory = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Task Category"
+        modalTitle="Delete Billing Method"
         modalMessage={
-          deleteIndex !== null && categoryList[deleteIndex]
-            ? `Are you sure you want to delete "${categoryList[deleteIndex].category}"?`
+          deleteIndex !== null && billingMethods[deleteIndex]
+            ? `Are you sure you want to delete "${billingMethods[deleteIndex].billing_method}"?`
             : ""
         }
       />
 
-      {/* ✅ Toast */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      {/* Toast */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        transition={Slide}
+      />
     </>
   );
 };
 
-export default TaskCategory;
+export default BillingMethodList;

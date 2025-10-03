@@ -57,7 +57,7 @@ const EmployeeType = () => {
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "Employee Type List" // 👈 change this string as per your DB config
       );
 
       if (matchedPermission) {
@@ -229,7 +229,7 @@ const EmployeeType = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Employee Type</h5>
+              <h5 className="card-title fw-lighter">Type</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"

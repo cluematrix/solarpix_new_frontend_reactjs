@@ -1,43 +1,42 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router";
 import {
   Card,
   Row,
   Col,
   Button,
   Form,
-  Pagination,
   Spinner,
   Table,
+  Pagination,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
-import { useLocation } from "react-router";
 
-const ClientCategory = () => {
-  const [categoryList, setCategoryList] = useState([]);
-  const [category, setCategory] = useState("");
+const LeadStatusList = () => {
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
+
+  const [leadStatuses, setLeadStatuses] = useState([]);
+  const [formData, setFormData] = useState({ leadStatus_name: "" });
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  const { pathname } = useLocation();
-  const [permissions, setPermissions] = useState(null);
-
-  // ✅ Pagination states
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Fetch Role Permissions
+  // Fetch Permission
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -50,13 +49,10 @@ const ClientCategory = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-
-      //  Match current role + display_name
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.display_name === "ClientCategoryList"
+          perm.display_name === "Lead Status List"
       );
 
       if (matchedPermission) {
@@ -73,126 +69,111 @@ const ClientCategory = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); //  Stop loader after API call
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     setLoading(true);
-
     FETCHPERMISSION();
   }, []);
 
-  // 🔄 Fetch Client Categories
-  const fetchClientCategories = () => {
-    api
-      .get("/api/v1/admin/clientCategory")
-      .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-        setCategoryList(data);
-      })
-      .catch((err) => {
-        console.error("Error fetching client categories:", err);
-        toast.error("Failed to fetch customer categories");
-        setCategoryList([]);
-      });
+  // Fetch list
+  const fetchLeadStatuses = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/leadStatus");
+      if (Array.isArray(res.data)) {
+        setLeadStatuses(res.data);
+      } else if (Array.isArray(res.data.data)) {
+        setLeadStatuses(res.data.data);
+      } else {
+        setLeadStatuses([]);
+      }
+    } catch (err) {
+      console.error("Error fetching lead statuses", err);
+    }
   };
 
   useEffect(() => {
-    fetchClientCategories();
+    fetchLeadStatuses();
   }, []);
 
-  // ✅ Toggle Active/Inactive
-  const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus ? 0 : 1;
+  // Save
+  const handleSave = async (data) => {
+    try {
+      // Duplicate check
+      const isDuplicate = leadStatuses.some(
+        (item) =>
+          item.leadStatus_name.toLowerCase().trim() ===
+            data.leadStatus_name.toLowerCase().trim() && item.id !== editId
+      );
+      if (isDuplicate) {
+        toast.error("Lead Status already exists!");
+        return;
+      }
 
-    // Optimistic UI update
-    setCategoryList((prev) =>
-      prev.map((cat) => (cat.id === id ? { ...cat, isActive: newStatus } : cat))
-    );
+      if (editId) {
+        await api.put(`/api/v1/admin/leadStatus/${editId}`, data);
+        toast.success("Lead Status updated successfully");
+      } else {
+        await api.post("/api/v1/admin/leadStatus", data);
+        toast.success("Lead Status added successfully");
+      }
 
-    api
-      .put(`/api/v1/admin/clientCategory/${id}`, { isActive: newStatus })
-      .then(() => {
-        toast.success("Status updated successfully");
-      })
-      .catch((err) => {
-        console.error("Update failed:", err);
-        toast.error(err.response?.data?.message || "Failed to update status");
-        // Rollback if failed
-        setCategoryList((prev) =>
-          prev.map((cat) =>
-            cat.id === id ? { ...cat, isActive: currentStatus } : cat
-          )
-        );
-      });
-  };
-
-  // ✅ Add or Update
-  const handleAddOrUpdate = () => {
-    if (!category.trim()) {
-      toast.warning("Category name is required");
-      return;
-    }
-
-    if (editId) {
-      api
-        .put(`/api/v1/admin/clientCategory/${editId}`, { category })
-        .then(() => {
-          toast.success("Category updated successfully");
-          fetchClientCategories();
-          resetForm();
-        })
-        .catch((err) => {
-          console.error("Error updating category:", err);
-          toast.error(
-            err.response?.data?.message || "Failed to update category"
-          );
-        });
-    } else {
-      api
-        .post("/api/v1/admin/clientCategory", { category })
-        .then(() => {
-          toast.success("Category added successfully");
-          fetchClientCategories();
-          resetForm();
-        })
-        .catch((err) => {
-          console.error("Error adding category:", err);
-          toast.error(err.response?.data?.message || "Failed to add category");
-        });
+      fetchLeadStatuses();
+      setShowAddEdit(false);
+      setFormData({ leadStatus_name: "" });
+      setEditId(null);
+    } catch (err) {
+      console.error("Error saving lead status", err);
+      toast.error("Failed to save lead status");
     }
   };
 
-  const handleEdit = (index) => {
-    const cat = categoryList[index];
-    setCategory(cat.category);
-    setEditId(cat.id);
+  // Edit
+  const handleEdit = (id) => {
+    const req = leadStatuses.find((x) => x.id === id);
+    setFormData({ leadStatus_name: req.leadStatus_name });
+    setEditId(id);
     setShowAddEdit(true);
   };
 
-  // ✅ Delete
-  const handleDeleteConfirm = () => {
-    if (!deleteId) return;
-    api
-      .delete(`/api/v1/admin/clientCategory/${deleteId}`)
-      .then(() => {
-        toast.success("Category deleted successfully");
-        fetchClientCategories();
-        setShowDelete(false);
-      })
-      .catch((err) => {
-        console.error("Error deleting category:", err);
-        toast.error(err.response?.data?.message || "Failed to delete category");
+  // Delete
+  const handleDeleteConfirm = async () => {
+    try {
+      await api.delete(`/api/v1/admin/leadStatus/${deleteId}`);
+      toast.success("Lead Status deleted successfully");
+      fetchLeadStatuses();
+      setShowDelete(false);
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Error deleting lead status", err);
+      toast.error("Failed to delete lead status");
+    }
+  };
+
+  // Toggle Active/Inactive
+  const handleToggleActive = async (id, currentStatus) => {
+    const newStatus = Number(currentStatus) === 1 ? false : true;
+
+    try {
+      await api.put(`/api/v1/admin/leadStatus/${id}`, {
+        isActive: newStatus,
       });
+      toast.success("Status updated successfully");
+      fetchLeadStatuses();
+    } catch (err) {
+      console.error("Update failed:", err);
+      toast.error("Failed to update status");
+    }
   };
 
-  const resetForm = () => {
-    setShowAddEdit(false);
-    setCategory("");
-    setEditId(null);
-  };
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = leadStatuses.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(leadStatuses.length / itemsPerPage);
 
-  //  Loader while checking permissions
   if (loading) {
     return (
       <div className="loader-div">
@@ -212,12 +193,6 @@ const ClientCategory = () => {
     );
   }
 
-  // ✅ Pagination logic
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentItems = categoryList.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(categoryList.length / itemsPerPage);
-
   return (
     <>
       <Row className="mt-4">
@@ -227,11 +202,15 @@ const ClientCategory = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Categories</h5>
+              <h5 className="card-title">Status</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
-                  onClick={() => setShowAddEdit(true)}
+                  onClick={() => {
+                    setFormData({ leadStatus_name: "" });
+                    setEditId(null);
+                    setShowAddEdit(true);
+                  }}
                 >
                   + New
                 </Button>
@@ -244,7 +223,7 @@ const ClientCategory = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Category</th>
+                      <th>Lead Status</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -252,15 +231,15 @@ const ClientCategory = () => {
                   <tbody>
                     {currentItems.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center">
-                          No Customer Category available
+                        <td colSpan="6" className="text-center">
+                          No Lead Status Available
                         </td>
                       </tr>
                     ) : (
                       currentItems.map((item, idx) => (
                         <tr key={item.id}>
-                          <td>{indexOfFirst + idx + 1}</td>
-                          <td>{item.category}</td>
+                          <td>{indexOfFirstItem + idx + 1}</td>
+                          <td>{item.leadStatus_name}</td>
                           <td style={{ minWidth: "50px" }}>
                             <span
                               className={`status-dot ${
@@ -280,25 +259,23 @@ const ClientCategory = () => {
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={
-                                item.isActive === 1 || item.isActive === true
-                              }
+                              checked={Number(item.isActive) === 1}
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                onClick={() => handleEdit(idx)}
+                                className="ms-2"
+                                onClick={() => handleEdit(item.id)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
-
                             {permissions.del && (
                               <DeleteRoundedIcon
+                                className="ms-2"
                                 onClick={() => {
-                                  setDeleteIndex(idx);
                                   setDeleteId(item.id);
                                   setShowDelete(true);
                                 }}
@@ -314,7 +291,6 @@ const ClientCategory = () => {
                 </Table>
               </div>
 
-              {/* ✅ Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
                   <Pagination.First
@@ -327,7 +303,7 @@ const ClientCategory = () => {
                     }
                     disabled={currentPage === 1}
                   />
-                  {Array.from({ length: totalPages }, (_, i) => (
+                  {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
                       active={i + 1 === currentPage}
@@ -356,39 +332,35 @@ const ClientCategory = () => {
       {/* Add/Edit Modal */}
       <AddEditModal
         show={showAddEdit}
-        handleClose={resetForm}
-        value={category}
-        setValue={setCategory}
-        onSave={handleAddOrUpdate}
-        modalTitle={
-          editId ? "Update Customer Category" : "Add New Customer Category"
-        }
-        buttonLabel={editId ? "Update" : "Save"}
-        fieldLabel="Customer Category"
-        placeholder="Enter category"
+        handleClose={() => setShowAddEdit(false)}
+        formData={formData}
+        setFormData={setFormData}
+        onSave={handleSave}
+        editData={!!editId}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
-        handleClose={() => {
-          setShowDelete(false);
-          setDeleteIndex(null);
-          setDeleteId(null);
-        }}
+        handleClose={() => setShowDelete(false)}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Customer Category"
+        modalTitle="Delete Lead Status"
         modalMessage={
-          deleteIndex !== null && categoryList[deleteIndex]
-            ? `Are you sure you want to delete "${categoryList[deleteIndex].category}"?`
+          deleteId
+            ? `Are you sure you want to delete lead status "${
+                leadStatuses.find((x) => x.id === deleteId)?.leadStatus_name
+              }"?`
             : ""
         }
       />
 
-      {/* Toast Container */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        transition={Slide}
+        autoClose={3000}
+      />
     </>
   );
 };
 
-export default ClientCategory;
+export default LeadStatusList;

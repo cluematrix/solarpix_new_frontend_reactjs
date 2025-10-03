@@ -4,8 +4,8 @@ import { Modal, Form, Button } from "react-bootstrap";
 const AddEditModal = ({
   show,
   handleClose,
-  roleName,
-  setRoleName,
+  reasonName,
+  setReasonName,
   onSave,
   modalTitle,
   buttonLabel,
@@ -22,20 +22,21 @@ const AddEditModal = ({
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group controlId="formRoleName">
-            <Form.Label className="custom-form-label">
-              Designation Name
-            </Form.Label>
+          <Form.Group controlId="formReasonName" className="mb-3">
+            <Form.Label>Reason Name</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter designation name"
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              className="custom-form-control"
+              placeholder="Enter Reason Name"
+              value={reasonName}
+              onChange={(e) => setReasonName(e.target.value)}
+              required
             />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Cancel
+          </Button>
           <Button variant="primary" type="submit">
             {buttonLabel}
           </Button>

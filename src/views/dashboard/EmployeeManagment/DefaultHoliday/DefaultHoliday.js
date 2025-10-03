@@ -53,11 +53,17 @@ const DefaultHoliday = () => {
       console.log(roleId, "roleId from sessionStorage");
       console.log(pathname, "current pathname");
 
-      // ✅ Match current role + route
+      // // ✅ Match current role + route
+      // const matchedPermission = data.find(
+      //   (perm) =>
+      //     String(perm.role_id) === roleId &&
+      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
+      // );
+
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "Default Holiday"
       );
 
       if (matchedPermission) {

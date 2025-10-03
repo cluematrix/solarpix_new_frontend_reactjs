@@ -12,7 +12,6 @@ import RolePList from "../views/dashboard/RolePermission/rolep-list";
 //Master 10 Aug
 import DepartmentList from "../views/dashboard/EmployeeManagment/Department/department-list"; //10 Aug
 import ShiftList from "../views/dashboard/EmployeeManagment/Shift/shift-list"; //12 Aug
-import DesignationList from "../views/dashboard/EmployeeManagment/Designation/designation-list"; //10 Aug
 import EmployeeType from "../views/dashboard/EmployeeManagment/EmployeeType/EmployeeTypes";
 import LeaveType from "../views/dashboard/EmployeeManagment/LeaveType/LeaveTypes";
 import AwardList from "../views/dashboard/EmployeeManagment/Award/awards/award-list";
@@ -111,6 +110,7 @@ import ProjectProfile from "../views/dashboard/work/Project/projectProfile";
 import SettingsSidebarWithTabs from "../views/dashboard/SettingPage/SettingsSidebarWithTabs";
 import UpdateStockMaterial from "../views/dashboard/InventoryManagement/StockMaterial/addStockMaterial";
 import InventoryTypeList from "../views/dashboard/InventoryManagement/InventoryType/InventoryTypeList";
+import AddSupplier from "../views/dashboard/InventoryManagement/SupplierManagement/AddSupplier";
 
 // employee profile 01 Sep
 
@@ -189,12 +189,6 @@ export const DefaultRouter = [
       {
         path: "/department-list",
         element: <DepartmentList />,
-      },
-
-      //08 Aug 2025
-      {
-        path: "/designation-list",
-        element: <DesignationList />,
       },
 
       //08 Aug 2025
@@ -286,6 +280,14 @@ export const DefaultRouter = [
       {
         path: "supplier-management-list",
         element: <SupplierManagementList />,
+      },
+      {
+        path: "add-supplier",
+        element: <AddSupplier />,
+      },
+      {
+        path: "supplier-management/edit/:id",
+        element: <AddSupplier />,
       },
       {
         path: "payment-terms-list",

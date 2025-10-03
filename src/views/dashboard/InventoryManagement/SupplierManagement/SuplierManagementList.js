@@ -1,5 +1,3 @@
-// Created by sufyan on 16 sep
-
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -14,43 +12,22 @@ import {
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "./AddEditModal";
 import DeleteModal from "./DeleteModal";
 import api from "../../../../api/axios";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import * as Yup from "yup";
-import { useFormik } from "formik";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ViewModal from "./ViewModal";
-
-const initialValues = {
-  name: "",
-  company_name: "",
-  display_name: "",
-  email: "",
-  phone: "",
-  Address: "",
-  GST: "",
-  PAN: "",
-  TDS: "",
-  payment_term_id: "",
-};
 
 const SupplierManagementList = () => {
   const [userlist, setUserlist] = useState([]);
   const [paymentTermData, setPaymentTermData] = useState([]);
-  const [editId, setEditId] = useState(null);
-  const [showAddEdit, setShowAddEdit] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
-
-  const [isDisplayEdited, setIsDisplayEdited] = useState(false);
 
   // View Modal
   const [showView, setShowView] = useState(false);
@@ -59,26 +36,13 @@ const SupplierManagementList = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // Pagination
   const indexOfLast = currentPage * rowsPerPage;
   const indexOfFirst = indexOfLast - rowsPerPage;
   const currentData = userlist.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(userlist.length / rowsPerPage);
 
   const [loading, setLoading] = useState(true);
-
-  const validationSchema = Yup.object().shape({
-    name: Yup.string().required("Name is required"),
-    company_name: Yup.string().required("Company name is required"),
-    display_name: Yup.string().required("Display name is required"),
-    email: Yup.string().required("Email id is required"),
-    phone: Yup.string().required("Phone number is required"),
-    Address: Yup.string().required("Address is required"),
-    GST: Yup.string().required("GST number is required"),
-    PAN: Yup.string().required("PAN number is required"),
-    TDS: Yup.string().required("TDS is required"),
-    payment_term_id: Yup.string().required("Payment terms id is required"),
-  });
+  const navigate = useNavigate();
 
   const FETCHPERMISSION = async () => {
     try {
@@ -92,10 +56,6 @@ const SupplierManagementList = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
-
-      // ✅ Match current role + route
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
@@ -116,12 +76,12 @@ const SupplierManagementList = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); // ✅ Stop loader after API call
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    setLoading(true); // reset loader each time route changes
+    setLoading(true);
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -144,7 +104,7 @@ const SupplierManagementList = () => {
       });
   };
 
-  // Fetch payment terms
+  // Fetch payment terms (for view or other uses)
   const fetchPaymentTerm = () => {
     api
       .get("/api/v1/admin/paymentTerm")
@@ -196,73 +156,8 @@ const SupplierManagementList = () => {
       });
   };
 
-  const onSubmit = (values) => {
-    if (editId) {
-      // Update
-      setLoadingBtn(true);
-      api
-        .put(`/api/v1/admin/supplierManagement/${editId}`, values)
-        .then(() => {
-          successToast("Stock material updated successfully");
-          fetchSupplierManagement();
-          handleResetForm();
-        })
-        .catch((err) => {
-          console.error("Error updating supplier management:", err);
-          errorToast(
-            err.response?.data?.message ||
-              "Failed to update supplier management"
-          );
-        })
-        .finally(() => {
-          setLoadingBtn(false);
-        });
-    } else {
-      // Add
-      setLoadingBtn(true);
-      api
-        .post("/api/v1/admin/supplierManagement", values)
-        .then(() => {
-          successToast("Stock material added successfully");
-          fetchSupplierManagement();
-          handleResetForm();
-        })
-        .catch((err) => {
-          console.error("Error adding supplier management:", err);
-          errorToast(
-            err.response?.data?.message || "Failed to add supplier management"
-          );
-        })
-        .finally(() => {
-          setLoadingBtn(false);
-        });
-    }
-  };
-
-  const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit,
-  });
-
-  const { handleSubmit, resetForm } = formik;
-
-  const handleEdit = (index) => {
-    const supplierManagement = userlist[index];
-    formik.setValues({
-      name: supplierManagement.name,
-      company_name: supplierManagement.company_name,
-      display_name: supplierManagement.display_name,
-      email: supplierManagement.email,
-      phone: supplierManagement.phone,
-      Address: supplierManagement.Address,
-      GST: supplierManagement.GST,
-      PAN: supplierManagement.PAN,
-      TDS: supplierManagement.TDS,
-      payment_term_id: supplierManagement.payment_term_id,
-    });
-    setEditId(supplierManagement.id || supplierManagement._id);
-    setShowAddEdit(true);
+  const handleEdit = (id) => {
+    navigate(`/supplier-management/edit/${id}`);
   };
 
   // View
@@ -279,7 +174,8 @@ const SupplierManagementList = () => {
       .then(() => {
         successToast("Supplier Management deleted successfully");
         fetchSupplierManagement();
-        setShowDelete(false);
+        setDeleteIndex(null);
+        setDeleteId(null);
       })
       .catch((err) => {
         console.error("Error deleting supplier management:", err);
@@ -290,13 +186,6 @@ const SupplierManagementList = () => {
       .finally(() => {
         setLoadingBtn(false);
       });
-  };
-
-  const handleResetForm = () => {
-    setShowAddEdit(false);
-    setEditId(null);
-    resetForm();
-    setIsDisplayEdited(false);
   };
 
   //  Loader while checking permissions
@@ -332,9 +221,9 @@ const SupplierManagementList = () => {
               {permissions.add && (
                 <Button
                   className="btn-primary"
-                  onClick={() => setShowAddEdit(true)}
+                  onClick={() => navigate("/add-supplier")}
                 >
-                  + New Supplier Management
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -365,7 +254,7 @@ const SupplierManagementList = () => {
                           <td>{idx + 1}</td>
                           <td>{item.name}</td>
                           <td>{item.display_name}</td>
-                          <td>{item.paymentTerm.payment_term}</td>
+                          <td>{item.paymentTerm?.payment_term}</td>
                           <td>
                             <span
                               className={`status-dot ${
@@ -392,7 +281,7 @@ const SupplierManagementList = () => {
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                onClick={() => handleEdit(idx)}
+                                onClick={() => handleEdit(item.id)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -403,7 +292,6 @@ const SupplierManagementList = () => {
                                 onClick={() => {
                                   setDeleteIndex(idx);
                                   setDeleteId(item.id || item._id);
-                                  setShowDelete(true);
                                 }}
                                 color="error"
                                 style={{ cursor: "pointer" }}
@@ -456,27 +344,10 @@ const SupplierManagementList = () => {
         </Col>
       </Row>
 
-      {/* Add/Edit Modal */}
-      <AddEditModal
-        show={showAddEdit}
-        handleClose={handleResetForm}
-        onSave={handleSubmit}
-        modalTitle={
-          editId ? "Update Supplier Management" : "Add New Supplier Management"
-        }
-        buttonLabel={editId ? "Update" : "Save"}
-        loading={loadingBtn}
-        formik={formik}
-        paymentTermData={paymentTermData}
-        isDisplayEdited={isDisplayEdited}
-        setIsDisplayEdited={setIsDisplayEdited}
-      />
-
       {/* Delete Confirmation Modal */}
       <DeleteModal
-        show={showDelete}
+        show={deleteId !== null}
         handleClose={() => {
-          setShowDelete(false);
           setDeleteIndex(null);
           setDeleteId(null);
         }}

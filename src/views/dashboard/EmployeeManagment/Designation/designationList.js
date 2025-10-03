@@ -1,27 +1,17 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Form,
-  Pagination,
-  Spinner,
-  Table,
-} from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { Card, Row, Col, Button, Form, Spinner, Table } from "react-bootstrap";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "../Designation/add-edit-modal";
-import DeleteModal from "../Designation/delete-modal";
+import AddEditModal from "./add-edit-modal";
+import DeleteModal from "../Department/delete-modal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
 
-const RoleList = () => {
+const DesignationList = () => {
   const [userlist, setUserlist] = useState([]);
   const [roleName, setRoleName] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -32,9 +22,13 @@ const RoleList = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // Pagination states
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentData = userlist.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(userlist.length / rowsPerPage);
 
   const [loading, setLoading] = useState(true);
 
@@ -51,14 +45,11 @@ const RoleList = () => {
       }
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
 
-      // ✅ Match current role + route
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "Designation List" // 👈 must match your DB
       );
 
       if (matchedPermission) {
@@ -75,9 +66,10 @@ const RoleList = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); // ✅ Stop loader after API call
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     setLoading(true);
     FETCHPERMISSION();
@@ -97,8 +89,7 @@ const RoleList = () => {
         }
       })
       .catch((err) => {
-        console.error("Error fetching data:", err);
-        toast.error("Failed to fetch designations");
+        console.error("Error fetching designations:", err);
         setUserlist([]);
       });
   };
@@ -107,12 +98,13 @@ const RoleList = () => {
     fetchDesignations();
   }, []);
 
-  // Toggle Active/Inactive
+  // Toggle Active/Inactive with optimistic update
   const handleToggleActive = (id, currentStatus) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
+
     setUserlist((prev) =>
-      prev.map((dept) =>
-        dept.id === id ? { ...dept, isActive: newStatus } : dept
+      prev.map((item) =>
+        item.id === id ? { ...item, isActive: newStatus } : item
       )
     );
 
@@ -124,10 +116,9 @@ const RoleList = () => {
       .catch((err) => {
         console.error("Update failed:", err);
         toast.error(err.response?.data?.message || "Failed to update status");
-        // rollback
         setUserlist((prev) =>
-          prev.map((dept) =>
-            dept.id === id ? { ...dept, isActive: currentStatus } : dept
+          prev.map((item) =>
+            item.id === id ? { ...item, isActive: currentStatus } : item
           )
         );
       });
@@ -141,7 +132,6 @@ const RoleList = () => {
     }
 
     if (editId) {
-      // Update
       api
         .put(`/api/v1/admin/designation/${editId}`, { name: roleName })
         .then(() => {
@@ -156,7 +146,6 @@ const RoleList = () => {
           );
         });
     } else {
-      // Add
       api
         .post("/api/v1/admin/designation", { name: roleName })
         .then(() => {
@@ -173,16 +162,13 @@ const RoleList = () => {
     }
   };
 
-  // Edit
   const handleEdit = (index) => {
-    const designation = userlist[index];
-    setRoleName(designation.name);
-    setEditIndex(index);
-    setEditId(designation.id || designation._id);
+    const item = userlist[index];
+    setRoleName(item.name);
+    setEditId(item.id || item._id);
     setShowAddEdit(true);
   };
 
-  // Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
@@ -200,27 +186,12 @@ const RoleList = () => {
       });
   };
 
-  // Reset form
   const resetForm = () => {
     setShowAddEdit(false);
     setRoleName("");
-    setEditIndex(null);
     setEditId(null);
   };
 
-  // Pagination logic
-  const indexOfLast = currentPage * rowsPerPage;
-  const indexOfFirst = indexOfLast - rowsPerPage;
-  const currentData = userlist.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(userlist.length / rowsPerPage);
-
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  //  Loader while checking permissions
   if (loading) {
     return (
       <div className="loader-div">
@@ -228,6 +199,7 @@ const RoleList = () => {
       </div>
     );
   }
+
   if (!permissions?.view) {
     return (
       <div
@@ -254,7 +226,7 @@ const RoleList = () => {
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + New Designation
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -271,7 +243,7 @@ const RoleList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentData.length === 0 ? (
+                    {userlist.length === 0 ? (
                       <tr>
                         <td colSpan="4" className="text-center">
                           No Designation available
@@ -280,7 +252,7 @@ const RoleList = () => {
                     ) : (
                       currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
-                          <td>{indexOfFirst + idx + 1}</td>
+                          <td>{idx + 1}</td>
                           <td>{item.name}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -293,18 +265,20 @@ const RoleList = () => {
                               }
                               className="me-3"
                             />
+
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
-                                onClick={() => handleEdit(indexOfFirst + idx)}
+                                onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
+
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
-                                  setDeleteIndex(indexOfFirst + idx);
+                                  setDeleteIndex(idx);
                                   setDeleteId(item.id || item._id);
                                   setShowDelete(true);
                                 }}
@@ -320,27 +294,36 @@ const RoleList = () => {
                 </Table>
               </div>
 
-              {/* Pagination Controls */}
               {totalPages > 1 && (
-                <Pagination className="justify-content-center mt-3">
-                  <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
+                <div className="d-flex justify-content-end mt-3 me-3">
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     disabled={currentPage === 1}
-                  />
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    Previous
+                  </Button>
                   {[...Array(totalPages)].map((_, i) => (
-                    <Pagination.Item
-                      key={i + 1}
-                      active={i + 1 === currentPage}
-                      onClick={() => handlePageChange(i + 1)}
+                    <Button
+                      key={i}
+                      variant={currentPage === i + 1 ? "primary" : "light"}
+                      size="sm"
+                      className="mx-1"
+                      onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
-                    </Pagination.Item>
+                    </Button>
                   ))}
-                  <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     disabled={currentPage === totalPages}
-                  />
-                </Pagination>
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
               )}
             </Card.Body>
           </Card>
@@ -354,7 +337,7 @@ const RoleList = () => {
         roleName={roleName}
         setRoleName={setRoleName}
         onSave={handleAddOrUpdateRole}
-        modalTitle={editId ? "Update Designation" : "Add Designation"}
+        modalTitle={editId ? "Update Designation" : "Add New Designation"}
         buttonLabel={editId ? "Update" : "Save"}
       />
 
@@ -375,10 +358,13 @@ const RoleList = () => {
         }
       />
 
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        transition={Slide}
+      />
     </>
   );
 };
 
-export default RoleList;
+export default DesignationList;

@@ -973,7 +973,7 @@ const VerticalNav = memo((props) => {
                 </Link>
               </li>
 
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/Default-Holiday" ? "active" : ""
@@ -991,7 +991,7 @@ const VerticalNav = memo((props) => {
                     Default Holiday
                   </span>
                 </Link>
-              </li>
+              </li> */}
               <li className="nav-item">
                 <Link
                   className={`${
