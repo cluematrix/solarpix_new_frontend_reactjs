@@ -3,7 +3,7 @@ import { Modal, Row, Col } from "react-bootstrap";
 
 const ViewModal = ({ show, handleClose, lead }) => {
   if (!lead) return null;
-
+  console.log("leadViewModal", lead);
   // Compute display name based on customer type
   const displayName =
     lead.customer_type === "Business"
@@ -43,15 +43,6 @@ const ViewModal = ({ show, handleClose, lead }) => {
             </Col>
             <Col xs={7}>{displayName || "—"}</Col>
           </Row>
-
-          {lead.customer_type === "Individual" && (
-            <Row className="mb-2">
-              <Col xs={5} className="fw-semibold text-muted">
-                Salutation:
-              </Col>
-              <Col xs={7}>{lead.salutation || "—"}</Col>
-            </Row>
-          )}
 
           <Row className="mb-2">
             <Col xs={5} className="fw-semibold text-muted">
@@ -93,7 +84,7 @@ const ViewModal = ({ show, handleClose, lead }) => {
 
           <Row className="mb-2">
             <Col xs={5} className="fw-semibold text-muted">
-              Capacity (kW):
+              Capacity ({lead?.Unit?.unit}):
             </Col>
             <Col xs={7}>{lead.capacity || "—"}</Col>
           </Row>
@@ -114,7 +105,7 @@ const ViewModal = ({ show, handleClose, lead }) => {
 
           <Row className="mb-2">
             <Col xs={5} className="fw-semibold text-muted">
-              Pincode:
+              Pin Code:
             </Col>
             <Col xs={7}>{lead.pincode || "—"}</Col>
           </Row>
@@ -156,6 +147,13 @@ const ViewModal = ({ show, handleClose, lead }) => {
               Priority:
             </Col>
             <Col xs={7}>{lead.priority || "—"}</Col>
+          </Row>
+
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
+              Status:
+            </Col>
+            <Col xs={7}>{lead.status || "—"}</Col>
           </Row>
         </div>
       </Modal.Body>

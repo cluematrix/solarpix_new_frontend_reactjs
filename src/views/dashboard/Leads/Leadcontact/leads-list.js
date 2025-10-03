@@ -19,6 +19,8 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import Tooltip from "@mui/material/Tooltip";
 import ViewModal from "./ViewModal";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
 
 const LeadsList = () => {
   const [leadList, setLeadList] = useState([]);
@@ -26,6 +28,8 @@ const LeadsList = () => {
   const [employees, setEmployees] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingAPI, setLoadingAPI] = useState(false);
+  const [leadStatus, setLeadStatus] = useState([]);
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -37,7 +41,8 @@ const LeadsList = () => {
 
   // 🔹 Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage] = useState(10); // same as backend limit
+  const [totalPages, setTotalPages] = useState(1);
 
   const [formData, setFormData] = useState({
     customerType: "Individual",
@@ -57,14 +62,12 @@ const LeadsList = () => {
     address: "",
     requirementType: "",
     capacity: "",
-    status: "",
+    status: "Progress",
     company_remark: "",
     customer_remark: "",
     last_call: "",
     priority: "",
-    // enquiry_number: "",
-    isActive: true,
-    isDelete: false,
+    requirement_lead_id: "",
   });
 
   const [editIndex, setEditIndex] = useState(null);
@@ -119,59 +122,41 @@ const LeadsList = () => {
     navigate("/add-customer", { state: { leadData: lead } });
   };
 
-  // const generateEnquiryNumber = (leadList = []) => {
-  //   const now = new Date();
-  //   const year = now.getFullYear();
-  //   const month = now.toLocaleString("en-US", { month: "short" }).toUpperCase();
-  //   const nextYear = (year + 1).toString().slice(-2);
-  //   const currentYear = year.toString().slice(-2);
-  //   let sequence = 1;
-
-  //   if (leadList.length > 0) {
-  //     const lastLead = [...leadList].sort(
-  //       (a, b) => new Date(b.created_at) - new Date(a.created_at)
-  //     )[0];
-  //     const lastNumber = lastLead?.lead_number || lastLead?.enquiry_number;
-  //     if (lastNumber) {
-  //       const parts = lastNumber.split("/");
-  //       const lastSeq = parseInt(parts[3] || "0", 10);
-  //       if (!isNaN(lastSeq)) sequence = lastSeq + 1;
-  //     }
-  //   }
-
-  //   return `SEPL/${currentYear}-${nextYear}/${month}/${String(
-  //     sequence
-  //   ).padStart(3, "0")}`;
-  // };
-
   // Fetch dropdowns
   const fetchDropdowns = async () => {
     try {
-      const [leadRes, empRes, cliRes] = await Promise.all([
+      const [leadRes, empRes, cliRes, statusRes] = await Promise.all([
         api.get("/api/v1/admin/leadSource/active"),
         api.get("/api/v1/admin/employee/active"),
         api.get("/api/v1/admin/client/active"),
+        // api.get("/api/v1/admin/requirementLead/active"),
+        api.get("/api/v1/admin/leadStatus/active"),
       ]);
 
       setLeadSources(leadRes.data || []);
       if (empRes.data?.success) setEmployees(empRes.data.data || []);
       if (cliRes.data?.success) setClients(cliRes.data.data || []);
+      setLeadStatus(statusRes.data.data || []);
     } catch (err) {
       console.error("Error fetching dropdowns:", err);
     }
   };
 
   // Fetch Leads
-  const fetchLeads = async () => {
+  const fetchLeads = async (page = 1) => {
     try {
       setLoading(true);
-      const res = await api.get("/api/v1/admin/lead");
-      if (Array.isArray(res.data?.data)) {
-        setLeadList(res.data.data);
-      } else if (Array.isArray(res.data)) {
-        setLeadList(res.data);
-      } else {
-        setLeadList([]);
+      const res = await api.get(
+        `/api/v1/admin/lead/pagination?page=${page}&limit=${itemsPerPage}`
+      );
+
+      // ✅ Adjust this based on your backend response
+      setLeadList(res.data?.data || []);
+      setTotalPages(res.data?.totalPages || 1);
+      // calculate totalCount from itemPerPage
+      if (res.data?.pagination.total) {
+        console.log("totalPageFun", res?.data?.pagination?.total);
+        setTotalPages(Math.ceil(res?.data?.pagination?.total / itemsPerPage));
       }
     } catch (err) {
       console.error("Error fetching leads:", err);
@@ -180,10 +165,11 @@ const LeadsList = () => {
     }
   };
 
+  console.log("totalPage", totalPages);
   useEffect(() => {
     fetchDropdowns();
-    fetchLeads();
-  }, []);
+    fetchLeads(currentPage);
+  }, [currentPage]);
 
   const resetForm = () => {
     setFormData({
@@ -204,20 +190,20 @@ const LeadsList = () => {
       address: "",
       requirementType: "",
       capacity: "",
-      status: "",
+      status: "Progress",
       company_remark: "",
       customer_remark: "",
       last_call: "",
       priority: "",
-      // enquiry_number: generateEnquiryNumber(leadList),
-      isActive: true,
-      isDelete: false,
+      requirement_lead_id: "",
+      unit_id: "",
     });
     setEditIndex(null);
   };
 
   // Save lead
   const handleAddOrUpdateLead = async (data) => {
+    console.log("dataEditTime", data);
     const payload = {
       customer_type: data.customerType,
       name: data.name,
@@ -241,27 +227,35 @@ const LeadsList = () => {
       customer_remark: data.customer_remark,
       last_call: data.last_call,
       priority: data.priority,
-      // lead_number: data.enquiry_number,
-      isActive: data.isActive,
-      isDelete: data.isDelete,
+      requirement_lead_id: data.requirement_lead_id || "",
+      unit_id: data.unit_id || "",
     };
 
     try {
       if (editIndex !== null) {
+        setLoadingAPI(true);
         await api.put(`/api/v1/admin/lead/${leadList[editIndex].id}`, payload);
+        successToast("Lead updated successfully");
       } else {
+        setLoadingAPI(true);
         await api.post("/api/v1/admin/lead", payload);
+        successToast("Lead created successfully");
       }
       fetchLeads();
       setShowAddEdit(false);
       resetForm();
     } catch (err) {
+      setLoadingAPI(false);
       console.error("Error saving lead:", err);
+      errorToast("Error while adding the lead");
+    } finally {
+      setLoadingAPI(false);
     }
   };
 
   const handleEdit = (index) => {
     const lead = leadList[index];
+    console.log("leadEdit", lead);
     setFormData({
       customerType: lead.customer_type || "Individual",
       companyName: lead.company_name || "",
@@ -287,9 +281,8 @@ const LeadsList = () => {
       customer_remark: lead.customer_remark || "",
       last_call: lead.last_call || "",
       priority: lead.priority || "",
-      // enquiry_number: lead.lead_number || lead.enquiry_number || "",
-      isActive: lead.isActive,
-      isDelete: lead.isDelete,
+      requirement_lead_id: lead.requirement_lead_id || "",
+      unit_id: lead.unit_id || "",
     });
     setEditIndex(index);
     setShowAddEdit(true);
@@ -298,10 +291,16 @@ const LeadsList = () => {
   const handleDeleteConfirm = async () => {
     if (deleteIndex !== null) {
       try {
+        setLoadingAPI(true);
         await api.delete(`/api/v1/admin/lead/${leadList[deleteIndex].id}`);
+        successToast("Lead deleted successfully");
         fetchLeads();
       } catch (err) {
+        setLoadingAPI(true);
         console.error("Error deleting lead:", err);
+        errorToast("Error while deleting lead");
+      } finally {
+        setLoadingAPI(false);
       }
     }
     setShowDelete(false);
@@ -309,10 +308,9 @@ const LeadsList = () => {
   };
 
   // 🔹 Pagination Logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = leadList.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(leadList.length / itemsPerPage);
+  const indexOfLastItem = currentPage * totalPages;
+  const indexOfFirstItem = indexOfLastItem - totalPages;
+  // const totalPages = Math.ceil(leadList.length / itemsPerPage);
 
   // Loader while checking permissions
   if (loading && !permissions) {
@@ -352,7 +350,7 @@ const LeadsList = () => {
                     setShowAddEdit(true);
                   }}
                 >
-                  + Add Lead
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -370,32 +368,29 @@ const LeadsList = () => {
                         <th>Sr. No.</th>
                         <th>Name</th>
                         <th>Company Name</th>
-                        <th>Email</th>
-                        {/* <th>Contact</th> */}
                         <th>Priority</th>
-                        <th>Status</th> {/* ✅ New column */}
+                        <th>Status</th> {/* New column */}
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {currentItems.length === 0 ? (
+                      {leadList?.length === 0 ? (
                         <tr>
                           <td colSpan="9" className="text-center">
                             No leads available
                           </td>
                         </tr>
                       ) : (
-                        currentItems.map((item, idx) => (
+                        leadList?.map((item, idx) => (
                           <tr key={item.id}>
-                            <td>{indexOfFirstItem + idx + 1}</td>
+                            <td>
+                              {(currentPage - 1) * itemsPerPage + idx + 1}
+                            </td>
                             <td>{item.name}</td>
                             <td>{item.company_name || "Individual"}</td>
-                            <td>{item.email}</td>
-                            {/* <td>{item.contact}</td> */}
 
                             <td>
                               <Form.Select
-                                className="w-75"
                                 size="sm"
                                 value={item.priority || ""}
                                 onChange={async (e) => {
@@ -407,6 +402,9 @@ const LeadsList = () => {
                                         ...item,
                                         priority: newPriority,
                                       }
+                                    );
+                                    successToast(
+                                      "Priority updated successfully"
                                     );
                                     setLeadList((prev) =>
                                       prev.map((lead) =>
@@ -421,10 +419,13 @@ const LeadsList = () => {
                                       err
                                     );
                                   }
+                                  // errorToast(
+                                  //   "Error while updating the priority"
+                                  // );
                                 }}
                               >
                                 <option disabled value="">
-                                  Select
+                                  --
                                 </option>
                                 {[
                                   { id: "1", icon: "🟢", name: "High" },
@@ -440,7 +441,6 @@ const LeadsList = () => {
 
                             <td>
                               <Form.Select
-                                className="w-75"
                                 size="sm"
                                 value={item.status || "Progress"}
                                 onChange={async (e) => {
@@ -453,6 +453,7 @@ const LeadsList = () => {
                                         status: newStatus,
                                       }
                                     );
+                                    successToast("Status updated successfully");
                                     setLeadList((prev) =>
                                       prev.map((lead) =>
                                         lead.id === item.id
@@ -468,13 +469,9 @@ const LeadsList = () => {
                                   }
                                 }}
                               >
-                                {[
-                                  { id: "1", icon: "🟢", name: "Won" },
-                                  { id: "2", icon: "🔴", name: "Lost" },
-                                  { id: "3", icon: "🟠", name: "Progress" },
-                                ].map((option) => (
+                                {leadStatus?.map((option) => (
                                   <option key={option.id} value={option.name}>
-                                    {option.icon} {option.name}
+                                    {option.icon} {option.leadStatus_name}
                                   </option>
                                 ))}
                               </Form.Select>
@@ -484,7 +481,7 @@ const LeadsList = () => {
                               <VisibilityIcon
                                 color="primary"
                                 size="sm"
-                                className="me-2"
+                                style={{ cursor: "pointer" }}
                                 onClick={() => {
                                   setViewData(item);
                                   setShowView(true);
@@ -492,7 +489,6 @@ const LeadsList = () => {
                               />
                               {permissions.edit && (
                                 <CreateTwoToneIcon
-                                  className="me-2"
                                   onClick={() => handleEdit(idx)}
                                   color="primary"
                                   style={{ cursor: "pointer" }}
@@ -515,7 +511,6 @@ const LeadsList = () => {
                                   <span>
                                     <PersonAddIcon
                                       size="sm"
-                                      className="ms-2"
                                       style={{
                                         cursor: "not-allowed",
                                         color: "gray",
@@ -527,7 +522,6 @@ const LeadsList = () => {
                                 <Tooltip title="Add to Customer">
                                   <PersonAddIcon
                                     size="sm"
-                                    className="ms-2"
                                     style={{
                                       cursor: "pointer",
                                       color: "blue",
@@ -552,12 +546,12 @@ const LeadsList = () => {
                         onClick={() => setCurrentPage(1)}
                         disabled={currentPage === 1}
                       />
-                      <Pagination.Prev
+                      {/* <Pagination.Prev
                         onClick={() =>
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                      />
+                      /> */}
                       {[...Array(totalPages)].map((_, i) => (
                         <Pagination.Item
                           key={i + 1}
@@ -567,14 +561,14 @@ const LeadsList = () => {
                           {i + 1}
                         </Pagination.Item>
                       ))}
-                      <Pagination.Next
+                      {/* <Pagination.Next
                         onClick={() =>
                           setCurrentPage((prev) =>
                             Math.min(prev + 1, totalPages)
                           )
                         }
                         disabled={currentPage === totalPages}
-                      />
+                      /> */}
                       <Pagination.Last
                         onClick={() => setCurrentPage(totalPages)}
                         disabled={currentPage === totalPages}
@@ -599,6 +593,7 @@ const LeadsList = () => {
         setFormData={setFormData}
         onSave={handleAddOrUpdateLead}
         editData={editIndex !== null}
+        loadingAPI={loadingAPI}
       />
       <ViewModal
         show={showView}
@@ -621,6 +616,7 @@ const LeadsList = () => {
             ? `Are you sure you want to delete lead "${leadList[deleteIndex].name}"?`
             : ""
         }
+        loadingAPI={loadingAPI}
       />
     </>
   );

@@ -15,6 +15,8 @@ const CustomSelect = ({
   size = "md", // optional size
   lableKey = "id",
   lableName = "name",
+  disabled = false,
+  readOnly = false,
 }) => {
   return (
     <Form.Group>
@@ -30,6 +32,9 @@ const CustomSelect = ({
         onChange={onChange}
         onBlur={onBlur}
         className={touched && error ? "is-invalid" : ""}
+        disabled={disabled}
+        readOnly={readOnly}
+        style={{ cursor: disabled && "not-allowed" }}
       >
         <option value="">{placeholder}</option>
         {options.length > 0 &&

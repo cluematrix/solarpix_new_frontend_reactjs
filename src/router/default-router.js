@@ -109,6 +109,8 @@ import AddProject from "../views/dashboard/work/Project/addProject";
 import WarehouseList from "../views/dashboard/InventoryManagement/Warehouse/WarehouseList";
 import ProjectProfile from "../views/dashboard/work/Project/projectProfile";
 import SettingsSidebarWithTabs from "../views/dashboard/SettingPage/SettingsSidebarWithTabs";
+import UpdateStockMaterial from "../views/dashboard/InventoryManagement/StockMaterial/addStockMaterial";
+import InventoryTypeList from "../views/dashboard/InventoryManagement/InventoryType/InventoryTypeList";
 
 // employee profile 01 Sep
 
@@ -262,10 +264,25 @@ export const DefaultRouter = [
         path: "inventory-categories-list",
         element: <InventoryCategoriesList />,
       },
+
+      // inventory type
+      {
+        path: "inventory-type-list",
+        element: <InventoryTypeList />,
+      },
       {
         path: "stock-material-list",
         element: <StockMaterialList />,
       },
+      {
+        path: "add-stock-material-list", //30 Sep by sufyan
+        element: <UpdateStockMaterial />,
+      },
+      {
+        path: "update-stock-material-list/:id", //30 Sep by sufyan
+        element: <UpdateStockMaterial />,
+      },
+
       {
         path: "supplier-management-list",
         element: <SupplierManagementList />,

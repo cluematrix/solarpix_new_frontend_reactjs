@@ -1,4 +1,4 @@
-// Created by sufyan on 16 sep
+// Created by sufyan on 01 Oct
 
 import React, { useState, useEffect } from "react";
 import {
@@ -14,19 +14,18 @@ import {
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "./addStockMaterial";
+import AddEditModal from "./AddEditModal";
 import DeleteModal from "./DeleteModal";
 import api from "../../../../api/axios";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import * as Yup from "yup";
-import { useFormik } from "formik";
 
-const StockMaterialList = () => {
+const InventoryTypeList = () => {
   const [userlist, setUserlist] = useState([]);
-  const [invCatData, setInvCatData] = useState([]);
+  const [roleName, setRoleName] = useState("");
   const [editId, setEditId] = useState(null);
+  const [errors, setErrors] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
@@ -34,17 +33,17 @@ const StockMaterialList = () => {
   const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
-  const navigate = useNavigate();
 
   // Pagination
+  // 🔹 Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  const indexOfLast = currentPage * rowsPerPage;
-  const indexOfFirst = indexOfLast - rowsPerPage;
-  const currentData = userlist.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(userlist.length / rowsPerPage);
+  const [itemsPerPage] = useState(10); // same as backend limit
+  const [totalPages, setTotalPages] = useState(1);
 
   const [loading, setLoading] = useState(true);
+
+  // const getrole = sessionStorage.getItem("roleId");
+  //  PERMISSION CHECK
 
   const FETCHPERMISSION = async () => {
     try {
@@ -91,47 +90,31 @@ const StockMaterialList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch stock material
-  const fetchStockMaterial = () => {
-    api
-      .get("/api/v1/admin/stockMaterial")
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          setUserlist(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setUserlist(res.data.data);
-        } else {
-          setUserlist([]);
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching stock material:", err);
-        setUserlist([]);
-      });
-  };
+  // Fetch inventory type
+  const fetchInvType = async (page = 1) => {
+    try {
+      setLoading(true);
+      const res = await api.get(
+        `/api/v1/admin/inventoryType/active/pagination?page=${page}&limit=${itemsPerPage}`
+      );
 
-  // Fetch inventory category
-  const fetchInventoryCategory = () => {
-    api
-      .get("/api/v1/admin/inventoryCategory")
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          setInvCatData(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setInvCatData(res.data.data);
-        } else {
-          setInvCatData([]);
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching inventory category:", err);
-        setInvCatData([]);
-      });
+      // ✅ Adjust this based on your backend response
+      setUserlist(res.data?.data || []);
+      setTotalPages(res.data?.totalPages || 1);
+      // calculate totalCount from itemPerPage
+      if (res.data?.pagination.total) {
+        console.log("totalPageFun", res?.data?.pagination?.total);
+        setTotalPages(Math.ceil(res?.data?.pagination?.total / itemsPerPage));
+      }
+    } catch (err) {
+      console.error("Error fetching leads:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchStockMaterial();
-    fetchInventoryCategory();
+    fetchInvType();
   }, []);
 
   // Toggle Active/Inactive with optimistic update
@@ -146,7 +129,7 @@ const StockMaterialList = () => {
     );
 
     api
-      .put(`/api/v1/admin/stockMaterial/${id}`, { isActive: newStatus })
+      .put(`/api/v1/admin/inventoryType/${id}`, { isActive: newStatus })
       .then(() => {
         successToast("Status updated successfully");
       })
@@ -162,29 +145,87 @@ const StockMaterialList = () => {
       });
   };
 
-  const handleEdit = (id) => {
-    navigate(`/update-stock-material-list/${id}`);
+  // Add or Update inventory type
+  const handleAddOrUpdateRole = () => {
+    if (!roleName.trim()) {
+      setErrors("Inventory name is required");
+      return;
+    }
+
+    if (editId) {
+      // Update
+      setLoadingBtn(true);
+      api
+        .put(`/api/v1/admin/inventoryType/${editId}`, {
+          type: roleName,
+        })
+        .then(() => {
+          successToast("Inventory updated successfully");
+          fetchInvType();
+          resetForm();
+          setErrors(null);
+        })
+        .catch((err) => {
+          console.error("Error updating inventory:", err);
+          errorToast(
+            err.response?.data?.message || "Failed to update inventory"
+          );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
+        });
+    } else {
+      // Add
+      setLoadingBtn(true);
+      api
+        .post("/api/v1/admin/inventoryType", { type: roleName })
+        .then(() => {
+          successToast("Inventory added successfully");
+          fetchInvType();
+          resetForm();
+          setErrors(null);
+        })
+        .catch((err) => {
+          console.error("Error adding inventory:", err);
+          errorToast(err.response?.data?.message || "Failed to add inventory");
+        })
+        .finally(() => {
+          setLoadingBtn(false);
+        });
+    }
+  };
+
+  const handleEdit = (index) => {
+    const inventory = userlist[index];
+    setRoleName(inventory.type);
+    setEditId(inventory.id || inventory._id);
+    setShowAddEdit(true);
   };
 
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     setLoadingBtn(true);
     api
-      .delete(`/api/v1/admin/stockMaterial/${deleteId}`)
+      .delete(`/api/v1/admin/inventoryType/${deleteId}`)
       .then(() => {
-        successToast("Stock Material deleted successfully");
-        fetchStockMaterial();
+        successToast("Inventory type deleted successfully");
+        fetchInvType();
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting stock material:", err);
-        errorToast(
-          err.response?.data?.message || "Failed to delete stock material"
-        );
+        console.error("Error deleting inventory:", err);
+        errorToast(err.response?.data?.message || "Failed to delete inventory");
       })
       .finally(() => {
         setLoadingBtn(false);
       });
+  };
+
+  const resetForm = () => {
+    setShowAddEdit(false);
+    setRoleName("");
+    setEditId(null);
+    setErrors(null);
   };
 
   //  Loader while checking permissions
@@ -216,11 +257,11 @@ const StockMaterialList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Stock Material</h5>
+              <h5 className="card-title fw-lighter">Inventory Type</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
-                  onClick={() => navigate("/add-stock-material-list")}
+                  onClick={() => setShowAddEdit(true)}
                 >
                   + New
                 </Button>
@@ -233,13 +274,7 @@ const StockMaterialList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Material Name</th>
-                      <th>Purchase Rate</th>
-                      <th>Rate</th>
-                      <th>HSN/SAC</th>
-                      <th>Usage Unit</th>
-                      {/* <th>Inventory Category</th> */}
-                      {/* <th>Balance</th> */}
+                      <th>Name</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -247,22 +282,16 @@ const StockMaterialList = () => {
                   <tbody>
                     {userlist.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center">
-                          No Stock Material Available
+                        <td colSpan="4" className="text-center">
+                          No Inventory Type Available
                         </td>
                       </tr>
                     ) : (
-                      currentData.map((item, idx) => (
+                      userlist?.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>{item.material}</td>
-                          {/* <td>{item?.purchaseRate}</td>
-                          <td>{item?.rate}</td>
-                          <td>{item?.hsc}</td>
-                          <td>{item?.unit}</td> */}
-                          {/* <td>{item.category.category}</td> */}
-                          {/* <td>{item.balance}</td> */}
-                          <td style={{ minWidth: "90px" }}>
+                          <td>{item?.type}</td>
+                          <td style={{ minWidth: "70px" }}>
                             <span
                               className={`status-dot ${
                                 item.isActive ? "active" : "inactive"
@@ -282,7 +311,7 @@ const StockMaterialList = () => {
 
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                onClick={() => handleEdit(item.id)}
+                                onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
@@ -314,12 +343,6 @@ const StockMaterialList = () => {
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
                   />
-                  <Pagination.Prev
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                  />
                   {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
@@ -329,12 +352,6 @@ const StockMaterialList = () => {
                       {i + 1}
                     </Pagination.Item>
                   ))}
-                  <Pagination.Next
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                  />
                   <Pagination.Last
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
@@ -347,16 +364,17 @@ const StockMaterialList = () => {
       </Row>
 
       {/* Add/Edit Modal */}
-      {/* <AddEditModal
+      <AddEditModal
         show={showAddEdit}
-        handleClose={handleResetForm}
-        onSave={handleSubmit}
-        modalTitle={editId ? "Update Stock Material" : "Add New Stock Material"}
+        handleClose={resetForm}
+        roleName={roleName}
+        setRoleName={setRoleName}
+        errors={errors}
+        onSave={handleAddOrUpdateRole}
+        modalTitle={editId ? "Update Inventory Type" : "Add New Inventory Type"}
         buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
-        formik={formik}
-        invCatData={invCatData}
-      /> */}
+      />
 
       {/* Delete Confirmation Modal */}
       <DeleteModal
@@ -367,10 +385,10 @@ const StockMaterialList = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Stock Material"
+        modalTitle="Delete Inventory Type"
         modalMessage={
           deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete the stock material" ${userlist[deleteIndex].material}"?`
+            ? `Are you sure you want to delete the inventory type "${userlist[deleteIndex].type}"?`
             : ""
         }
         loading={loadingBtn}
@@ -379,4 +397,4 @@ const StockMaterialList = () => {
   );
 };
 
-export default StockMaterialList;
+export default InventoryTypeList;

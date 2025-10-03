@@ -37,6 +37,12 @@ export const kycDataOptions = [
   { id: "3", icon: "🔴", name: "Rejected" },
 ];
 
+export const priorityOptions = [
+  { id: "1", icon: "🔴", name: "Low" },
+  { id: "2", icon: "🟡", name: "Medium" },
+  { id: "3", icon: "🟢", name: "High" },
+];
+
 export const disbursementOptions = [
   { id: "1", icon: "🟢", name: "Done" }, // Green circle
   { id: "2", icon: "🟡", name: "Pending" }, // Red circle
@@ -82,3 +88,8 @@ export const tabConfig = {
   Holiday: ["Default Holiday"],
   Branch: ["Branch"],
 };
+
+export const typeOfMaterial = [
+  { id: "1", name: "Goods" },
+  { id: "2", name: "Purchase" },
+];
