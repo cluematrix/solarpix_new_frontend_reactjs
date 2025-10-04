@@ -24,7 +24,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import ViewModal from "./ViewModal"; // Assuming ViewModal.jsx is in the same directory
 import VisibilityIcon from "@mui/icons-material/Visibility";
-
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 const StockMaterialList = () => {
   const [userlist, setUserlist] = useState([]);
   const [invCatData, setInvCatData] = useState([]);
@@ -313,6 +313,15 @@ const StockMaterialList = () => {
                                 style={{ cursor: "pointer" }}
                               />
                             )}
+
+                            <FormatListNumberedIcon
+                              variant="outline-secondary"
+                              size="sm"
+                              style={{ marginLeft: "5px" }}
+                              onClick={() =>
+                                navigate(`/SerialNumberTable/${item.id}`)
+                              }
+                            />
                           </td>
                         </tr>
                       ))

@@ -212,7 +212,7 @@ const ViewModal = ({ show, handleClose, item }) => {
               <p>{item.balance || "N/A"}</p>
             </Form.Group>
           </Col>
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Group>
               <Form.Label>Serial Numbers</Form.Label>
               {item.serialNumbers && item.serialNumbers.length > 0 ? (
@@ -225,7 +225,7 @@ const ViewModal = ({ show, handleClose, item }) => {
                 <p>N/A</p>
               )}
             </Form.Group>
-          </Col>
+          </Col> */}
         </Row>
         <hr />
 
