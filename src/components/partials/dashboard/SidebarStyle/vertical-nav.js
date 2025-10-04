@@ -24,6 +24,7 @@ import AddCardIcon from "@mui/icons-material/AddCard";
 import { MdInventory } from "react-icons/md";
 // install: npm i react-icons
 import { FiBox } from "react-icons/fi"; // Inventory Categories
+import { TfiPackage } from "react-icons/tfi";
 import { AiOutlineBarcode } from "react-icons/ai"; // Stock (Current Inventory)
 import { FaTruck } from "react-icons/fa"; // Supplier Management
 import { BiCalendarCheck } from "react-icons/bi"; // Payment Terms (Master)
@@ -634,6 +635,25 @@ const VerticalNav = memo((props) => {
                   </i>
                   <span className="item-name sidebar-font-size">
                     Inventory Categories
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/inventory-type-list" ? "active" : ""
+                  } nav-link`}
+                  to="/inventory-type-list"
+                >
+                  <i className="icon">
+                    <TfiPackage fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <TfiPackage fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Inventory Type
                   </span>
                 </Link>
               </li>

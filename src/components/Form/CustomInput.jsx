@@ -21,6 +21,7 @@ const CustomInput = ({
   title,
   Icon, // ✅ Icon prop accept karega (React component)
   iconPosition = "left", // optional: "left" or "right"
+  nameIcon,
 }) => {
   return (
     <Form.Group>
@@ -31,14 +32,26 @@ const CustomInput = ({
       )}
 
       {/* ✅ Wrap input in InputGroup */}
-      <InputGroup >
+      <InputGroup>
         {/* Left Icon */}
         {Icon && iconPosition === "left" && (
-          <InputGroup.Text style={{  padding:"0px 5px" }}>
+          <InputGroup.Text style={{ padding: "0px 5px" }}>
             <Icon size={16} />
           </InputGroup.Text>
         )}
 
+        {nameIcon && iconPosition === "left" && (
+          <InputGroup.Text
+            style={{
+              padding: "0rem .5rem",
+              fontSize: "13px",
+              backgroundColor: "lightgray",
+              color: "black",
+            }}
+          >
+            <>{nameIcon}</>
+          </InputGroup.Text>
+        )}
         <Form.Control
           type={as ? "undefined" : type}
           as={as}
@@ -53,7 +66,7 @@ const CustomInput = ({
           min={min}
           readOnly={readOnly}
           disabled={disabled}
-          style={{ color: "black" }}
+          style={{ color: "black", cursor: disabled && "not-allowed" }}
           title={title}
         />
 
@@ -61,6 +74,11 @@ const CustomInput = ({
         {Icon && iconPosition === "right" && (
           <InputGroup.Text>
             <Icon size={16} />
+          </InputGroup.Text>
+        )}
+        {nameIcon && iconPosition === "right" && (
+          <InputGroup.Text style={{ padding: "0rem .7rem", fontSize: "10px" }}>
+            <>{nameIcon}</>
           </InputGroup.Text>
         )}
       </InputGroup>
