@@ -7,7 +7,7 @@ import { errorToast } from "../../../../components/Toast/errorToast";
 import { successToast } from "../../../../components/Toast/successToast";
 import api from "../../../../api/axios";
 import * as Yup from "yup";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import { typeOfMaterial } from "../../../../mockData";
 import CustomCheckbox from "../../../../components/Form/CustomCheckbox";
@@ -17,56 +17,113 @@ const AddStockMaterial = ({ invCatData }) => {
   const [loading, setLoading] = useState(false);
   const [showSerialModal, setShowSerialModal] = useState(false);
   const { id } = useParams();
-
+  const [directSend, setDirectSend] = useState("Warehouse");
+  const [customerData, setCustomerData] = useState([]);
+  const navigate = useNavigate();
   const [metaData, setMetaData] = useState({
     unitData: [],
     taxPreferenceData: [],
     venderData: [],
     invCatData: [],
     invTypeData: [],
-    warehouse: [],
+    Warehouse: [],
     intraTaxData: [],
     interTaxData: [],
+    custData: [],
   });
 
   const initialValues = {
     type: "Goods",
-    material: "", //name
+    material: "",
     balance: "",
-    // unit_id: "",
-    hsn_code: "",
+    hsc_code: "",
     sac: "",
     tax_preference_id: "",
-    exemption_reason: "", // enable only non-taxable
+    exemption_reason: "",
     type_sales_info: false,
     type_purchase_info: false,
     sales_info_selling_price: "",
     purchase_info_cost_price: "",
     purchase_info_vendor_id: "",
     intra_state_tax_rate_id: "",
-    inter_state_tax_rate: "",
+    inter_state_tax_rate_id: "",
     inventory_category_id: "",
-    inv_type_id: "",
-    warehouse_id: "",
+    inventoryType_id: "",
+    branch_id: "",
+    client_id: "",
+    serialNumbers: [],
+    direct_send: "Warehouse",
+    unit_id: "",
   };
 
   const validationSchema = Yup.object().shape({
     material: Yup.string().required("Material name is required"),
     type: Yup.string().required("Type is required"),
-    // unit_id: Yup.string().required("Unit is required"),
     tax_preference_id: Yup.string().required("Tax preference is required"),
     sales_info_selling_price: Yup.string().required(
       "Selling price is required"
     ),
     purchase_info_cost_price: Yup.string().required("Cost price is required"),
-    // inventory_category_id: Yup.string().required(
-    //   "Inventory category is required"
-    // ),
-    // inv_type_id: Yup.string().required("Inventory type is required"),
-    // warehouse_id: Yup.string().required("Warehouse is required"),
+    unit_id: Yup.string().required("Unit is required"),
+    ...(directSend === "Customer" && {
+      client_id: Yup.string().required("Customer is required"),
+    }),
+    ...(directSend === "Warehouse" && {
+      branch_id: Yup.string().required("Warehouse is required"),
+    }),
   });
 
-  // Fetch stock material
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    onSubmit: (values) => {
+      if (values.branch_id) {
+        delete values.client_id;
+      } else if (values.client_id) {
+        delete values.branch_id;
+      }
+      console.log("onsubmitvalue", values);
+      if (id) {
+        api
+          .put(`/api/v1/admin/stockMaterial/${id}`, values)
+          .then(() => {
+            successToast("Stock material updated successfully");
+            navigate("/stock-material-list");
+          })
+          .catch((err) => {
+            console.error("Error updating stock material:", err);
+            errorToast(
+              err.response?.data?.message || "Failed to update stock material"
+            );
+          });
+      } else {
+        api
+          .post("/api/v1/admin/stockMaterial", values)
+          .then(() => {
+            successToast("Stock material added successfully");
+            navigate("/stock-material-list");
+          })
+          .catch((err) => {
+            console.error("Error adding stock material:", err);
+            errorToast(
+              err.response?.data?.message || "Failed to add stock material"
+            );
+          });
+      }
+    },
+  });
+
+  const {
+    handleSubmit,
+    isSubmitting,
+    values,
+    handleBlur,
+    handleChange,
+    errors,
+    touched,
+    setFieldValue,
+  } = formik;
+
   const fetchStockMaterial = () => {
     api
       .get("/api/v1/admin/stockMaterial")
@@ -98,8 +155,9 @@ const AddStockMaterial = ({ invCatData }) => {
           warehouseRes,
           intraTaxRes,
           interTaxRes,
+          custRes,
         ] = await Promise.all([
-          // api.get("/api/v1/admin/unit"),
+          api.get("/api/v1/admin/unit"),
           api.get("/api/v1/admin/taxPreference/active"),
           api.get("/api/v1/admin/supplierManagement/active"),
           api.get("/api/v1/admin/inventoryCategory/active"),
@@ -109,19 +167,20 @@ const AddStockMaterial = ({ invCatData }) => {
           api.get("/api/v1/admin/branch"),
           api.get("/api/v1/admin/intraTax/active"),
           api.get("/api/v1/admin/interTax/active"),
+          api.get("/api/v1/admin/client/active"),
         ]);
 
         setMetaData({
-          // unitData: unitRes?.data?.data?.filter((e) => e.isActive),
-          taxPreferenceData: taxPrefRes.data.data,
-          venderData: vendorRes.data,
-          invCatData: invCatRes.data,
-          invTypeData: invTypeRes.data.data,
-          warehouse: warehouseRes.data.data,
-          intraTaxData: intraTaxRes.data.data,
-          interTaxData: interTaxRes.data.data,
+          unitData: unitRes?.data?.data?.filter((e) => e.isActive) || [],
+          taxPreferenceData: taxPrefRes.data.data || [],
+          venderData: vendorRes.data || [],
+          invCatData: invCatRes.data || [],
+          invTypeData: invTypeRes.data.data || [],
+          warehouse: warehouseRes.data.data || [],
+          intraTaxData: intraTaxRes.data.data || [],
+          interTaxData: interTaxRes.data.data || [],
+          custData: custRes.data.data || [],
         });
-        console.log("intraTaxRes", intraTaxRes.data.data);
       } catch (error) {
         errorToast("Error loading data");
         console.error(error);
@@ -133,79 +192,98 @@ const AddStockMaterial = ({ invCatData }) => {
     fetchAll();
   }, []);
 
-  // console.log("unitData", metaData.unitData);
-  console.log("taxPreferenceData", metaData.taxPreferenceData);
-
-  const onSubmit = (values) => {
-    console.log("submit huwa");
+  useEffect(() => {
     if (id) {
-      // Update
+      setLoading(true);
       api
-        .put(`/api/v1/admin/stockMaterial/${id}`, values)
-        .then(() => {
-          successToast("Stock material updated successfully");
-          fetchStockMaterial();
-          resetForm();
+        .get(`/api/v1/admin/stockMaterial/${id}`)
+        .then((res) => {
+          const data = res.data; // Adjust if nested, e.g., res.data.data
+          setFieldValue("type", data.type || "Goods");
+          setFieldValue("material", data.material || "");
+          setFieldValue("balance", data.balance || "");
+          setFieldValue("hsc_code", data.hsc_code || "");
+          setFieldValue("sac", data.sac || "");
+          setFieldValue("tax_preference_id", data.tax_preference_id || "");
+          setFieldValue("exemption_reason", data.exemption_reason || "");
+          setFieldValue("type_sales_info", data.type_sales_info || false);
+          setFieldValue("type_purchase_info", data.type_purchase_info || false);
+          setFieldValue(
+            "sales_info_selling_price",
+            data.sales_info_selling_price || ""
+          );
+          setFieldValue(
+            "purchase_info_cost_price",
+            data.purchase_info_cost_price || ""
+          );
+          setFieldValue(
+            "purchase_info_vendor_id",
+            data.purchase_info_vendor_id || ""
+          );
+          setFieldValue(
+            "intra_state_tax_rate_id",
+            data.intra_state_tax_rate_id || ""
+          );
+          setFieldValue(
+            "inter_state_tax_rate_id",
+            data.inter_state_tax_rate_id || ""
+          );
+          setFieldValue(
+            "inventory_category_id",
+            data.inventory_category_id || ""
+          );
+          setFieldValue("inventoryType_id", data.inventoryType_id || "");
+          setFieldValue("branch_id", data.branch_id || "");
+          setFieldValue("client_id", data.client_id || "");
+          setFieldValue("serialNumbers", data.serialNumbers || []);
+          setFieldValue("direct_send", data.direct_send || "Warehouse");
+          setFieldValue("unit_id", data.unit_id || "");
+          setDirectSend(data.direct_send || "Warehouse");
         })
         .catch((err) => {
-          console.error("Error updating stock material:", err);
+          console.error("Error fetching stock material for edit:", err);
           errorToast(
-            err.response?.data?.message || "Failed to update stock material"
+            err.response?.data?.message || "Failed to fetch stock material"
           );
-          resetForm();
         })
         .finally(() => {
-          resetForm();
+          setLoading(false);
         });
-    } else {
-      console.log("onSubmit");
-      // Add
-      api
-        .post("/api/v1/admin/stockMaterial", values)
-        .then(() => {
-          successToast("Stock material added successfully");
-          fetchStockMaterial();
-        })
-        .catch((err) => {
-          console.error("Error adding stock material:", err);
-          errorToast(
-            err.response?.data?.message || "Failed to add stock material"
-          );
-        })
-        .finally(() => {});
     }
-  };
+  }, [id, setFieldValue]);
 
-  const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit,
-  });
-
-  const {
-    handleSubmit,
-    resetForm,
-    isSubmitting,
-    values,
-    handleBlur,
-    handleChange,
-    errors,
-    touched,
-  } = formik;
-
-  console.log("formik.errors", errors);
-  console.log("formik.values", formik.values);
-  console.log("values.tax_preference_id", values.tax_preference_id);
-  console.log("venderData", metaData.venderData);
   const taxPrefName = metaData?.taxPreferenceData?.find(
     (item) => item?.id === Number(values.tax_preference_id)
   );
-  console.log("taxPrefName", taxPrefName);
+
+  const directSendOptions = [
+    { id: "1", name: "Warehouse" },
+    { id: "2", name: "Customer" },
+  ];
 
   const handleSerialModalOpen = () => {
+    const count = parseInt(values.balance, 10) || 0;
+    let serials = values.serialNumbers;
+    if (serials.length !== count) {
+      serials = Array(count)
+        .fill("")
+        .map((_, i) => serials[i] || "");
+    }
+    setFieldValue("serialNumbers", serials);
     setShowSerialModal(true);
   };
 
+  const handleSerialChange = (index, value) => {
+    const updated = [...values.serialNumbers];
+    updated[index] = value;
+    setFieldValue("serialNumbers", updated);
+  };
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a spinner component
+  }
+
+  console.log("values", values);
   return (
     <Card>
       <Card.Header>
@@ -214,9 +292,8 @@ const AddStockMaterial = ({ invCatData }) => {
       <hr />
       <Card.Body className="pt-0">
         <Form onSubmit={handleSubmit}>
-          {/* row type */}
           <Row className="mb-3">
-            <Col md={12}>
+            <Col md={4}>
               <CustomRadioGroup
                 label="Type"
                 name="type"
@@ -229,21 +306,75 @@ const AddStockMaterial = ({ invCatData }) => {
                 required
               />
             </Col>
+            <Col md={4}>
+              <CustomRadioGroup
+                label="Direct Send"
+                name="direct_send"
+                options={directSendOptions}
+                value={values.direct_send}
+                onChange={(e) => {
+                  handleChange(e);
+                  setDirectSend(e.target.value);
+                }}
+                onBlur={handleBlur}
+                touched={touched.direct_send}
+                error={errors.direct_send}
+                required
+              />
+            </Col>
+            <Col md={4}>
+              {values.direct_send === "Warehouse" ? (
+                <CustomSelect
+                  label="Warehouse"
+                  name="branch_id"
+                  onChange={(e) => {
+                    handleChange(e);
+                    setFieldValue("client_id", "");
+                  }}
+                  onBlur={handleBlur}
+                  options={metaData.warehouse}
+                  placeholder="--"
+                  error={errors.branch_id}
+                  touched={touched.branch_id}
+                  required
+                  lableName="branch_name"
+                  lableKey="id"
+                  value={values.branch_id}
+                />
+              ) : (
+                <CustomSelect
+                  label="Customer"
+                  name="client_id"
+                  value={values.client_id}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setFieldValue("branch_id", "");
+                  }}
+                  onBlur={handleBlur}
+                  options={metaData.custData}
+                  placeholder="--"
+                  error={errors.client_id}
+                  touched={touched.client_id}
+                  required
+                  lableName="name"
+                  lableKey="id"
+                />
+              )}
+            </Col>
           </Row>
 
-          {/* row  inventory_category_id, inv_type_id, branch_name */}
           <Row className="mb-3">
             <Col md={4}>
               <CustomSelect
                 label="Inventory Category"
                 name="inventory_category_id"
-                value={formik.values.inventory_category_id}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={values.inventory_category_id}
+                onChange={handleChange}
+                onBlur={handleBlur}
                 options={metaData.invCatData}
                 placeholder="--"
-                error={formik.errors.inventory_category_id}
-                touched={formik.touched.inventory_category_id}
+                error={errors.inventory_category_id}
+                touched={touched.inventory_category_id}
                 required
                 lableName="category"
                 lableKey="id"
@@ -252,77 +383,43 @@ const AddStockMaterial = ({ invCatData }) => {
             <Col md={4}>
               <CustomSelect
                 label="Inventory Type"
-                name="inv_type_id"
-                value={formik.values.inv_type_id}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                name="inventoryType_id"
+                value={values.inventoryType_id}
+                onChange={handleChange}
+                onBlur={handleBlur}
                 options={metaData.invTypeData}
                 placeholder="--"
-                error={formik.errors.inv_type_id}
-                touched={formik.touched.inv_type_id}
+                error={errors.inventoryType_id}
+                touched={touched.inventoryType_id}
                 required
                 lableName="type"
                 lableKey="id"
               />
             </Col>
             <Col md={4}>
-              <CustomSelect
-                label="Warehouse"
-                name="warehouse_id"
-                value={formik.values.warehouse_id}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                options={metaData.warehouse}
-                placeholder="--"
-                error={formik.errors.warehouse_id}
-                touched={formik.touched.warehouse_id}
+              <CustomInput
+                label="Material Name"
+                name="material"
+                value={values.material}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter material name"
+                touched={touched.material}
+                errors={errors.material}
                 required
-                lableName="branch_name"
-                lableKey="id"
               />
             </Col>
           </Row>
 
-          {/* row  name, unit, hsn_code */}
           <Row className="mb-3">
-            <Col md={4}>
-              <CustomInput
-                label="Material Name"
-                name="material"
-                value={formik.values.material}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="Enter material name"
-                touched={formik.touched.material}
-                errors={formik.errors.material}
-                required={true}
-              />
-            </Col>
-
-            {/* <Col md={4}>
-              <CustomSelect
-                label="Unit"
-                name="unit_id"
-                value={values.unit_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={metaData.unitData}
-                placeholder="--"
-                error={errors.unit_id}
-                touched={touched.unit_id}
-                required
-                lableName="unit"
-                lableKey="id"
-              />
-            </Col> */}
             {values.type === "Goods" ? (
               <Col md={4}>
                 <CustomInput
                   label="HSN Code"
-                  name="hsn_code"
-                  value={formik.values.hsn_code}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
+                  name="hsc_code"
+                  value={values.hsc_code}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="Enter HSN Code"
                 />
               </Col>
@@ -338,67 +435,118 @@ const AddStockMaterial = ({ invCatData }) => {
                 />
               </Col>
             )}
-          </Row>
 
-          {/* row  tax_preference_id */}
-          <Row className="mb-3  d-flex align-items-center justify-content-center">
+            <Col md={4}>
+              <CustomSelect
+                label="Unit"
+                name="unit_id"
+                value={values.unit_id}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                options={metaData.unitData}
+                placeholder="--"
+                error={errors.unit_id}
+                touched={touched.unit_id}
+                required
+                lableName="unit"
+                lableKey="id"
+              />
+            </Col>
+
             <Col md={4}>
               <CustomSelect
                 label="Tax Preference"
                 name="tax_preference_id"
-                value={formik.values.tax_preference_id}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={values.tax_preference_id}
+                onChange={handleChange}
+                onBlur={handleBlur}
                 options={metaData.taxPreferenceData}
                 placeholder="--"
-                error={formik.errors.tax_preference_id}
-                touched={formik.touched.tax_preference_id}
+                error={errors.tax_preference_id}
+                touched={touched.tax_preference_id}
                 required
                 lableName="name"
                 lableKey="id"
               />
             </Col>
+          </Row>
+
+          <Row className="mb-3 d-flex align-items-center">
             {taxPrefName?.name.toLowerCase() === "non-taxable" && (
               <Col md={4}>
                 <CustomInput
                   label="Exemption Name"
                   name="exemption_reason"
-                  value={formik.values.exemption_reason}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
+                  value={values.exemption_reason}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="Enter Exemption Reason"
-                  touched={formik.touched.exemption_reason}
-                  errors={formik.errors.exemption_reason}
-                  required={true}
+                  touched={touched.exemption_reason}
+                  errors={errors.exemption_reason}
+                  required
                 />
               </Col>
             )}
             <Col md={4}>
-              <CustomInput
-                type="number"
-                label="Balance"
-                name="balance"
-                value={formik.values.balance}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="Enter Balance"
-                touched={formik.touched.balance}
-                errors={formik.errors.balance}
-                required={true}
-                min={0}
-              />
+              <Form.Group>
+                <Form.Label>Balance</Form.Label>
+                <Form.Control
+                  type="number"
+                  name="balance"
+                  value={values.balance}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Balance"
+                  min={0}
+                  required
+                />
+              </Form.Group>
             </Col>
             <Col className="mt-4" md={4}>
-              {values?.balance && (
+              {values.balance > 0 && (
                 <Button variant="primary" onClick={handleSerialModalOpen}>
                   + Serial Number
                 </Button>
               )}
             </Col>
+
+            <Modal
+              show={showSerialModal}
+              onHide={() => setShowSerialModal(false)}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Enter Serial Numbers</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {values.serialNumbers.map((sn, index) => (
+                  <Form.Group key={index} className="mb-2">
+                    <Form.Label>Serial Number {index + 1}</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={sn}
+                      required
+                      onChange={(e) =>
+                        handleSerialChange(index, e.target.value)
+                      }
+                    />
+                  </Form.Group>
+                ))}
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setShowSerialModal(false);
+                    // Optionally, include serial numbers in the form submission
+                  }}
+                >
+                  Save
+                </Button>
+              </Modal.Footer>
+            </Modal>
           </Row>
           <hr />
 
-          {/* row sales, purchase */}
           <Row className="mb-3">
             <Col md={6}>
               <Row className="mb-3">
@@ -416,42 +564,25 @@ const AddStockMaterial = ({ invCatData }) => {
               </Row>
               <Row>
                 <Col md={8}>
-                  {values.type_sales_info ? (
-                    <CustomInput
-                      label="Selling Price"
-                      name="sales_info_selling_price"
-                      value={formik.values.sales_info_selling_price}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="Enter Selling Price"
-                      touched={formik.touched.sales_info_selling_price}
-                      errors={formik.errors.sales_info_selling_price}
-                      required={true}
-                      nameIcon="INR"
-                      iconPosition="left"
-                    />
-                  ) : (
-                    <CustomInput
-                      label="Selling Price"
-                      name="sales_info_selling_price"
-                      value={formik.values.sales_info_selling_price}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="Enter Selling Price"
-                      touched={formik.touched.sales_info_selling_price}
-                      errors={formik.errors.sales_info_selling_price}
-                      required={true}
-                      nameIcon="INR"
-                      iconPosition="left"
-                      disabled={true}
-                      readOnly={true}
-                    />
-                  )}
+                  <CustomInput
+                    label="Selling Price"
+                    name="sales_info_selling_price"
+                    value={values.sales_info_selling_price}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder="Enter Selling Price"
+                    touched={touched.sales_info_selling_price}
+                    errors={errors.sales_info_selling_price}
+                    required
+                    nameIcon="INR"
+                    iconPosition="left"
+                    disabled={!values.type_sales_info}
+                    readOnly={!values.type_sales_info}
+                  />
                 </Col>
               </Row>
             </Col>
 
-            {/* purchase */}
             <Col md={6}>
               <Row className="mb-3">
                 <Col md={12}>
@@ -468,87 +599,54 @@ const AddStockMaterial = ({ invCatData }) => {
               </Row>
               <Row className="mb-3">
                 <Col md={12}>
-                  {values.type_purchase_info ? (
-                    <CustomInput
-                      label="Cost Price"
-                      name="purchase_info_cost_price"
-                      value={formik.values.purchase_info_cost_price}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="Enter Cost Price"
-                      touched={formik.touched.purchase_info_cost_price}
-                      errors={formik.errors.purchase_info_cost_price}
-                      required={true}
-                      nameIcon="INR"
-                      iconPosition="left"
-                    />
-                  ) : (
-                    <CustomInput
-                      label="Cost Price"
-                      name="purchase_info_cost_price"
-                      value={formik.values.purchase_info_cost_price}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="Enter Cost Price"
-                      touched={formik.touched.purchase_info_cost_price}
-                      errors={formik.errors.purchase_info_cost_price}
-                      required={true}
-                      nameIcon="INR"
-                      iconPosition="left"
-                      disabled={true}
-                      readOnly={true}
-                    />
-                  )}
+                  <CustomInput
+                    label="Cost Price"
+                    name="purchase_info_cost_price"
+                    value={values.purchase_info_cost_price}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder="Enter Cost Price"
+                    touched={touched.purchase_info_cost_price}
+                    errors={errors.purchase_info_cost_price}
+                    required
+                    nameIcon="INR"
+                    iconPosition="left"
+                    disabled={!values.type_purchase_info}
+                    readOnly={!values.type_purchase_info}
+                  />
                 </Col>
               </Row>
               <Row className="mb-3">
                 <Col md={12}>
-                  {values.type_purchase_info ? (
-                    <CustomSelect
-                      label="Preferred Vender"
-                      name="purchase_info_vendor"
-                      value={formik.values.purchase_info_vendor}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      options={metaData.venderData}
-                      placeholder="--"
-                      error={formik.errors.purchase_info_vendor}
-                      touched={formik.touched.purchase_info_vendor}
-                      lableName="name"
-                      lableKey="id"
-                    />
-                  ) : (
-                    <CustomSelect
-                      label="Preferred Vender"
-                      name="purchase_info_vendor"
-                      value={formik.values.purchase_info_vendor}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      options={metaData.venderData}
-                      placeholder="--"
-                      error={formik.errors.purchase_info_vendor}
-                      touched={formik.touched.purchase_info_vendor}
-                      lableName="name"
-                      lableKey="id"
-                      disabled={true}
-                      readOnly={true}
-                    />
-                  )}
+                  <CustomSelect
+                    label="Preferred Vendor"
+                    name="purchase_info_vendor_id"
+                    value={values.purchase_info_vendor_id}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    options={metaData.venderData}
+                    placeholder="--"
+                    error={errors.purchase_info_vendor_id}
+                    touched={touched.purchase_info_vendor_id}
+                    lableName="name"
+                    lableKey="id"
+                    disabled={!values.type_purchase_info}
+                    readOnly={!values.type_purchase_info}
+                  />
                 </Col>
               </Row>
             </Col>
           </Row>
           <hr />
 
-          {/* row intra_state_tax_rate, inter_state_tax_rate */}
           {taxPrefName?.name?.toLowerCase() !== "non-taxable" && (
             <Row className="mb-3">
-              <h6 className="mb-3">Default Text Rates</h6>
+              <h6 className="mb-3">Default Tax Rates</h6>
               <Col md={4}>
                 <CustomSelect
                   label="Intra State Tax Rate"
-                  name="intra_state_tax_rate"
-                  value={values.intra_state_tax_rate}
+                  name="intra_state_tax_rate_id"
+                  value={values.intra_state_tax_rate_id}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   options={metaData.intraTaxData}
@@ -558,12 +656,11 @@ const AddStockMaterial = ({ invCatData }) => {
                   percent="intra_per"
                 />
               </Col>
-
               <Col md={4}>
                 <CustomSelect
                   label="Inter State Tax Rate"
-                  name="inter_state_tax_rate"
-                  value={values.inter_state_tax_rate}
+                  name="inter_state_tax_rate_id"
+                  value={values.inter_state_tax_rate_id}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   options={metaData.interTaxData}
@@ -575,14 +672,13 @@ const AddStockMaterial = ({ invCatData }) => {
               </Col>
             </Row>
           )}
-        </Form>
 
-        {/* Save */}
-        <div className="mt-4 text-end">
-          <Button type="submit" variant="primary" disabled={isSubmitting}>
-            {isSubmitting ? "Loading..." : "Save"}
-          </Button>
-        </div>
+          <div className="mt-4 text-end">
+            <Button type="submit" variant="primary">
+              Save
+            </Button>
+          </div>
+        </Form>
       </Card.Body>
     </Card>
   );

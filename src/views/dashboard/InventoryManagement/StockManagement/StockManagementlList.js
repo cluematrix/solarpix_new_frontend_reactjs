@@ -468,8 +468,8 @@ const StockManagementList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Credit</th>
-                      <th>Debit</th>
+                      {/* <th>Credit</th> */}
+                      {/* <th>Debit</th> */}
                       <th>Balance</th>
                       <th>Stock Material</th>
                       <th>Status</th>
@@ -487,8 +487,8 @@ const StockManagementList = () => {
                       materialPagList?.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
-                          <td>{item.Credit || "--"}</td>
-                          <td>{item.Debit || "--"}</td>
+                          {/* <td>{item.Credit || "--"}</td> */}
+                          {/* <td>{item.Debit || "--"}</td> */}
                           <td>{item.material.balance}</td>
                           <td>{item.material.material}</td>
                           <td>

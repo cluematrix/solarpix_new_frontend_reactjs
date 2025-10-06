@@ -111,6 +111,7 @@ import SettingsSidebarWithTabs from "../views/dashboard/SettingPage/SettingsSide
 import UpdateStockMaterial from "../views/dashboard/InventoryManagement/StockMaterial/addStockMaterial";
 import InventoryTypeList from "../views/dashboard/InventoryManagement/InventoryType/InventoryTypeList";
 import AddSupplier from "../views/dashboard/InventoryManagement/SupplierManagement/AddSupplier";
+import SerialNumberTable from "../views/dashboard/InventoryManagement/StockMaterial/SerialNumberTable";
 
 // employee profile 01 Sep
 
@@ -276,6 +277,8 @@ export const DefaultRouter = [
         path: "update-stock-material-list/:id", //30 Sep by sufyan
         element: <UpdateStockMaterial />,
       },
+
+      { path: "/SerialNumberTable/:id", element: <SerialNumberTable /> },
 
       {
         path: "supplier-management-list",

@@ -22,7 +22,9 @@ import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-
+import ViewModal from "./ViewModal"; // Assuming ViewModal.jsx is in the same directory
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 const StockMaterialList = () => {
   const [userlist, setUserlist] = useState([]);
   const [invCatData, setInvCatData] = useState([]);
@@ -34,6 +36,8 @@ const StockMaterialList = () => {
   const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+  const [showView, setShowView] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const navigate = useNavigate();
 
   // Pagination
@@ -234,10 +238,10 @@ const StockMaterialList = () => {
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Material Name</th>
-                      <th>Purchase Rate</th>
-                      <th>Rate</th>
-                      <th>HSN/SAC</th>
-                      <th>Usage Unit</th>
+                      {/* <th>Purchase Rate</th> */}
+                      {/* <th>Rate</th> */}
+                      {/* <th>HSN/SAC</th> */}
+                      {/* <th>Usage Unit</th> */}
                       {/* <th>Inventory Category</th> */}
                       {/* <th>Balance</th> */}
                       <th>Status</th>
@@ -279,7 +283,17 @@ const StockMaterialList = () => {
                                 handleToggleActive(item.id, item.isActive)
                               }
                             />
-
+                            <VisibilityIcon
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setShowView(true);
+                              }}
+                              color="primary"
+                              style={{
+                                cursor: "pointer",
+                                marginLeft: "2px",
+                              }}
+                            />
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 onClick={() => handleEdit(item.id)}
@@ -299,6 +313,15 @@ const StockMaterialList = () => {
                                 style={{ cursor: "pointer" }}
                               />
                             )}
+
+                            <FormatListNumberedIcon
+                              variant="outline-secondary"
+                              size="sm"
+                              style={{ marginLeft: "5px" }}
+                              onClick={() =>
+                                navigate(`/SerialNumberTable/${item.id}`)
+                              }
+                            />
                           </td>
                         </tr>
                       ))
@@ -345,7 +368,6 @@ const StockMaterialList = () => {
           </Card>
         </Col>
       </Row>
-
       {/* Add/Edit Modal */}
       {/* <AddEditModal
         show={showAddEdit}
@@ -357,7 +379,6 @@ const StockMaterialList = () => {
         formik={formik}
         invCatData={invCatData}
       /> */}
-
       {/* Delete Confirmation Modal */}
       <DeleteModal
         show={showDelete}
@@ -374,6 +395,12 @@ const StockMaterialList = () => {
             : ""
         }
         loading={loadingBtn}
+      />
+
+      <ViewModal
+        show={showView}
+        handleClose={() => setShowView(false)}
+        item={selectedItem}
       />
     </>
   );

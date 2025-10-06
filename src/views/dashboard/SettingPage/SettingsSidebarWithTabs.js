@@ -33,6 +33,8 @@ import TDSList from "../Tax/tds/TDSList";
 import BranchList from "../Branch/branches/BranchList";
 import DefaultHoliday from "../EmployeeManagment/DefaultHoliday/DefaultHoliday";
 import ReasonList from "../InventoryManagement/Reason/ReasonList";
+import InterTaxList from "../Tax/InterTax/InterTaxList";
+import IntraTaxList from "../Tax/IntraTax/IntraTaxList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -237,6 +239,16 @@ export default function SettingsSidebarWithTabs() {
                 <TDSList />
               </>
             )}
+            {activeSidebar === "Tax" && activeTab === 3 && (
+              <>
+                <InterTaxList />
+              </>
+            )}
+            {activeSidebar === "Tax" && activeTab === 4 && (
+              <>
+                <IntraTaxList />
+              </>
+            )}
 
             {activeSidebar === "Branch" && activeTab === 0 && (
               <>
@@ -250,7 +262,7 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
-                {activeSidebar === "Inventory" && activeTab === 0 && (
+            {activeSidebar === "Inventory" && activeTab === 0 && (
               <>
                 <ReasonList />
               </>
