@@ -77,7 +77,7 @@ const SerialNumberTable = () => {
                 <>
                   <div className="table-responsive">
                     <Table hover bordered>
-                      <thead className="table-light">
+                      <thead className="">
                         <tr>
                           <th>Sr. No.</th>
                           <th>Serial Number</th>
