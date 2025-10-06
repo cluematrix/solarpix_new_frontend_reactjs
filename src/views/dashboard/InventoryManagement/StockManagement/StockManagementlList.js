@@ -34,7 +34,9 @@ const initialValues = {
   stock_particular_id: "",
   supplier_management_id: "",
   brand_id: "",
+  client_id: "",
   select_type: "Debit",
+  serialNumbers: [],
 };
 
 const StockManagementList = () => {
@@ -47,22 +49,19 @@ const StockManagementList = () => {
   const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-
-  // Pagination
-  const indexOfLast = currentPage * rowsPerPage;
-  const indexOfFirst = indexOfLast - rowsPerPage;
-  const currentData = userlist.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(userlist.length / rowsPerPage);
+  const [showSerialModal, setShowSerialModal] = useState(false);
 
   // View Modal
   const [showView, setShowView] = useState(false);
   const [viewData, setViewData] = useState(null);
+  const [materialPagList, setMaterialPagList] = useState([]);
 
   const [loading, setLoading] = useState(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [metaData, setMetaData] = useState({
     stockMaterial: [],
@@ -196,7 +195,7 @@ const StockManagementList = () => {
           api.get("/api/v1/admin/stockMaterial"),
           api.get("/api/v1/admin/stockParticular"),
           api.get("/api/v1/admin/supplierManagement"),
-          api.get("/api/v1/admin/brand"),
+          api.get("/api/v1/admin/brand/active"),
           api.get("/api/v1/admin/client"),
         ]);
 
@@ -206,9 +205,10 @@ const StockManagementList = () => {
           supplierManagement: supplierManagementRes.data.filter(
             (s) => s.isActive
           ),
-          brand: brandRes?.data?.data?.filter((t) => t.isActive),
+          brand: brandRes?.data,
           customer: customerRes.data.data.filter((e) => e.isActive),
         });
+        console.log("brandRes", brandRes.data);
       } catch (error) {
         errorToast("Error loading data");
         console.error(error);
@@ -219,6 +219,41 @@ const StockManagementList = () => {
 
     fetchAll();
   }, []);
+
+  const refetchStockMaterial = async () => {
+    const res = await api.get("/api/v1/admin/stockMaterial");
+    setMetaData((prev) => ({
+      ...prev,
+      stockMaterial: res.data.filter((d) => d.isActive),
+    }));
+  };
+
+  // Fetch
+  const fetchStockMaterialPag = async (page = 1) => {
+    try {
+      setLoading(true);
+      const res = await api.get(
+        `/api/v1/admin/stockManagement/pagination?page=${page}&limit=${itemsPerPage}`
+      );
+
+      setMaterialPagList(res.data?.data || []);
+      //  Extract pagination info properly
+      const pagination = res.data?.pagination;
+
+      if (pagination) {
+        setTotalPages(pagination.totalPages || 1);
+      }
+    } catch (err) {
+      console.error("Error fetching leads:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //  Fetch again when page changes
+  useEffect(() => {
+    fetchStockMaterialPag(currentPage);
+  }, [currentPage]);
 
   // Toggle Active/Inactive with optimistic update
   const handleToggleActive = (id, currentStatus) => {
@@ -269,6 +304,20 @@ const StockManagementList = () => {
           setLoadingBtn(false);
         });
     } else {
+      if (values.Debit) {
+        delete values.Credit;
+        delete values.balance;
+      }
+      if (values.Credit) {
+        delete values.Debit;
+        delete values.balance;
+      }
+      if (values.supplier_management_id) {
+        delete values.client_id;
+      }
+      if (values.client_id) {
+        delete values.supplier_management_id;
+      }
       // Add
       setLoadingBtn(true);
       api
@@ -276,6 +325,7 @@ const StockManagementList = () => {
         .then(() => {
           successToast("Stock management added successfully");
           fetchStockManagement();
+          refetchStockMaterial();
           handleResetForm();
         })
         .catch((err) => {
@@ -296,7 +346,7 @@ const StockManagementList = () => {
     onSubmit,
   });
 
-  const { handleSubmit, resetForm } = formik;
+  const { handleSubmit, resetForm, values, setFieldValue } = formik;
 
   // View
   const handleView = (notice) => {
@@ -319,6 +369,7 @@ const StockManagementList = () => {
       brand_id: stock_management.brand_id,
       client_id: stock_management.client_id,
       select_type: "Debit",
+      serialNumbers: stock_management.serialNumbers,
     });
     setEditId(stock_management.id || stock_management._id);
     setShowAddEdit(true);
@@ -373,6 +424,24 @@ const StockManagementList = () => {
 
   console.log("stockMaterial", metaData.stockMaterial);
 
+  const handleSerialModalOpen = () => {
+    const count = parseInt(values.Credit, 10) || 0;
+    let serials = values.serialNumbers;
+    if (serials.length !== count) {
+      serials = Array(count)
+        .fill("")
+        .map((_, i) => serials[i] || "");
+    }
+    setFieldValue("serialNumbers", serials);
+    setShowSerialModal(true);
+  };
+
+  const handleSerialChange = (index, value) => {
+    const updated = [...values.serialNumbers];
+    updated[index] = value;
+    setFieldValue("serialNumbers", updated);
+  };
+
   return (
     <>
       <Row className="mt-4">
@@ -388,7 +457,7 @@ const StockManagementList = () => {
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + New Stock Management
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -399,8 +468,8 @@ const StockManagementList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      {/* <th>Credit</th> */}
-                      {/* <th>Debit</th> */}
+                      <th>Credit</th>
+                      <th>Debit</th>
                       <th>Balance</th>
                       <th>Stock Material</th>
                       <th>Status</th>
@@ -408,18 +477,18 @@ const StockManagementList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {userlist.length === 0 ? (
+                    {materialPagList?.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="text-center">
-                          No Stock Management Available
+                          No Stock Available
                         </td>
                       </tr>
                     ) : (
-                      currentData.map((item, idx) => (
+                      materialPagList?.map((item, idx) => (
                         <tr key={item.id || item._id}>
-                          <td>{idx + 1}</td>
-                          {/* <td>{item.Credit}</td> */}
-                          {/* <td>{item.Debit}</td> */}
+                          <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                          <td>{item.Credit || "--"}</td>
+                          <td>{item.Debit || "--"}</td>
                           <td>{item.material.balance}</td>
                           <td>{item.material.material}</td>
                           <td>
@@ -479,12 +548,6 @@ const StockManagementList = () => {
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
                   />
-                  <Pagination.Prev
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                  />
                   {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
@@ -494,12 +557,6 @@ const StockManagementList = () => {
                       {i + 1}
                     </Pagination.Item>
                   ))}
-                  <Pagination.Next
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                  />
                   <Pagination.Last
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
@@ -527,6 +584,10 @@ const StockManagementList = () => {
         supplierManagement={metaData.supplierManagement}
         brand={metaData.brand}
         customer={metaData.customer}
+        handleSerialModalOpen={handleSerialModalOpen}
+        showSerialModal={showSerialModal}
+        setShowSerialModal={setShowSerialModal}
+        handleSerialChange={handleSerialChange}
       />
 
       {/* Delete Confirmation Modal */}

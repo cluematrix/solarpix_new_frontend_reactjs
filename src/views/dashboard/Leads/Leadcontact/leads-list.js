@@ -39,7 +39,7 @@ const LeadsList = () => {
 
   const [permissions, setPermissions] = useState(null);
 
-  // 🔹 Pagination state
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // same as backend limit
   const [totalPages, setTotalPages] = useState(1);
@@ -307,10 +307,9 @@ const LeadsList = () => {
     setDeleteIndex(null);
   };
 
-  // 🔹 Pagination Logic
+  // Pagination Logic
   const indexOfLastItem = currentPage * totalPages;
   const indexOfFirstItem = indexOfLastItem - totalPages;
-  // const totalPages = Math.ceil(leadList.length / itemsPerPage);
 
   // Loader while checking permissions
   if (loading && !permissions) {
