@@ -84,7 +84,7 @@ const CustomInput = ({
       </InputGroup>
 
       {touched && errors && (
-        <div className="invalid-feedback" style={{ fontSize: "11px" }}>
+        <div className="text-danger" style={{ fontSize: "11px" }}>
           {errors}
         </div>
       )}

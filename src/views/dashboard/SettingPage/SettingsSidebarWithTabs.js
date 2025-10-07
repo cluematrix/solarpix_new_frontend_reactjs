@@ -35,6 +35,7 @@ import DefaultHoliday from "../EmployeeManagment/DefaultHoliday/DefaultHoliday";
 import ReasonList from "../InventoryManagement/Reason/ReasonList";
 import InterTaxList from "../Tax/InterTax/InterTaxList";
 import IntraTaxList from "../Tax/IntraTax/IntraTaxList";
+import CustomFieldList from "../Customer/CustomField/CustomFieldList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -169,6 +170,11 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Customer" && activeTab === 0 && (
               <>
                 <ClientCategory />
+              </>
+            )}
+            {activeSidebar === "Customer" && activeTab === 1 && (
+              <>
+                <CustomFieldList />
               </>
             )}
 
