@@ -112,6 +112,9 @@ import UpdateStockMaterial from "../views/dashboard/InventoryManagement/StockMat
 import InventoryTypeList from "../views/dashboard/InventoryManagement/InventoryType/InventoryTypeList";
 import AddSupplier from "../views/dashboard/InventoryManagement/SupplierManagement/AddSupplier";
 import SerialNumberTable from "../views/dashboard/InventoryManagement/StockMaterial/SerialNumberTable";
+import BranchStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/BranchStockList";
+import CustomerManagementList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerManagmentList";
+import StockNameList from "../views/dashboard/InventoryManagement/StockName/StockNameList";
 
 // employee profile 01 Sep
 
@@ -265,6 +268,11 @@ export const DefaultRouter = [
         path: "inventory-type-list",
         element: <InventoryTypeList />,
       },
+
+          {
+        path: "StockNameList",
+        element: <StockNameList />,
+      },
       {
         path: "stock-material-list",
         element: <StockMaterialList />,
@@ -280,6 +288,17 @@ export const DefaultRouter = [
 
       { path: "/SerialNumberTable/:id", element: <SerialNumberTable /> },
 
+
+       {
+        path: "BranchStockList",
+        element: <BranchStockList />,
+      },
+
+      
+       {
+        path: "CustomerManagementList",
+        element: <CustomerManagementList />,
+      },
       {
         path: "supplier-management-list",
         element: <SupplierManagementList />,

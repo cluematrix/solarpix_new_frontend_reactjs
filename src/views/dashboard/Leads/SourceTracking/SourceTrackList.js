@@ -188,14 +188,14 @@ const SourceTrackList = () => {
                   <tr>
                     <th>Lead No</th>
                     <th>Name</th>
-                    <th>Email</th>
-                    <th>Contact</th>
+                    {/* <th>Email</th> */}
+                    {/* <th>Contact</th> */}
                     <th>Lead Source</th>
-                    <th>Customer Type</th>
+                    {/* <th>Customer Type</th> */}
                     <th>Priority</th>
                     <th>Status</th>
-                    <th>Last Call</th>
-                    <th>Added By</th>
+                    {/* <th>Last Call</th> */}
+                    {/* <th>Added By</th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -204,10 +204,10 @@ const SourceTrackList = () => {
                       <tr key={lead.id}>
                         <td>{lead.lead_number}</td>
                         <td>{lead.name}</td>
-                        <td>{lead.email}</td>
-                        <td>{lead.contact}</td>
+                        {/* <td>{lead.email}</td> */}
+                        {/* <td>{lead.contact}</td> */}
                         <td>{lead.leadSource?.lead_source || "-"}</td>
-                        <td>{lead.customer_type}</td>
+                        {/* <td>{lead.customer_type}</td> */}
 
                         {/* Priority with background */}
                         <td>
@@ -234,21 +234,21 @@ const SourceTrackList = () => {
                               borderRadius: "6px",
                               display: "inline-block",
                               fontWeight: "500",
-                              width: "80px",
+                              width: "130px",
                             }}
                           >
                             {lead.status || "-"}
                           </span>
                         </td>
 
-                        <td>
+                        {/* <td>
                           {lead.last_call
                             ? new Date(lead.last_call).toLocaleDateString(
                                 "en-GB"
                               )
                             : "-"}
-                        </td>
-                        <td>{lead.addedBy?.name || "-"}</td>
+                        </td> */}
+                        {/* <td>{lead.addedBy?.name || "-"}</td> */}
                       </tr>
                     ))
                   ) : (

@@ -21,7 +21,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import { BsAwardFill } from "react-icons/bs";
 import AddCardIcon from "@mui/icons-material/AddCard";
-import { MdInventory } from "react-icons/md";
+import { MdInventory, MdPeopleAlt, MdStore, MdWarehouse } from "react-icons/md";
 // install: npm i react-icons
 import { FiBox } from "react-icons/fi"; // Inventory Categories
 import { TfiPackage } from "react-icons/tfi";
@@ -31,7 +31,7 @@ import { BiCalendarCheck } from "react-icons/bi"; // Payment Terms (Master)
 import { ImListNumbered } from "react-icons/im"; // Stock Particulars (Master)
 import { MdReceiptLong } from "react-icons/md"; // Stock Management (Transactions / Ledger)
 import { FaTrademark } from "react-icons/fa"; // Brand (Master)
-
+import WarehouseIcon from "@mui/icons-material/Warehouse";
 import SettingsPhoneIcon from "@mui/icons-material/SettingsPhone";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
@@ -657,6 +657,26 @@ const VerticalNav = memo((props) => {
                   </span>
                 </Link>
               </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/StockNameList" ? "active" : ""
+                  } nav-link`}
+                  to="/StockNameList"
+                >
+                  <i className="icon">
+                    <TfiPackage fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <TfiPackage fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Stock Name
+                  </span>
+                </Link>
+              </li>
               <li className="nav-item">
                 <Link
                   className={`${
@@ -773,7 +793,7 @@ const VerticalNav = memo((props) => {
                   </span>
                 </Link>
               </li>
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/WarehouseList" ? "active" : ""
@@ -789,10 +809,129 @@ const VerticalNav = memo((props) => {
                   </i>
                   <span className="item-name sidebar-font-size">Warehouse</span>
                 </Link>
+              </li> */}
+
+              {/* <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/BranchStockList" ? "active" : ""
+                  } nav-link`}
+                  to="/BranchStockList"
+                >
+                  <i className="icon">
+                    <WarehouseIcon fontSize="" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <WarehouseIcon fontSize="" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Warehouse Management
+                  </span>
+                </Link>
+              </li> */}
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* warehouse management */}
+        {/* created by sufyan on 06/10/25 */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-warehouse"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-warehouse"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <MdReceiptLong fontSize="medium" />
+            </i>
+            <span className="item-name sidebar-font-size">
+              Warehouse Management
+            </span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+
+          <Accordion.Collapse eventKey="sidebar-warehouse">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/BranchStockList" ? "active" : ""
+                  } nav-link`}
+                  to="/BranchStockList"
+                >
+                  <i className="icon">
+                    <MdWarehouse fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <MdWarehouse fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Warehouse</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/CustomerManagementList"
+                      ? "active"
+                      : ""
+                  } nav-link`}
+                  to="/CustomerManagementList"
+                >
+                  <i className="icon">
+                    <MdPeopleAlt fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <MdPeopleAlt fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Customer</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/store-list" ? "active" : ""
+                  } nav-link`}
+                  to="/store-list"
+                >
+                  <i className="icon">
+                    <MdStore fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <MdStore fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Store Room
+                  </span>
+                </Link>
               </li>
             </ul>
           </Accordion.Collapse>
         </Accordion.Item>
+
         {/* Employee Manage */}
         <Accordion.Item
           as="li"

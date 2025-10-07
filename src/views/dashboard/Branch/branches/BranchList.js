@@ -11,9 +11,16 @@ import { useLocation } from "react-router";
 
 const BranchList = () => {
   const [branchList, setBranchList] = useState([]);
-  const [branchName, setBranchName] = useState("");
-  const [editId, setEditId] = useState(null);
+  const [formData, setFormData] = useState({
+    branch_name: "",
+    address: "",
+    pin_code: "",
+    city: "",
+    state: "",
+    country: "",
+  });
 
+  const [editId, setEditId] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
@@ -31,37 +38,27 @@ const BranchList = () => {
   const currentData = branchList.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(branchList.length / rowsPerPage);
 
-  // 🔑 Permission Check
+  // Fetch permissions
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-
-      let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
-
+      let data = Array.isArray(res.data) ? res.data : res.data.data || [];
       const roleId = String(sessionStorage.getItem("roleId"));
-
-      const matchedPermission = data.find(
+      const matched = data.find(
         (perm) =>
           String(perm.role_id) === roleId && perm.display_name === "Branch List"
       );
 
-      if (matchedPermission) {
+      if (matched) {
         setPermissions({
-          view: matchedPermission.view === true || matchedPermission.view === 1,
-          add: matchedPermission.add === true || matchedPermission.add === 1,
-          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
-          del: matchedPermission.del === true || matchedPermission.del === 1,
+          view: matched.view === true || matched.view === 1,
+          add: matched.add === true || matched.add === 1,
+          edit: matched.edit === true || matched.edit === 1,
+          del: matched.del === true || matched.del === 1,
         });
-      } else {
-        setPermissions(null);
-      }
+      } else setPermissions(null);
     } catch (err) {
-      console.error("Error fetching roles:", err);
+      console.error("Error fetching permissions:", err);
       setPermissions(null);
     } finally {
       setLoading(false);
@@ -73,18 +70,17 @@ const BranchList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch Branches
+  // Fetch branches and normalize isActive
   const fetchBranches = () => {
     api
       .get("/api/v1/admin/branch")
       .then((res) => {
-        if (Array.isArray(res.data)) {
-          setBranchList(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setBranchList(res.data.data);
-        } else {
-          setBranchList([]);
-        }
+        let data = Array.isArray(res.data) ? res.data : res.data.data || [];
+        data = data.map((b) => ({
+          ...b,
+          isActive: b.isActive === 1 || b.isActive === true,
+        }));
+        setBranchList(data);
       })
       .catch((err) => {
         console.error("Error fetching branches:", err);
@@ -97,72 +93,79 @@ const BranchList = () => {
   }, []);
 
   // Toggle Active/Inactive
-  const handleToggleActive = (id, currentStatus) => {
-    const newStatus = currentStatus === 1 ? 0 : 1;
+  const handleToggleActive = async (id) => {
+    const branch = branchList.find((b) => b.id === id);
+    if (!branch) return;
 
+    const newStatus = !branch.isActive;
+
+    // Optimistic update
     setBranchList((prev) =>
-      prev.map((branch) =>
-        branch.id === id ? { ...branch, isActive: newStatus } : branch
-      )
+      prev.map((b) => (b.id === id ? { ...b, isActive: newStatus } : b))
     );
 
-    api
-      .put(`/api/v1/admin/branch/${id}`, { isActive: newStatus })
-      .then(() => {
-        toast.success("Status updated successfully");
-      })
-      .catch((err) => {
-        console.error("Update failed:", err);
-        toast.error(err.response?.data?.message || "Failed to update status");
-        setBranchList((prev) =>
-          prev.map((branch) =>
-            branch.id === id ? { ...branch, isActive: currentStatus } : branch
-          )
-        );
-      });
+    const payload = {
+      ...branch,
+      isActive: newStatus,
+    };
+
+    try {
+      await api.put(`/api/v1/admin/branch/${id}`, payload);
+      toast.success("Status updated successfully");
+    } catch (err) {
+      console.error("Update failed:", err);
+      toast.error("Failed to update status");
+      // Revert on error
+      setBranchList((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, isActive: branch.isActive } : b))
+      );
+    }
   };
 
-  // Add / Update Branch
+  // Add or Update branch
   const handleAddOrUpdate = () => {
-    if (!branchName.trim()) {
+    if (!formData.branch_name.trim()) {
       toast.warning("Branch Name is required");
       return;
     }
 
-    if (editId) {
-      api
-        .put(`/api/v1/admin/branch/${editId}`, {
-          branch_name: branchName,
-        })
-        .then(() => {
-          toast.success("Branch updated successfully");
-          fetchBranches();
-          resetForm();
-        })
-        .catch((err) => {
-          console.error("Error updating branch:", err);
-          toast.error(err.response?.data?.message || "Failed to update branch");
-        });
-    } else {
-      api
-        .post("/api/v1/admin/branch", {
-          branch_name: branchName,
-        })
-        .then(() => {
-          toast.success("Branch added successfully");
-          fetchBranches();
-          resetForm();
-        })
-        .catch((err) => {
-          console.error("Error adding branch:", err);
-          toast.error(err.response?.data?.message || "Failed to add branch");
-        });
-    }
+    const payload = {
+      branch_name: formData.branch_name,
+      address: formData.address || null,
+      pin_code: formData.pin_code || null,
+      city: formData.city || null,
+      state: formData.state || null,
+      country: formData.country || null,
+    };
+
+    const request = editId
+      ? api.put(`/api/v1/admin/branch/${editId}`, payload)
+      : api.post("/api/v1/admin/branch", payload);
+
+    request
+      .then(() => {
+        toast.success(
+          editId ? "Branch updated successfully" : "Branch added successfully"
+        );
+        fetchBranches();
+        resetForm();
+      })
+      .catch((err) => {
+        console.error("Branch save error:", err);
+        toast.error("Failed to save branch");
+      });
   };
 
   const handleEdit = (index) => {
     const branch = branchList[index];
-    setBranchName(branch.branch_name);
+    setFormData({
+      branch_name: branch.branch_name || "",
+      address: branch.address || "",
+      pin_code: branch.pin_code || "",
+      city: branch.city || "",
+      state: branch.state || "",
+      country: branch.country || "",
+    });
     setEditId(branch.id);
     setShowAddEdit(true);
   };
@@ -177,26 +180,32 @@ const BranchList = () => {
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting branch:", err);
-        toast.error(err.response?.data?.message || "Failed to delete branch");
+        console.error("Delete error:", err);
+        toast.error("Failed to delete branch");
       });
   };
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setBranchName("");
+    setFormData({
+      branch_name: "",
+      address: "",
+      pin_code: "",
+      city: "",
+      state: "",
+      country: "",
+    });
     setEditId(null);
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="loader-div">
-        <Spinner animation="border" className="spinner" />
+        <Spinner animation="border" />
       </div>
     );
-  }
 
-  if (!permissions?.view) {
+  if (!permissions?.view)
     return (
       <div
         className="d-flex justify-content-center align-items-center"
@@ -205,7 +214,6 @@ const BranchList = () => {
         <h4>You don’t have permission to view this page.</h4>
       </div>
     );
-  }
 
   return (
     <>
@@ -226,11 +234,14 @@ const BranchList = () => {
 
             <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
-                <Table hover responsive className="table">
+                <Table hover responsive>
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Branch Name</th>
+                      <th>City</th>
+                      <th>State</th>
+                      <th>Country</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -238,7 +249,7 @@ const BranchList = () => {
                   <tbody>
                     {branchList.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center">
+                        <td colSpan="7" className="text-center">
                           No branches available
                         </td>
                       </tr>
@@ -247,15 +258,16 @@ const BranchList = () => {
                         <tr key={item.id}>
                           <td>{idx + 1}</td>
                           <td>{item.branch_name}</td>
+                          <td>{item.city || "-"}</td>
+                          <td>{item.state || "-"}</td>
+                          <td>{item.country || "-"}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
-                              checked={item.isActive === 1}
-                              onChange={() =>
-                                handleToggleActive(item.id, item.isActive)
-                              }
+                              checked={item.isActive}
+                              onChange={() => handleToggleActive(item.id)}
                               className="me-3"
                             />
                             {permissions.edit && (
@@ -284,39 +296,6 @@ const BranchList = () => {
                   </tbody>
                 </Table>
               </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="d-flex justify-content-end mt-3 me-3">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                  >
-                    Previous
-                  </Button>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={currentPage === i + 1 ? "primary" : "light"}
-                      size="sm"
-                      className="mx-1"
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </Button>
-                  ))}
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => p + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
-              )}
             </Card.Body>
           </Card>
         </Col>
@@ -326,8 +305,8 @@ const BranchList = () => {
       <AddEditModal
         show={showAddEdit}
         handleClose={resetForm}
-        branchName={branchName}
-        setBranchName={setBranchName}
+        formData={formData}
+        setFormData={setFormData}
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Branch" : "Add New Branch"}
         buttonLabel={editId ? "Update" : "Save"}
