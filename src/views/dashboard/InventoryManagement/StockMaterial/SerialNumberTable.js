@@ -58,8 +58,7 @@ const SerialNumberTable = () => {
           <Card>
             <Card.Header className="d-flex justify-content-between align-items-center">
               <h5 className="fw-light mb-0">
-                Serial Numbers for{" "}
-                <span className="text-primary">{materialName || "..."}</span>
+                <span>{materialName || "..."}</span>
               </h5>
               <Button variant="primary" onClick={() => navigate(-1)}>
                 ← Back
@@ -76,12 +75,12 @@ const SerialNumberTable = () => {
               ) : (
                 <>
                   <div className="table-responsive">
-                    <Table hover bordered>
+                    <Table hover>
                       <thead className="">
                         <tr>
                           <th>Sr. No.</th>
                           <th>Serial Number</th>
-                          <th>Status</th>
+                          {/* <th>Status</th> */}
                           <th>Created At</th>
                         </tr>
                       </thead>
@@ -90,7 +89,7 @@ const SerialNumberTable = () => {
                           <tr key={item.id}>
                             <td>{(page - 1) * 10 + index + 1}</td>
                             <td>{item.serialNumber}</td>
-                            <td>
+                            {/* <td>
                               <span
                                 className={`badge ${
                                   item.isActive ? "bg-success" : "bg-danger"
@@ -98,7 +97,7 @@ const SerialNumberTable = () => {
                               >
                                 {item.isActive ? "Active" : "Inactive"}
                               </span>
-                            </td>
+                            </td> */}
                             <td>
                               {new Date(item.created_at).toLocaleDateString(
                                 "en-GB"

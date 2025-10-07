@@ -12,18 +12,20 @@ import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import { typeOfMaterial } from "../../../../mockData";
 import CustomCheckbox from "../../../../components/Form/CustomCheckbox";
 
-const AddStockMaterial = () => {
-  const [stockNames, setStockNames] = useState([]);
-  const [brandNames, setBrandNames] = useState([]);
+const AddStockMaterial = ({ invCatData }) => {
+  const [materialList, setMaterialList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showSerialModal, setShowSerialModal] = useState(false);
   const { id } = useParams();
   const [directSend, setDirectSend] = useState("Warehouse");
+  const [customerData, setCustomerData] = useState([]);
   const navigate = useNavigate();
   const [metaData, setMetaData] = useState({
     unitData: [],
     taxPreferenceData: [],
     venderData: [],
+    invCatData: [],
+    invTypeData: [],
     warehouse: [],
     intraTaxData: [],
     interTaxData: [],
@@ -32,8 +34,6 @@ const AddStockMaterial = () => {
 
   const initialValues = {
     type: "Goods",
-    stock_name_id: "",
-    brand_id: "",
     material: "",
     balance: "",
     hsc_code: "",
@@ -47,6 +47,8 @@ const AddStockMaterial = () => {
     purchase_info_vendor_id: "",
     intra_state_tax_rate_id: "",
     inter_state_tax_rate_id: "",
+    inventory_category_id: "",
+    inventoryType_id: "",
     branch_id: "",
     client_id: "",
     serialNumbers: [],
@@ -55,8 +57,7 @@ const AddStockMaterial = () => {
   };
 
   const validationSchema = Yup.object().shape({
-    stock_name_id: Yup.string().required("Stock name is required"),
-    brand_id: Yup.string().required("Brand is required"),
+    material: Yup.string().required("Material name is required"),
     type: Yup.string().required("Type is required"),
     tax_preference_id: Yup.string().required("Tax preference is required"),
     sales_info_selling_price: Yup.string().required(
@@ -76,23 +77,15 @@ const AddStockMaterial = () => {
     initialValues,
     validationSchema,
     onSubmit: (values) => {
-      const selectedStock = stockNames.find(
-        (stock) => stock.id === Number(values.stock_name_id)
-      );
-      const submissionValues = {
-        ...values,
-        material: selectedStock ? selectedStock.name : "",
-      };
-
-      if (submissionValues.branch_id) {
-        delete submissionValues.client_id;
-      } else if (submissionValues.client_id) {
-        delete submissionValues.branch_id;
+      if (values.branch_id) {
+        delete values.client_id;
+      } else if (values.client_id) {
+        delete values.branch_id;
       }
-
+      console.log("onsubmitvalue", values);
       if (id) {
         api
-          .put(`/api/v1/admin/stockMaterial/${id}`, submissionValues)
+          .put(`/api/v1/admin/stockMaterial/${id}`, values)
           .then(() => {
             successToast("Stock material updated successfully");
             navigate("/stock-material-list");
@@ -105,7 +98,7 @@ const AddStockMaterial = () => {
           });
       } else {
         api
-          .post("/api/v1/admin/stockMaterial", submissionValues)
+          .post("/api/v1/admin/stockMaterial", values)
           .then(() => {
             successToast("Stock material added successfully");
             navigate("/stock-material-list");
@@ -122,6 +115,7 @@ const AddStockMaterial = () => {
 
   const {
     handleSubmit,
+    isSubmitting,
     values,
     handleBlur,
     handleChange,
@@ -130,40 +124,21 @@ const AddStockMaterial = () => {
     setFieldValue,
   } = formik;
 
-  const fetchStockNames = () => {
+  const fetchStockMaterial = () => {
     api
-      .get("/api/v1/admin/stockName/active")
+      .get("/api/v1/admin/stockMaterial")
       .then((res) => {
-        if (Array.isArray(res.data.data)) {
-          setStockNames(res.data.data);
+        if (Array.isArray(res.data)) {
+          setMaterialList(res.data);
+        } else if (Array.isArray(res.data.data)) {
+          setMaterialList(res.data.data);
         } else {
-          setStockNames([]);
-          console.warn("Stock names API returned non-array data:", res.data);
+          setMaterialList([]);
         }
       })
       .catch((err) => {
-        console.error("Error fetching stock names:", err);
-        setStockNames([]);
-      });
-  };
-
-  const fetchBrand = () => {
-    api
-      .get("/api/v1/admin/brand/active")
-      .then((res) => {
-        // Handle different possible API response structures
-        const brandData = res.data.data || res.data || [];
-        if (Array.isArray(brandData)) {
-          setBrandNames(brandData);
-        } else {
-          setBrandNames([]);
-          console.warn("Brand API returned non-array data:", res.data);
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching brands:", err);
-        setBrandNames([]);
-        errorToast("Failed to fetch brand data");
+        console.error("Error fetching stock material:", err);
+        setMaterialList([]);
       });
   };
 
@@ -175,6 +150,8 @@ const AddStockMaterial = () => {
           unitRes,
           taxPrefRes,
           vendorRes,
+          invCatRes,
+          invTypeRes,
           warehouseRes,
           intraTaxRes,
           interTaxRes,
@@ -183,6 +160,10 @@ const AddStockMaterial = () => {
           api.get("/api/v1/admin/unit"),
           api.get("/api/v1/admin/taxPreference/active"),
           api.get("/api/v1/admin/supplierManagement/active"),
+          api.get("/api/v1/admin/inventoryCategory/active"),
+          api.get(
+            "/api/v1/admin/inventoryType/active/pagination?page=1&limit=10"
+          ),
           api.get("/api/v1/admin/branch"),
           api.get("/api/v1/admin/intraTax/active"),
           api.get("/api/v1/admin/interTax/active"),
@@ -193,6 +174,8 @@ const AddStockMaterial = () => {
           unitData: unitRes?.data?.data?.filter((e) => e.isActive) || [],
           taxPreferenceData: taxPrefRes.data.data || [],
           venderData: vendorRes.data || [],
+          invCatData: invCatRes.data || [],
+          invTypeData: invTypeRes.data.data || [],
           warehouse: warehouseRes.data.data || [],
           intraTaxData: intraTaxRes.data.data || [],
           interTaxData: interTaxRes.data.data || [],
@@ -207,8 +190,6 @@ const AddStockMaterial = () => {
     };
 
     fetchAll();
-    fetchStockNames();
-    fetchBrand();
   }, []);
 
   useEffect(() => {
@@ -221,13 +202,8 @@ const AddStockMaterial = () => {
         ),
       ])
         .then(([materialRes, serialRes]) => {
-          const data = materialRes.data;
-          // Log the API response for debugging
-          console.log("Stock Material API Response:", data);
-
+          const data = materialRes.data; // Adjust if nested, e.g., materialRes.data.data
           setFieldValue("type", data.type || "Goods");
-          setFieldValue("stock_name_id", data.stock_name_id || "");
-          setFieldValue("brand_id", data.brand_id || "");
           setFieldValue("material", data.material || "");
           setFieldValue("balance", data.balance || "");
           setFieldValue("hsc_code", data.hsc_code || "");
@@ -256,27 +232,21 @@ const AddStockMaterial = () => {
             "inter_state_tax_rate_id",
             data.inter_state_tax_rate_id || ""
           );
+          setFieldValue(
+            "inventory_category_id",
+            data.inventory_category_id || ""
+          );
+          setFieldValue("inventoryType_id", data.inventoryType_id || "");
           setFieldValue("branch_id", data.branch_id || "");
           setFieldValue("client_id", data.client_id || "");
           setFieldValue("direct_send", data.direct_send || "Warehouse");
           setFieldValue("unit_id", data.unit_id || "");
 
+          // Handle serial numbers from the serial number API
           const serialNumbers =
             serialRes.data.data.map((item) => item.serialNumber) || [];
           setFieldValue("serialNumbers", serialNumbers);
           setDirectSend(data.direct_send || "Warehouse");
-
-          // Verify if brand_id exists in brandNames
-          if (
-            data.brand_id &&
-            !brandNames.find((brand) => brand.id === data.brand_id)
-          ) {
-            console.warn(
-              `Brand ID ${data.brand_id} not found in brandNames:`,
-              brandNames
-            );
-            // errorToast("Brand data not found for the selected stock material");
-          }
         })
         .catch((err) => {
           console.error(
@@ -291,7 +261,7 @@ const AddStockMaterial = () => {
           setLoading(false);
         });
     }
-  }, [id, setFieldValue, brandNames]); // Add brandNames to dependencies
+  }, [id, setFieldValue]);
 
   const taxPrefName = metaData?.taxPreferenceData?.find(
     (item) => item?.id === Number(values.tax_preference_id)
@@ -324,6 +294,7 @@ const AddStockMaterial = () => {
     return <div>Loading...</div>;
   }
 
+  console.log("values", values);
   return (
     <Card>
       <Card.Header>
@@ -406,38 +377,54 @@ const AddStockMaterial = () => {
           <Row className="mb-3">
             <Col md={4}>
               <CustomSelect
-                label="Stock Name"
-                name="stock_name_id"
-                value={values.stock_name_id}
+                label="Inventory Category"
+                name="inventory_category_id"
+                value={values.inventory_category_id}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                options={stockNames}
+                options={metaData.invCatData}
                 placeholder="--"
-                error={errors.stock_name_id}
-                touched={touched.stock_name_id}
+                error={errors.inventory_category_id}
+                touched={touched.inventory_category_id}
                 required
-                lableName="name"
+                lableName="category"
                 lableKey="id"
               />
             </Col>
             <Col md={4}>
               <CustomSelect
-                label="Make"
-                name="brand_id"
-                value={values.brand_id}
+                label="Inventory Type"
+                name="inventoryType_id"
+                value={values.inventoryType_id}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                options={brandNames}
-                placeholder={brandNames.length ? "--" : "No brands available"}
-                error={errors.brand_id}
-                touched={touched.brand_id}
+                options={metaData.invTypeData}
+                placeholder="--"
+                error={errors.inventoryType_id}
+                touched={touched.inventoryType_id}
                 required
-                lableName="brand_name"
+                lableName="type"
                 lableKey="id"
               />
             </Col>
             <Col md={4}>
-              {values.type === "Goods" ? (
+              <CustomInput
+                label="Material Name"
+                name="material"
+                value={values.material}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter material name"
+                touched={touched.material}
+                errors={errors.material}
+                required
+              />
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            {values.type === "Goods" ? (
+              <Col md={4}>
                 <CustomInput
                   label="HSN Code"
                   name="hsc_code"
@@ -446,7 +433,9 @@ const AddStockMaterial = () => {
                   onBlur={handleBlur}
                   placeholder="Enter HSN Code"
                 />
-              ) : (
+              </Col>
+            ) : (
+              <Col md={4}>
                 <CustomInput
                   label="SAC Code"
                   name="sac"
@@ -455,8 +444,9 @@ const AddStockMaterial = () => {
                   onBlur={handleBlur}
                   placeholder="Enter SAC Code"
                 />
-              )}
-            </Col>
+              </Col>
+            )}
+
             <Col md={4}>
               <CustomSelect
                 label="Unit"
@@ -473,6 +463,7 @@ const AddStockMaterial = () => {
                 lableKey="id"
               />
             </Col>
+
             <Col md={4}>
               <CustomSelect
                 label="Tax Preference"
@@ -489,6 +480,9 @@ const AddStockMaterial = () => {
                 lableKey="id"
               />
             </Col>
+          </Row>
+
+          <Row className="mb-3 d-flex align-items-center">
             {taxPrefName?.name.toLowerCase() === "non-taxable" && (
               <Col md={4}>
                 <CustomInput
@@ -504,9 +498,6 @@ const AddStockMaterial = () => {
                 />
               </Col>
             )}
-          </Row>
-
-          <Row className="mb-3">
             <Col md={4}>
               <Form.Group>
                 <Form.Label>Balance</Form.Label>
@@ -529,9 +520,7 @@ const AddStockMaterial = () => {
                 </Button>
               )}
             </Col>
-          </Row>
 
-          <Row className="mb-3 d-flex align-items-center">
             <Modal
               show={showSerialModal}
               onHide={() => setShowSerialModal(false)}
@@ -550,23 +539,20 @@ const AddStockMaterial = () => {
                       onChange={(e) =>
                         handleSerialChange(index, e.target.value)
                       }
-                      disabled={id ? true : false}
-                      style={{ cursor: id ? "not-allowed" : "auto" }}
                     />
                   </Form.Group>
                 ))}
               </Modal.Body>
               <Modal.Footer>
-                {id ? null : (
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setShowSerialModal(false);
-                    }}
-                  >
-                    Save
-                  </Button>
-                )}
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setShowSerialModal(false);
+                    // Optionally, include serial numbers in the form submission
+                  }}
+                >
+                  Save
+                </Button>
               </Modal.Footer>
             </Modal>
           </Row>

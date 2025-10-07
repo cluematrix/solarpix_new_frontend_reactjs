@@ -1,15 +1,23 @@
 import React from "react";
-import { Modal, Form, Button } from "react-bootstrap";
+import { Modal, Form, Button, Row, Col } from "react-bootstrap";
 
 const AddEditModal = ({
   show,
   handleClose,
-  branchName,
-  setBranchName,
+  formData,
+  setFormData,
   onSave,
   modalTitle,
   buttonLabel,
 }) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave();
@@ -21,18 +29,78 @@ const AddEditModal = ({
         <Modal.Header closeButton>
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
-          <Form.Group controlId="formBranchName" className="mb-3">
-            <Form.Label>Branch Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter Branch Name"
-              value={branchName}
-              onChange={(e) => setBranchName(e.target.value)}
-              required
-            />
-          </Form.Group>
+          <Row>
+            <Col md={12} className="mb-3">
+              <Form.Label>Branch Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="branch_name"
+                placeholder="Enter Branch Name"
+                value={formData.branch_name}
+                onChange={handleChange}
+                required
+              />
+            </Col>
+
+            <Col md={12} className="mb-3">
+              <Form.Label>Address</Form.Label>
+              <Form.Control
+                type="text"
+                name="address"
+                placeholder="Enter Address"
+                value={formData.address}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={6} className="mb-3">
+              <Form.Label>City</Form.Label>
+              <Form.Control
+                type="text"
+                name="city"
+                placeholder="Enter City"
+                value={formData.city}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={6} className="mb-3">
+              <Form.Label>State</Form.Label>
+              <Form.Control
+                type="text"
+                name="state"
+                placeholder="Enter State"
+                value={formData.state}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={6} className="mb-3">
+              <Form.Label>Country</Form.Label>
+              <Form.Control
+                type="text"
+                name="country"
+                placeholder="Enter Country"
+                value={formData.country}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={6} className="mb-3">
+              <Form.Label>Pin Code</Form.Label>
+              <Form.Control
+                type="text"
+                name="pin_code"
+                placeholder="Enter Pin Code"
+                value={formData.pin_code}
+                onChange={handleChange}
+              />
+            </Col>
+          </Row>
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
             Cancel

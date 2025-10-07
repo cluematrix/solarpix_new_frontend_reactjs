@@ -14,6 +14,8 @@ const ViewModal = ({ show, handleClose, item }) => {
     intraTaxData: [],
     interTaxData: [],
     custData: [],
+    brandData: [],
+    stockNameData: [], // Added to store stock name data
   });
 
   const [loading, setLoading] = useState(true);
@@ -32,18 +34,20 @@ const ViewModal = ({ show, handleClose, item }) => {
           intraTaxRes,
           interTaxRes,
           custRes,
+          brandRes,
+          stockNameRes, // Added stock name API call
         ] = await Promise.all([
           api.get("/api/v1/admin/unit"),
           api.get("/api/v1/admin/taxPreference/active"),
           api.get("/api/v1/admin/supplierManagement/active"),
           api.get("/api/v1/admin/inventoryCategory/active"),
-          api.get(
-            "/api/v1/admin/inventoryType/active/pagination?page=1&limit=10"
-          ),
+          api.get("/api/v1/admin/inventoryType/active/pagination?page=1&limit=10"),
           api.get("/api/v1/admin/branch"),
           api.get("/api/v1/admin/intraTax/active"),
           api.get("/api/v1/admin/interTax/active"),
           api.get("/api/v1/admin/client/active"),
+          api.get("/api/v1/admin/brand/active"),
+          api.get("/api/v1/admin/stockName/active"), // Fetch active stock names
         ]);
 
         setMetaData({
@@ -56,10 +60,12 @@ const ViewModal = ({ show, handleClose, item }) => {
           intraTaxData: intraTaxRes.data.data || [],
           interTaxData: interTaxRes.data.data || [],
           custData: custRes.data.data || [],
+          brandData: brandRes.data || [],
+          stockNameData: stockNameRes.data.data || stockNameRes.data || [], // Handle different API response structures
         });
       } catch (error) {
         errorToast("Error loading metadata");
-        console.error(error);
+        console.error("Error fetching metadata:", error);
       } finally {
         setLoading(false);
       }
@@ -103,6 +109,12 @@ const ViewModal = ({ show, handleClose, item }) => {
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
+              <Form.Label>Quotation No</Form.Label>
+              <p>{item.short_code || "N/A"}</p>
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
               <Form.Label>Type</Form.Label>
               <p>{item.type || "N/A"}</p>
             </Form.Group>
@@ -115,64 +127,37 @@ const ViewModal = ({ show, handleClose, item }) => {
           </Col>
           <Col md={4}>
             <Form.Group>
-              <Form.Label>
-                {item.direct_send === "Warehouse" ? "Warehouse" : "Customer"}
-              </Form.Label>
+              <Form.Label>{item.direct_send === "Warehouse" ? "Warehouse" : "Customer"}</Form.Label>
               <p>
                 {item.direct_send === "Warehouse"
-                  ? getLabel(
-                      "branch_id",
-                      metaData.warehouse,
-                      "branch_name",
-                      "id"
-                    )
+                  ? getLabel("branch_id", metaData.warehouse, "branch_name", "id")
                   : getLabel("client_id", metaData.custData, "name", "id")}
               </p>
             </Form.Group>
           </Col>
+
+                  
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Stock Name</Form.Label>
+              <p>{getLabel("stock_name_id", metaData.stockNameData, "name", "id")}</p>
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Make</Form.Label>
+              <p>{getLabel("brand_id", metaData.brandData, "brand_name", "id")}</p>
+            </Form.Group>
+          </Col>
+         
         </Row>
+
+    
 
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label>Inventory Category</Form.Label>
-              <p>
-                {getLabel(
-                  "inventory_category_id",
-                  metaData.invCatData,
-                  "category",
-                  "id"
-                )}
-              </p>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Inventory Type</Form.Label>
-              <p>
-                {getLabel(
-                  "inventoryType_id",
-                  metaData.invTypeData,
-                  "type",
-                  "id"
-                )}
-              </p>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Material Name</Form.Label>
-              <p>{item.material || "N/A"}</p>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>
-                {item.type === "Goods" ? "HSN Code" : "SAC Code"}
-              </Form.Label>
+              <Form.Label>{item.type === "Goods" ? "HSN Code" : "SAC Code"}</Form.Label>
               <p>{item.type === "Goods" ? item.hsc_code : item.sac || "N/A"}</p>
             </Form.Group>
           </Col>
@@ -185,14 +170,7 @@ const ViewModal = ({ show, handleClose, item }) => {
           <Col md={4}>
             <Form.Group>
               <Form.Label>Tax Preference</Form.Label>
-              <p>
-                {getLabel(
-                  "tax_preference_id",
-                  metaData.taxPreferenceData,
-                  "name",
-                  "id"
-                )}
-              </p>
+              <p>{getLabel("tax_preference_id", metaData.taxPreferenceData, "name", "id")}</p>
             </Form.Group>
           </Col>
         </Row>
@@ -212,20 +190,6 @@ const ViewModal = ({ show, handleClose, item }) => {
               <p>{item.balance || "N/A"}</p>
             </Form.Group>
           </Col>
-          {/* <Col md={4}>
-            <Form.Group>
-              <Form.Label>Serial Numbers</Form.Label>
-              {item.serialNumbers && item.serialNumbers.length > 0 ? (
-                <ul>
-                  {item.serialNumbers.map((sn, idx) => (
-                    <li key={idx}>{sn}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>N/A</p>
-              )}
-            </Form.Group>
-          </Col> */}
         </Row>
         <hr />
 
@@ -251,14 +215,7 @@ const ViewModal = ({ show, handleClose, item }) => {
             </Form.Group>
             <Form.Group>
               <Form.Label>Preferred Vendor</Form.Label>
-              <p>
-                {getLabel(
-                  "purchase_info_vendor_id",
-                  metaData.venderData,
-                  "name",
-                  "id"
-                )}
-              </p>
+              <p>{getLabel("purchase_info_vendor_id", metaData.venderData, "name", "id")}</p>
             </Form.Group>
           </Col>
         </Row>
@@ -271,20 +228,10 @@ const ViewModal = ({ show, handleClose, item }) => {
               <Form.Group>
                 <Form.Label>Intra State Tax Rate</Form.Label>
                 <p>
-                  {getLabel(
-                    "intra_state_tax_rate_id",
-                    metaData.intraTaxData,
-                    "name",
-                    "id"
-                  )}
-                  {metaData.intraTaxData.find(
-                    (d) => d.id === item.intra_state_tax_rate_id
-                  )?.intra_per
-                    ? ` (${
-                        metaData.intraTaxData.find(
-                          (d) => d.id === item.intra_state_tax_rate_id
-                        ).intra_per
-                      }%)`
+                  {getLabel("intra_state_tax_rate_id", metaData.intraTaxData, "name", "id")}
+                  {metaData.intraTaxData.find((d) => d.id === item.intra_state_tax_rate_id)
+                    ?.intra_per
+                    ? ` (${metaData.intraTaxData.find((d) => d.id === item.intra_state_tax_rate_id).intra_per}%)`
                     : ""}
                 </p>
               </Form.Group>
@@ -293,20 +240,10 @@ const ViewModal = ({ show, handleClose, item }) => {
               <Form.Group>
                 <Form.Label>Inter State Tax Rate</Form.Label>
                 <p>
-                  {getLabel(
-                    "inter_state_tax_rate_id",
-                    metaData.interTaxData,
-                    "name",
-                    "id"
-                  )}
-                  {metaData.interTaxData.find(
-                    (d) => d.id === item.inter_state_tax_rate_id
-                  )?.inter_per
-                    ? ` (${
-                        metaData.interTaxData.find(
-                          (d) => d.id === item.inter_state_tax_rate_id
-                        ).inter_per
-                      }%)`
+                  {getLabel("inter_state_tax_rate_id", metaData.interTaxData, "name", "id")}
+                  {metaData.interTaxData.find((d) => d.id === item.inter_state_tax_rate_id)
+                    ?.inter_per
+                    ? ` (${metaData.interTaxData.find((d) => d.id === item.inter_state_tax_rate_id).inter_per}%)`
                     : ""}
                 </p>
               </Form.Group>
