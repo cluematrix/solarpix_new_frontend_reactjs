@@ -20,6 +20,7 @@ const AddStockMaterial = () => {
   const { id } = useParams();
   const [directSend, setDirectSend] = useState("Warehouse");
   const navigate = useNavigate();
+  const [serialData, setSerialData] = useState([]);
   const [metaData, setMetaData] = useState({
     unitData: [],
     taxPreferenceData: [],
@@ -263,6 +264,7 @@ const AddStockMaterial = () => {
 
           const serialNumbers =
             serialRes.data.data.map((item) => item.serialNumber) || [];
+          setSerialData(serialRes.data.data);
           setFieldValue("serialNumbers", serialNumbers);
           setDirectSend(data.direct_send || "Warehouse");
 
@@ -318,6 +320,33 @@ const AddStockMaterial = () => {
     const updated = [...values.serialNumbers];
     updated[index] = value;
     setFieldValue("serialNumbers", updated);
+  };
+
+  const handleSaveSerialNumbers = async () => {
+    try {
+      // Backend ke liye payload bana rahe hain
+      const payload = {
+        updates: values.serialNumbers.map((serialNumber, index) => ({
+          id: serialData[index]?.id, // ← isme tumhe har serial ka id chahiye hoga
+          serialNumber,
+        })),
+      };
+
+      console.log("Sending payload:", payload);
+
+      await api.put(
+        "/api/v1/admin/stockMaterialSerialNumber/updateMultipleSrNo",
+        payload
+      );
+
+      successToast("All serial numbers updated successfully");
+      setShowSerialModal(false);
+    } catch (err) {
+      console.error("Error updating serial numbers:", err);
+      errorToast(
+        err.response?.data?.message || "Failed to update serial numbers"
+      );
+    }
   };
 
   if (loading) {
@@ -525,7 +554,7 @@ const AddStockMaterial = () => {
             <Col className="mt-4" md={4}>
               {values.balance > 0 && (
                 <Button variant="primary" onClick={handleSerialModalOpen}>
-                  + Serial Number
+                  {id ? "Update Serial Number" : "+ Serial Number"}
                 </Button>
               )}
             </Col>
@@ -550,23 +579,26 @@ const AddStockMaterial = () => {
                       onChange={(e) =>
                         handleSerialChange(index, e.target.value)
                       }
-                      disabled={id ? true : false}
-                      style={{ cursor: id ? "not-allowed" : "auto" }}
+                      // disabled={id ? true : false}
+                      // style={{ cursor: id ? "not-allowed" : "auto" }}
                     />
                   </Form.Group>
                 ))}
               </Modal.Body>
               <Modal.Footer>
-                {id ? null : (
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setShowSerialModal(false);
-                    }}
-                  >
-                    Save
-                  </Button>
-                )}
+                {/* {id ? null : ( */}
+                <Button
+                  variant="primary"
+                  // onClick={() => {
+                  //   setShowSerialModal(false);
+                  //   // handleUpdateSrNo(item.id)
+                  // }}
+
+                  onClick={handleSaveSerialNumbers}
+                >
+                  Save
+                </Button>
+                {/* )} */}
               </Modal.Footer>
             </Modal>
           </Row>
