@@ -238,6 +238,7 @@ const StockMaterialList = () => {
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Material Name</th>
+                      <th>Balance</th>
                       {/* <th>Purchase Rate</th> */}
                       {/* <th>Rate</th> */}
                       {/* <th>HSN/SAC</th> */}
@@ -259,7 +260,10 @@ const StockMaterialList = () => {
                       currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>{item.material}</td>
+                          <td>
+                            {item.material} (₹{item.sales_info_selling_price})
+                          </td>
+                          <td>{item.balance}</td>
                           {/* <td>{item?.purchaseRate}</td>
                           <td>{item?.rate}</td>
                           <td>{item?.hsc}</td>
@@ -282,6 +286,7 @@ const StockMaterialList = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
+                              style={{ cursor: "pointer" }}
                             />
                             <VisibilityIcon
                               onClick={() => {
@@ -317,7 +322,7 @@ const StockMaterialList = () => {
                             <FormatListNumberedIcon
                               variant="outline-secondary"
                               size="sm"
-                              style={{ marginLeft: "5px" }}
+                              style={{ marginLeft: "5px", cursor: "pointer" }}
                               onClick={() =>
                                 navigate(`/SerialNumberTable/${item.id}`)
                               }
