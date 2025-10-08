@@ -25,6 +25,9 @@ import { useFormik } from "formik";
 import ViewModal from "./ViewModal"; // Assuming ViewModal.jsx is in the same directory
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import ModalQuatation from "./ModalQuatation";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+
 const StockMaterialList = () => {
   const [userlist, setUserlist] = useState([]);
   const [invCatData, setInvCatData] = useState([]);
@@ -38,6 +41,9 @@ const StockMaterialList = () => {
   const [permissions, setPermissions] = useState(null);
   const [showView, setShowView] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [showQuotation, setShowQuotation] = useState(false);
+  const [quotationItem, setQuotationItem] = useState(null);
+
   const navigate = useNavigate();
 
   // Pagination
@@ -322,6 +328,16 @@ const StockMaterialList = () => {
                                 navigate(`/SerialNumberTable/${item.id}`)
                               }
                             />
+
+                            <PictureAsPdfIcon
+                              color="error"
+                              size="sm"
+                              style={{ marginLeft: "5px" }}
+                              onClick={() => {
+                                setQuotationItem(item);
+                                setShowQuotation(true);
+                              }}
+                            />
                           </td>
                         </tr>
                       ))
@@ -401,6 +417,12 @@ const StockMaterialList = () => {
         show={showView}
         handleClose={() => setShowView(false)}
         item={selectedItem}
+      />
+
+      <ModalQuatation
+        show={showQuotation}
+        handleClose={() => setShowQuotation(false)}
+        item={quotationItem}
       />
     </>
   );
