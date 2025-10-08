@@ -70,7 +70,7 @@ export const sidebarItems = [
 // Tabs config –
 export const tabConfig = {
   Lead: ["Source", "Requirement", "Unit", "Status"],
-  Customer: ["Categories"],
+  Customer: ["Categories", "Custom Field"],
   Tax: ["GST Treatment", "Tax Preference", "TDS", "Inter Tax", "Intra Tax"],
   Account: ["Type"],
   Inventory: ["Reason"],
@@ -92,4 +92,19 @@ export const tabConfig = {
 export const typeOfMaterial = [
   { id: "1", name: "Goods" },
   { id: "2", name: "Purchase" },
+];
+
+export const requiredTypes = [
+  { id: "1", name: "true" },
+  { id: "2", name: "false" },
+];
+
+export const typeOfData = [
+  { id: "1", name: "text" },
+  { id: "2", name: "number" },
+  { id: "3", name: "decimal" },
+  { id: "4", name: "image" },
+  { id: "5", name: "pdf" },
+  { id: "6", name: "date" },
+  { id: "7", name: "checkbox" },
 ];
