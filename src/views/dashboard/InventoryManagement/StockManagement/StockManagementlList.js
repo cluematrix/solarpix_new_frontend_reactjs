@@ -402,7 +402,7 @@ const StockManagementList = () => {
     resetForm();
   };
 
-  //  Loader while checking permissions
+  //  Loader
   if (loading) {
     return (
       <div className="loader-div">
@@ -541,7 +541,7 @@ const StockManagementList = () => {
                 </Table>
               </div>
 
-              {/* 🔹 Pagination Controls */}
+              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
                   <Pagination.First

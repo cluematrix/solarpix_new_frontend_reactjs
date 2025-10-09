@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Form, Button, Row, Col, Card, Modal } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Row,
+  Col,
+  Card,
+  Modal,
+  Pagination,
+  Spinner,
+} from "react-bootstrap";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import { useFormik } from "formik";
@@ -17,6 +26,7 @@ const AddStockMaterial = () => {
   const [brandNames, setBrandNames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showSerialModal, setShowSerialModal] = useState(false);
+  const [showSerialModalCr, setShowSerialModalCr] = useState(false);
   const { id } = useParams();
   const [directSend, setDirectSend] = useState("Warehouse");
   const navigate = useNavigate();
@@ -30,6 +40,13 @@ const AddStockMaterial = () => {
     interTaxData: [],
     custData: [],
   });
+
+  const [srNoPagList, setSrNoPagList] = useState([]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   const initialValues = {
     type: "Goods",
@@ -53,6 +70,15 @@ const AddStockMaterial = () => {
     serialNumbers: [],
     direct_send: "Warehouse",
     unit_id: "",
+
+    Credit: 0,
+    Debit: 0,
+    remark: "",
+    stock_material_id: "",
+    stock_particular_id: "",
+    supplier_management_id: "",
+    select_type: "Debit",
+    serialNumbersCr: [],
   };
 
   const validationSchema = Yup.object().shape({
@@ -212,88 +238,107 @@ const AddStockMaterial = () => {
     fetchBrand();
   }, []);
 
-  useEffect(() => {
-    if (id) {
+  const fetchSerialNumberByStockMaterialIdPag = async (page = 1) => {
+    try {
       setLoading(true);
-      Promise.all([
-        api.get(`/api/v1/admin/stockMaterial/${id}`),
-        api.get(
-          `/api/v1/admin/stockMaterialSerialNumber/${id}/pagination?page=1&limit=10`
-        ),
-      ])
-        .then(([materialRes, serialRes]) => {
-          const data = materialRes.data;
-          // Log the API response for debugging
-          console.log("Stock Material API Response:", data);
+      const res = await api.get(
+        `/api/v1/admin/stockMaterialSerialNumber/${id}/pagination?page=${page}&limit=${itemsPerPage}`
+      );
 
-          setFieldValue("type", data.type || "Goods");
-          setFieldValue("stock_name_id", data.stock_name_id || "");
-          setFieldValue("brand_id", data.brand_id || "");
-          setFieldValue("material", data.material || "");
-          setFieldValue("balance", data.balance || "");
-          setFieldValue("hsc_code", data.hsc_code || "");
-          setFieldValue("sac", data.sac || "");
-          setFieldValue("tax_preference_id", data.tax_preference_id || "");
-          setFieldValue("exemption_reason", data.exemption_reason || "");
-          setFieldValue("type_sales_info", data.type_sales_info || false);
-          setFieldValue("type_purchase_info", data.type_purchase_info || false);
-          setFieldValue(
-            "sales_info_selling_price",
-            data.sales_info_selling_price || ""
-          );
-          setFieldValue(
-            "purchase_info_cost_price",
-            data.purchase_info_cost_price || ""
-          );
-          setFieldValue(
-            "purchase_info_vendor_id",
-            data.purchase_info_vendor_id || ""
-          );
-          setFieldValue(
-            "intra_state_tax_rate_id",
-            data.intra_state_tax_rate_id || ""
-          );
-          setFieldValue(
-            "inter_state_tax_rate_id",
-            data.inter_state_tax_rate_id || ""
-          );
-          setFieldValue("branch_id", data.branch_id || "");
-          setFieldValue("client_id", data.client_id || "");
-          setFieldValue("direct_send", data.direct_send || "Warehouse");
-          setFieldValue("unit_id", data.unit_id || "");
+      setSrNoPagList(res.data?.data || []);
 
-          const serialNumbers =
-            serialRes.data.data.map((item) => item.serialNumber) || [];
-          setSerialData(serialRes.data.data);
-          setFieldValue("serialNumbers", serialNumbers);
-          setDirectSend(data.direct_send || "Warehouse");
+      const serialNumbers =
+        res.data.data.map((item) => item.serialNumber) || [];
+      setSerialData(res.data.data);
+      setFieldValue("serialNumbers", serialNumbers);
 
-          // Verify if brand_id exists in brandNames
-          if (
-            data.brand_id &&
-            !brandNames.find((brand) => brand.id === data.brand_id)
-          ) {
-            console.warn(
-              `Brand ID ${data.brand_id} not found in brandNames:`,
-              brandNames
-            );
-            // errorToast("Brand data not found for the selected stock material");
-          }
-        })
-        .catch((err) => {
-          console.error(
-            "Error fetching stock material or serial numbers:",
-            err
-          );
-          errorToast(
-            err.response?.data?.message || "Failed to fetch stock material"
-          );
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      //  Extract pagination info properly
+      const pagination = res.data?.pagination;
+
+      if (pagination) {
+        setTotalPages(pagination.totalPages || 1);
+      }
+    } catch (err) {
+      console.error("Error fetching leads:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [id, setFieldValue, brandNames]); // Add brandNames to dependencies
+  };
+
+  //  Fetch again when page changes
+  useEffect(() => {
+    fetchSerialNumberByStockMaterialIdPag(currentPage);
+  }, [currentPage]);
+
+  const fetchStockMaterial = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/api/v1/admin/stockMaterial/${id}`);
+      const data = res.data;
+
+      console.log("Stock Material API Response:", data);
+
+      // Sare fields ko directly yahan set kar do:
+      setFieldValue("type", data.type || "Goods");
+      setFieldValue("stock_name_id", data.stock_name_id || "");
+      setFieldValue("brand_id", data.brand_id || "");
+      setFieldValue("material", data.material || "");
+      setFieldValue("balance", data.balance || "");
+      setFieldValue("hsc_code", data.hsc_code || "");
+      setFieldValue("sac", data.sac || "");
+      setFieldValue("tax_preference_id", data.tax_preference_id || "");
+      setFieldValue("exemption_reason", data.exemption_reason || "");
+      setFieldValue("type_sales_info", data.type_sales_info || false);
+      setFieldValue("type_purchase_info", data.type_purchase_info || false);
+      setFieldValue(
+        "sales_info_selling_price",
+        data.sales_info_selling_price || ""
+      );
+      setFieldValue(
+        "purchase_info_cost_price",
+        data.purchase_info_cost_price || ""
+      );
+      setFieldValue(
+        "purchase_info_vendor_id",
+        data.purchase_info_vendor_id || ""
+      );
+      setFieldValue(
+        "intra_state_tax_rate_id",
+        data.intra_state_tax_rate_id || ""
+      );
+      setFieldValue(
+        "inter_state_tax_rate_id",
+        data.inter_state_tax_rate_id || ""
+      );
+      setFieldValue("branch_id", data.branch_id || "");
+      setFieldValue("client_id", data.client_id || "");
+      setFieldValue("direct_send", data.direct_send || "Warehouse");
+      setFieldValue("unit_id", data.unit_id || "");
+
+      setDirectSend(data.direct_send || "Warehouse");
+
+      // Optional: Brand check
+      if (data.brand_id && !brandNames.find((b) => b.id === data.brand_id)) {
+        console.warn(
+          `Brand ID ${data.brand_id} not found in brandNames:`,
+          brandNames
+        );
+      }
+    } catch (err) {
+      console.error("Error fetching stock material:", err);
+      errorToast(
+        err.response?.data?.message || "Failed to fetch stock material"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!id) return;
+
+    fetchStockMaterial();
+  }, [id, setFieldValue, brandNames]);
 
   const taxPrefName = metaData?.taxPreferenceData?.find(
     (item) => item?.id === Number(values.tax_preference_id)
@@ -304,6 +349,7 @@ const AddStockMaterial = () => {
     { id: "2", name: "Customer" },
   ];
 
+  // for update serial number
   const handleSerialModalOpen = () => {
     const count = parseInt(values.balance, 10) || 0;
     let serials = values.serialNumbers;
@@ -323,6 +369,10 @@ const AddStockMaterial = () => {
   };
 
   const handleSaveSerialNumbers = async () => {
+    if (!id) {
+      setShowSerialModal(false);
+      return;
+    }
     try {
       // Backend ke liye payload bana rahe hain
       const payload = {
@@ -339,7 +389,7 @@ const AddStockMaterial = () => {
         payload
       );
 
-      successToast("All serial numbers updated successfully");
+      successToast("Serial numbers updated successfully");
       setShowSerialModal(false);
     } catch (err) {
       console.error("Error updating serial numbers:", err);
@@ -349,10 +399,81 @@ const AddStockMaterial = () => {
     }
   };
 
+  // for add new serial number
+
+  // Auto-update serialNumbersCr length whenever Credit changes
+  useEffect(() => {
+    const count = parseInt(values.Credit, 10) || 0;
+    let serials = values.serialNumbersCr || [];
+
+    if (serials.length !== count) {
+      serials = Array(count)
+        .fill("")
+        .map((_, i) => serials[i] || "");
+      setFieldValue("serialNumbersCr", serials);
+    }
+  }, [values.Credit]); // <- runs whenever Credit changes
+
+  const handleSerialModalOpenCr = () => {
+    setShowSerialModalCr(true);
+  };
+
+  const handleSerialChangeCr = (index, value) => {
+    const updated = [...values.serialNumbersCr];
+    updated[index] = value;
+    setFieldValue("serialNumbersCr", updated);
+  };
+
+  const handleSaveSerialNumbersCr = async () => {
+    console.log(
+      "purchase_info_vendor_id",
+      typeof values.purchase_info_vendor_id
+    );
+    try {
+      const payload = {
+        Credit: values.Credit,
+        Debit: 0,
+        remark: "Purchase",
+        stock_material_id: Number(id),
+        stock_particular_id: 2,
+        supplier_management_id: values.purchase_info_vendor_id,
+        select_type: "Credit",
+        client_id: values.client_id,
+        serialNumbers: values.serialNumbersCr,
+      };
+
+      if (values.purchase_info_vendor_id) {
+        delete payload.client_id;
+      }
+      // if (values.client_id) {
+      //   delete payload.supplier_management_id;
+      // }
+
+      console.log("Sending payload srno:", payload);
+
+      await api.post("/api/v1/admin/stockManagement", payload);
+      fetchSerialNumberByStockMaterialIdPag(currentPage);
+      fetchStockMaterial();
+      successToast("Stock serial  number added successfully");
+      setShowSerialModalCr(false);
+    } catch (err) {
+      console.error("Error adding serial numbers:", err);
+      errorToast(
+        err.response?.data?.message || "Failed to adding serial numbers"
+      );
+    }
+  };
+
+  //  Loader
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
   }
 
+  console.log("formik.valuesSrNo", formik.values);
   return (
     <Card>
       <Card.Header>
@@ -538,7 +659,7 @@ const AddStockMaterial = () => {
           <Row className="mb-3">
             <Col md={4}>
               <Form.Group>
-                <Form.Label>Balance</Form.Label>
+                <Form.Label>{id ? "Balance" : "Qty"}</Form.Label>
                 <Form.Control
                   type="number"
                   name="balance"
@@ -552,21 +673,81 @@ const AddStockMaterial = () => {
               </Form.Group>
             </Col>
             <Col className="mt-4" md={4}>
-              {values.balance > 0 && (
-                <Button variant="primary" onClick={handleSerialModalOpen}>
-                  {id ? "Update Serial Number" : "+ Serial Number"}
-                </Button>
-              )}
+              <Button variant="primary" onClick={handleSerialModalOpen}>
+                {id && values.balance > 0
+                  ? "Update Serial Number"
+                  : "+ Serial Number"}
+              </Button>
             </Col>
+            {id && (
+              <Col className="mt-4" md={4}>
+                <Button variant="primary" onClick={handleSerialModalOpenCr}>
+                  + Serial Number
+                </Button>
+              </Col>
+            )}
           </Row>
 
+          {/* Credit srNo*/}
+          <Row>
+            <Modal
+              show={showSerialModalCr}
+              onHide={() => setShowSerialModalCr(false)}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Add Serial Number</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Col md={4}>
+                  <CustomInput
+                    type="number"
+                    min={0}
+                    label="Enter Number"
+                    name="Credit"
+                    value={formik.values.Credit}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    placeholder="Enter Credit"
+                    touched={formik.touched.Credit}
+                    errors={formik.errors.Credit}
+                  />
+                </Col>
+                {values.Credit &&
+                  values.serialNumbersCr.map((sn, index) => (
+                    <Form.Group key={index} className="mb-2">
+                      <Form.Label>Serial Number {index + 1}</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={sn}
+                        required
+                        onChange={(e) =>
+                          handleSerialChangeCr(index, e.target.value)
+                        }
+                      />
+                    </Form.Group>
+                  ))}
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="primary" onClick={handleSaveSerialNumbersCr}>
+                  Save
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          </Row>
+
+          {/* for update srNo and add srNo */}
           <Row className="mb-3 d-flex align-items-center">
             <Modal
               show={showSerialModal}
               onHide={() => setShowSerialModal(false)}
             >
               <Modal.Header closeButton>
-                <Modal.Title>Enter Serial Numbers</Modal.Title>
+                <Modal.Title>
+                  {" "}
+                  {id && values.balance > 0
+                    ? "Update Serial Number"
+                    : "Add Serial Number"}
+                </Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 {values.serialNumbers.map((sn, index) => (
@@ -584,6 +765,29 @@ const AddStockMaterial = () => {
                     />
                   </Form.Group>
                 ))}
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <Pagination className="justify-content-center mt-3">
+                    <Pagination.First
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                    />
+                    {[...Array(totalPages)].map((_, i) => (
+                      <Pagination.Item
+                        key={i + 1}
+                        active={i + 1 === currentPage}
+                        onClick={() => setCurrentPage(i + 1)}
+                      >
+                        {i + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Last
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
+                )}
               </Modal.Body>
               <Modal.Footer>
                 {/* {id ? null : ( */}
@@ -622,7 +826,7 @@ const AddStockMaterial = () => {
               <Row>
                 <Col md={8}>
                   <CustomInput
-                    label="Selling Price"
+                    label="Selling Price (1 Qty)"
                     name="sales_info_selling_price"
                     value={values.sales_info_selling_price}
                     onChange={handleChange}
@@ -657,7 +861,7 @@ const AddStockMaterial = () => {
               <Row className="mb-3">
                 <Col md={12}>
                   <CustomInput
-                    label="Cost Price"
+                    label="Cost Price (1 Qty)"
                     name="purchase_info_cost_price"
                     value={values.purchase_info_cost_price}
                     onChange={handleChange}
