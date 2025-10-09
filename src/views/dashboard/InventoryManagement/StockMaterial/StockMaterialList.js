@@ -22,12 +22,9 @@ import { errorToast } from "../../../../components/Toast/errorToast";
 import ViewModal from "./ViewModal"; // Assuming ViewModal.jsx is in the same directory
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
-<<<<<<< HEAD
 import { Tooltip } from "@mui/material";
-=======
 import ModalQuatation from "./ModalQuatation";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
->>>>>>> ce9da461547ad6b225cb92d9528448ccdb8e915c
 
 const StockMaterialList = () => {
   const [userlist, setUserlist] = useState([]);
