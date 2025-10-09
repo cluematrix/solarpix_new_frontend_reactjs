@@ -220,7 +220,7 @@ const LeadFollowupList = () => {
   return (
     <>
       {/* Filters */}
-      <Row className="mb-3">
+      <Row className="mb-3" style={{ position: "relative", zIndex: 10 }}>
         <Col md={4}>
           <Form.Control
             type="text"
@@ -232,7 +232,6 @@ const LeadFollowupList = () => {
         <Col md={2}>
           <Form.Control
             type="date"
-            placeholder="From Date"
             value={filterFromDate}
             onChange={(e) => setFilterFromDate(e.target.value)}
           />
@@ -240,7 +239,6 @@ const LeadFollowupList = () => {
         <Col md={2}>
           <Form.Control
             type="date"
-            placeholder="To Date"
             value={filterToDate}
             onChange={(e) => setFilterToDate(e.target.value)}
           />

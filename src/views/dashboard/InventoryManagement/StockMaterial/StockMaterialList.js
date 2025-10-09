@@ -333,6 +333,16 @@ const StockMaterialList = () => {
                                 }
                               />
                             </Tooltip>
+
+                            <PictureAsPdfIcon
+                              color="error"
+                              size="sm"
+                              style={{ marginLeft: "5px" }}
+                              onClick={() => {
+                                setQuotationItem(item);
+                                setShowQuotation(true);
+                              }}
+                            />
                           </td>
                         </tr>
                       ))
