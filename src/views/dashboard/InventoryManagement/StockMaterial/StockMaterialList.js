@@ -22,12 +22,9 @@ import { errorToast } from "../../../../components/Toast/errorToast";
 import ViewModal from "./ViewModal"; // Assuming ViewModal.jsx is in the same directory
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
-<<<<<<< HEAD
 import { Tooltip } from "@mui/material";
-=======
 import ModalQuatation from "./ModalQuatation";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
->>>>>>> ce9da461547ad6b225cb92d9528448ccdb8e915c
 
 const StockMaterialList = () => {
   const [userlist, setUserlist] = useState([]);
@@ -103,7 +100,7 @@ const StockMaterialList = () => {
   // Fetch stock material
   const fetchStockMaterial = () => {
     api
-      .get("/api/v1/admin/stockMaterial")
+      .get("/api/v1/admin/stockMaterial/pagination?page=1&limit=10")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setUserlist(res.data);
