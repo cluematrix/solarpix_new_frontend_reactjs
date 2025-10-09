@@ -15,8 +15,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../../api/axios";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { generatePDF } from "../../../../utilities/generatePdf";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import { generateStockHistoryPDF } from "./generateStockHistoryPDF";
 
 const StockManagementHisTable = () => {
   const { id } = useParams(); // materialId from route
@@ -78,55 +78,29 @@ const StockManagementHisTable = () => {
     fetchSerialNumbers(1, true);
   };
 
-  // for pdf
   const handleDownloadPDF = () => {
-    if (serials.length === 0) {
-      errorToast("No data to download!");
-      return;
-    }
+    if (!serials.length) return;
 
-    const columns = [
-      "Sr No",
-      "Material",
-      "Particular",
-      "Supplier",
-      "Credit",
-      "Debit",
-      "Balance",
-      "Created At",
-    ];
-
-    const rows = serials.map((item, index) => [
-      (currentPage - 1) * itemsPerPage + index + 1,
-      item.material?.material || "--",
-      item.particular?.particular || "--",
-      item.supplier?.name || "--",
-      item.Credit || "--",
-      item.Debit || "--",
-      item.balance || "--",
-      new Date(item.created_at).toLocaleDateString("en-GB"),
-    ]);
-
-    const companyInfo = {
-      name: "Tech ERP Pvt. Ltd.",
-      address: "123 Industrial Area",
+    const company = {
+      name: "ABC Constructions Pvt. Ltd.",
+      address: "123, Industrial Area, Nagpur",
       city: "Nagpur",
       state: "Maharashtra",
       pincode: "440001",
       country: "India",
       mobile1: "9876543210",
+      mobile2: "8765432109",
       GSTno: "27ABCDE1234F1Z5",
-      email: "info@techerp.com",
-      logo: "data:image/png;base64,....", // <-- optional base64 logo
+      email: "info@abcconstructions.com",
+      // logo: "https://via.placeholder.com/100x100?text=Logo",
     };
 
-    generatePDF({
-      title: "Stock Management History",
-      subtitle: `Material: ${materialName} | Date: ${startDate} to ${endDate}`,
-      columns,
-      rows,
-      company: companyInfo,
-      fileName: `Stock_History_${materialName}.pdf`,
+    generateStockHistoryPDF({
+      company,
+      headingTitle: `Stock History - ${materialName}`,
+      tableData: serials,
+      startDate,
+      endDate,
     });
   };
 
@@ -198,8 +172,8 @@ const StockManagementHisTable = () => {
                   </Button>
                   <Button
                     variant="outline-secondary"
-                    onClick={handleDownloadPDF}
                     size="small"
+                    onClick={handleDownloadPDF}
                   >
                     <PictureAsPdfIcon color="text-danger" fontSize="small" />
                   </Button>
