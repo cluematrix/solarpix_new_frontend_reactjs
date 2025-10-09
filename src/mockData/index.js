@@ -65,6 +65,7 @@ export const sidebarItems = [
   "Employee",
   "Holiday",
   "Branch",
+  "Company",
 ];
 
 // Tabs config –
@@ -87,6 +88,7 @@ export const tabConfig = {
   Employee: ["Employee Type", "Department", "Designation", "Office Time"],
   Holiday: ["Default Holiday"],
   Branch: ["Branch"],
+  Company: ["Details"],
 };
 
 export const typeOfMaterial = [

@@ -104,7 +104,7 @@ const StockMaterialList = () => {
   // Fetch stock material
   const fetchStockMaterial = () => {
     api
-      .get("/api/v1/admin/stockMaterial")
+      .get("/api/v1/admin/stockMaterial/pagination?page=1&limit=10")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setUserlist(res.data);

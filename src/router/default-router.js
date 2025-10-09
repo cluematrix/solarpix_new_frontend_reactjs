@@ -269,7 +269,7 @@ export const DefaultRouter = [
         element: <InventoryTypeList />,
       },
 
-          {
+      {
         path: "StockNameList",
         element: <StockNameList />,
       },
@@ -288,14 +288,12 @@ export const DefaultRouter = [
 
       { path: "/SerialNumberTable/:id", element: <SerialNumberTable /> },
 
-
-       {
+      {
         path: "BranchStockList",
         element: <BranchStockList />,
       },
 
-      
-       {
+      {
         path: "CustomerManagementList",
         element: <CustomerManagementList />,
       },

@@ -36,6 +36,7 @@ import ReasonList from "../InventoryManagement/Reason/ReasonList";
 import InterTaxList from "../Tax/InterTax/InterTaxList";
 import IntraTaxList from "../Tax/IntraTax/IntraTaxList";
 import CustomFieldList from "../Customer/CustomField/CustomFieldList";
+import CompanyList from "./Companys/CompanyList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -271,6 +272,12 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Inventory" && activeTab === 0 && (
               <>
                 <ReasonList />
+              </>
+            )}
+
+            {activeSidebar === "Company" && activeTab === 0 && (
+              <>
+                <CompanyList />
               </>
             )}
           </Box>
