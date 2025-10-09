@@ -40,6 +40,7 @@
     "moment": "^2.29.3",
     "nouislider-react": "^3.4.1",
     "number-to-words": "^1.2.4",
+    "pdfmake": "^0.2.20",
     "prismjs": "^1.24.1",
     "quill": "^1.3.7",
     "react": "^18.2.0",
