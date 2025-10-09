@@ -14,25 +14,21 @@ import {
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "./addStockMaterial";
 import DeleteModal from "./DeleteModal";
 import api from "../../../../api/axios";
 import { useLocation, useNavigate } from "react-router";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import * as Yup from "yup";
-import { useFormik } from "formik";
 import ViewModal from "./ViewModal"; // Assuming ViewModal.jsx is in the same directory
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import { Tooltip } from "@mui/material";
 import ModalQuatation from "./ModalQuatation";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 const StockMaterialList = () => {
   const [userlist, setUserlist] = useState([]);
   const [invCatData, setInvCatData] = useState([]);
-  const [editId, setEditId] = useState(null);
-  const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
@@ -244,13 +240,8 @@ const StockMaterialList = () => {
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Material Name</th>
+                      <th>Supplier</th>
                       <th>Balance</th>
-                      {/* <th>Purchase Rate</th> */}
-                      {/* <th>Rate</th> */}
-                      {/* <th>HSN/SAC</th> */}
-                      {/* <th>Usage Unit</th> */}
-                      {/* <th>Inventory Category</th> */}
-                      {/* <th>Balance</th> */}
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -269,13 +260,8 @@ const StockMaterialList = () => {
                           <td>
                             {item.material} (₹{item.sales_info_selling_price})
                           </td>
+                          <td>{item?.SupplierManagement?.name}</td>
                           <td>{item.balance}</td>
-                          {/* <td>{item?.purchaseRate}</td>
-                          <td>{item?.rate}</td>
-                          <td>{item?.hsc}</td>
-                          <td>{item?.unit}</td> */}
-                          {/* <td>{item.category.category}</td> */}
-                          {/* <td>{item.balance}</td> */}
                           <td style={{ minWidth: "90px" }}>
                             <span
                               className={`status-dot ${
@@ -285,64 +271,68 @@ const StockMaterialList = () => {
                             {item.isActive ? "Active" : "Inactive"}
                           </td>
                           <td className="d-flex align-items-center">
-                            <Form.Check
-                              type="switch"
-                              id={`active-switch-${item.id}`}
-                              checked={item.isActive === true}
-                              onChange={() =>
-                                handleToggleActive(item.id, item.isActive)
-                              }
-                              style={{ cursor: "pointer" }}
-                            />
-                            <VisibilityIcon
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setShowView(true);
-                              }}
-                              color="primary"
-                              style={{
-                                cursor: "pointer",
-                                marginLeft: "2px",
-                              }}
-                            />
-                            {permissions.edit && (
-                              <CreateTwoToneIcon
-                                onClick={() => handleEdit(item.id)}
-                                color="primary"
+                            <Tooltip title="Update status" arrow>
+                              <Form.Check
+                                type="switch"
+                                id={`active-switch-${item.id}`}
+                                checked={item.isActive === true}
+                                onChange={() =>
+                                  handleToggleActive(item.id, item.isActive)
+                                }
                                 style={{ cursor: "pointer" }}
                               />
-                            )}
+                            </Tooltip>
 
-                            {permissions.del && (
-                              <DeleteRoundedIcon
+                            <Tooltip title="View" arrow>
+                              <VisibilityIcon
                                 onClick={() => {
-                                  setDeleteIndex(idx);
-                                  setDeleteId(item.id || item._id);
-                                  setShowDelete(true);
+                                  setSelectedItem(item);
+                                  setShowView(true);
                                 }}
-                                color="error"
-                                style={{ cursor: "pointer" }}
+                                color="primary"
+                                style={{
+                                  cursor: "pointer",
+                                  marginLeft: "2px",
+                                }}
                               />
-                            )}
+                            </Tooltip>
 
-                            <FormatListNumberedIcon
-                              variant="outline-secondary"
-                              size="sm"
-                              style={{ marginLeft: "5px", cursor: "pointer" }}
-                              onClick={() =>
-                                navigate(`/SerialNumberTable/${item.id}`)
-                              }
-                            />
+                            <Tooltip title="Edit" arrow>
+                              {permissions.edit && (
+                                <CreateTwoToneIcon
+                                  onClick={() => handleEdit(item.id)}
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                            </Tooltip>
 
-                            <PictureAsPdfIcon
-                              color="error"
-                              size="sm"
-                              style={{ marginLeft: "5px" }}
-                              onClick={() => {
-                                setQuotationItem(item);
-                                setShowQuotation(true);
-                              }}
-                            />
+                            <Tooltip title="Delete" arrow>
+                              {permissions.del && (
+                                <DeleteRoundedIcon
+                                  onClick={() => {
+                                    setDeleteIndex(idx);
+                                    setDeleteId(item.id || item._id);
+                                    setShowDelete(true);
+                                  }}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                            </Tooltip>
+
+                            <Tooltip title="History" arrow>
+                              <FormatListNumberedIcon
+                                variant="outline-secondary"
+                                size="sm"
+                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                                onClick={() =>
+                                  navigate(
+                                    `/stock-management-list-history/${item.id}`
+                                  )
+                                }
+                              />
+                            </Tooltip>
                           </td>
                         </tr>
                       ))
@@ -389,17 +379,7 @@ const StockMaterialList = () => {
           </Card>
         </Col>
       </Row>
-      {/* Add/Edit Modal */}
-      {/* <AddEditModal
-        show={showAddEdit}
-        handleClose={handleResetForm}
-        onSave={handleSubmit}
-        modalTitle={editId ? "Update Stock Material" : "Add New Stock Material"}
-        buttonLabel={editId ? "Update" : "Save"}
-        loading={loadingBtn}
-        formik={formik}
-        invCatData={invCatData}
-      /> */}
+
       {/* Delete Confirmation Modal */}
       <DeleteModal
         show={showDelete}
