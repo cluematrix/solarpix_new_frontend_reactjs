@@ -73,7 +73,14 @@ export const sidebarItems = [
 export const tabConfig = {
   Lead: ["Source", "Requirement", "Unit", "Status"],
   Customer: ["Categories", "Custom Field"],
-  Tax: ["GST Treatment", "Tax Preference", "TDS", "Inter Tax", "Intra Tax"],
+  Tax: [
+    "GST Treatment",
+    "Tax Preference",
+    "TDS",
+    "TCS",
+    "Inter Tax",
+    "Intra Tax",
+  ],
   Account: ["Type"],
   Inventory: ["Reason"],
   Task: ["Type"],
