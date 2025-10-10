@@ -772,7 +772,7 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">Make</span>
                 </Link>
               </li>
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/stock-management-list"
@@ -792,7 +792,7 @@ const VerticalNav = memo((props) => {
                     Stock Management
                   </span>
                 </Link>
-              </li>
+              </li> */}
               {/* <li className="nav-item">
                 <Link
                   className={`${
