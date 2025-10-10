@@ -66,6 +66,7 @@ export const sidebarItems = [
   "Holiday",
   "Branch",
   "Company",
+  "Bank",
 ];
 
 // Tabs config –
@@ -89,6 +90,7 @@ export const tabConfig = {
   Holiday: ["Default Holiday"],
   Branch: ["Branch"],
   Company: ["Details"],
+  Bank: ["Details"],
 };
 
 export const typeOfMaterial = [
@@ -109,4 +111,9 @@ export const typeOfData = [
   { id: "5", name: "pdf" },
   { id: "6", name: "date" },
   { id: "7", name: "checkbox" },
+];
+
+export const accountTypes = [
+  { id: "1", name: "Current" },
+  { id: "2", name: "Saving" },
 ];
