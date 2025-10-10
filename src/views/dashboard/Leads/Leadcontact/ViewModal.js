@@ -1,161 +1,121 @@
 import React from "react";
-import { Modal, Row, Col } from "react-bootstrap";
+import { Modal, Row, Col, Card } from "react-bootstrap";
 
 const ViewModal = ({ show, handleClose, lead }) => {
   if (!lead) return null;
-  console.log("leadViewModal", lead);
-  // Compute display name based on customer type
+
   const displayName =
     lead.customer_type === "Business"
-      ? lead.name // company name
-      : [lead.salutation, lead.name].filter(Boolean).join(" "); // Individual: salutation + name
+      ? lead.name
+      : [lead.salutation, lead.name].filter(Boolean).join(" ");
+
+  const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString("en-GB") : "—";
+
+  const renderField = (label, value) => (
+    <Row className="mb-2">
+      <Col xs={5} className="fw-semibold text-muted">
+        {label}:
+      </Col>
+      <Col xs={7}>{value || "—"}</Col>
+    </Row>
+  );
 
   return (
     <Modal
       show={show}
       onHide={handleClose}
-      size="md"
+      size="lg"
       centered
       backdrop="static"
+      scrollable
     >
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-lighter fs-5">Lead Details</Modal.Title>
+      <Modal.Header closeButton className="border-bottom-0">
+        <Modal.Title className="fw-semibold fs-5 text-primary">
+          Lead Details
+        </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
-        <div className="px-2">
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Enquiry No.:
-            </Col>
-            <Col xs={7}>{lead.lead_number || lead.enquiry_number || "—"}</Col>
-          </Row>
 
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Customer Type:
-            </Col>
-            <Col xs={7}>{lead.customer_type || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Name:
-            </Col>
-            <Col xs={7}>{displayName || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Email:
-            </Col>
-            <Col xs={7}>{lead.email || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Contact:
-            </Col>
-            <Col xs={7}>{lead.contact || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Lead Source:
-            </Col>
-            <Col xs={7}>
-              {lead.lead_source_id?.lead_source ||
+      <Modal.Body className="px-4 py-3">
+        {/* ========== Lead Information Section ========== */}
+        <h6 className="fw-bold text-uppercase text-secondary mb-3">
+          Basic Information
+        </h6>
+        <Card className="shadow-sm border-0 mb-4">
+          <Card.Body>
+            {renderField(
+              "Enquiry No.",
+              lead.lead_number || lead.enquiry_number
+            )}
+            {renderField("Customer Type", lead.customer_type)}
+            {renderField("Name", displayName)}
+            {renderField("Email", lead.email)}
+            {renderField("Contact", lead.contact)}
+            {renderField(
+              "Lead Source",
+              lead.lead_source_id?.lead_source ||
                 lead.lead_source?.lead_source ||
-                lead.leadSource?.lead_source ||
-                "—"}
-            </Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Added By:
-            </Col>
-            <Col xs={7}>
-              {lead.added_by_id?.name ||
+                lead.leadSource?.lead_source
+            )}
+            {renderField(
+              "Added By",
+              lead.added_by_id?.name ||
                 lead.added_by?.name ||
-                lead.addedBy?.name ||
-                "—"}
-            </Col>
-          </Row>
+                lead.addedBy?.name
+            )}
+            {renderField(`Capacity (${lead?.Unit?.unit || ""})`, lead.capacity)}
+            {renderField("Priority", lead.priority)}
+            {renderField("Status", lead.status)}
+            {renderField("Last Call", formatDate(lead.last_call))}
+          </Card.Body>
+        </Card>
 
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Capacity ({lead?.Unit?.unit}):
-            </Col>
-            <Col xs={7}>{lead.capacity || "—"}</Col>
-          </Row>
+        {/* ========== Address Section ========== */}
+        <h6 className="fw-bold text-uppercase text-secondary mb-3">
+          Address Details
+        </h6>
+        <Row>
+          {/* Billing Address */}
+          <Col md={6}>
+            <Card className="border-0 shadow-sm mb-3 h-100">
+              <Card.Header className="bg-light fw-semibold text-muted py-2">
+                Billing Address
+              </Card.Header>
+              <Card.Body>
+                {renderField("City", lead.billing_city)}
+                {renderField("State", lead.billing_state)}
+                {renderField("Address", lead.billing_address)}
+                {renderField("Pincode", lead.billing_pincode)}
+              </Card.Body>
+            </Card>
+          </Col>
 
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              State:
-            </Col>
-            <Col xs={7}>{lead.state || "—"}</Col>
-          </Row>
+          {/* Shipping Address */}
+          <Col md={6}>
+            <Card className="border-0 shadow-sm mb-3 h-100">
+              <Card.Header className="bg-light fw-semibold text-muted py-2">
+                Shipping Address
+              </Card.Header>
+              <Card.Body>
+                {renderField("City", lead.shipping_city)}
+                {renderField("State", lead.shipping_state)}
+                {renderField("Address", lead.shipping_address)}
+                {renderField("Pincode", lead.shipping_pincode)}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              City:
-            </Col>
-            <Col xs={7}>{lead.city || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Pin Code:
-            </Col>
-            <Col xs={7}>{lead.pincode || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Address:
-            </Col>
-            <Col xs={7}>{lead.address || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Company Remark:
-            </Col>
-            <Col xs={7}>{lead.company_remark || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Customer Remark:
-            </Col>
-            <Col xs={7}>{lead.customer_remark || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Last Call:
-            </Col>
-            <Col xs={7}>
-              {lead.last_call
-                ? new Date(lead.last_call).toLocaleDateString("en-GB") // dd/mm/yyyy
-                : "—"}
-            </Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Priority:
-            </Col>
-            <Col xs={7}>{lead.priority || "—"}</Col>
-          </Row>
-
-          <Row className="mb-2">
-            <Col xs={5} className="fw-semibold text-muted">
-              Status:
-            </Col>
-            <Col xs={7}>{lead.status || "—"}</Col>
-          </Row>
-        </div>
+        {/* ========== Remarks Section ========== */}
+        <h6 className="fw-bold text-uppercase text-secondary mb-3 mt-3">
+          Remarks
+        </h6>
+        <Card className="shadow-sm border-0">
+          <Card.Body>
+            {renderField("Company Remark", lead.company_remark)}
+            {renderField("Customer Remark", lead.customer_remark)}
+          </Card.Body>
+        </Card>
       </Modal.Body>
     </Modal>
   );

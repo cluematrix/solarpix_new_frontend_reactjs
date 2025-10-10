@@ -37,6 +37,7 @@ import InterTaxList from "../Tax/InterTax/InterTaxList";
 import IntraTaxList from "../Tax/IntraTax/IntraTaxList";
 import CustomFieldList from "../Customer/CustomField/CustomFieldList";
 import CompanyList from "./Companys/CompanyList";
+import BankList from "../Bank/BankList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -278,6 +279,12 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Company" && activeTab === 0 && (
               <>
                 <CompanyList />
+              </>
+            )}
+
+            {activeSidebar === "Bank" && activeTab === 0 && (
+              <>
+                <BankList />
               </>
             )}
           </Box>
