@@ -38,6 +38,10 @@ import IntraTaxList from "../Tax/IntraTax/IntraTaxList";
 import CustomFieldList from "../Customer/CustomField/CustomFieldList";
 import CompanyList from "./Companys/CompanyList";
 import BankList from "../Bank/BankList";
+import TCSList from "../Tax/tcs/TCSList";
+import MSEBFieldList from "../work/MSEB/MSEBFieldList";
+import NetMeteringFieldList from "../work/NetMetering/NetMeteringFieldList";
+import NodalPointList from "../work/NodalPoint/NodalPointList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -222,6 +226,25 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
+            {activeSidebar === "Project" && activeTab === 2 && (
+              <>
+                <MSEBFieldList />
+              </>
+            )}
+
+            {/* Net Merering */}
+            {activeSidebar === "Project" && activeTab === 3 && (
+              <>
+                <NetMeteringFieldList />
+              </>
+            )}
+
+            {/*  Nodal Point Module */}
+            {activeSidebar === "Project" && activeTab === 4 && (
+              <>
+                <NodalPointList />
+              </>
+            )}
             {activeSidebar === "Project" && activeTab === 5 && (
               <>
                 <BillingMethodList />
@@ -249,10 +272,15 @@ export default function SettingsSidebarWithTabs() {
             )}
             {activeSidebar === "Tax" && activeTab === 3 && (
               <>
-                <InterTaxList />
+                <TCSList />
               </>
             )}
             {activeSidebar === "Tax" && activeTab === 4 && (
+              <>
+                <InterTaxList />
+              </>
+            )}
+            {activeSidebar === "Tax" && activeTab === 5 && (
               <>
                 <IntraTaxList />
               </>

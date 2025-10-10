@@ -117,6 +117,7 @@ import CustomerManagementList from "../views/dashboard/InventoryManagement/Wareh
 import StockNameList from "../views/dashboard/InventoryManagement/StockName/StockNameList";
 import StockManagementHisTable from "../views/dashboard/InventoryManagement/StockMaterial/StockManagementHisTable";
 import AddLead from "../views/dashboard/Leads/Leadcontact/AddLead";
+import AddDealsQt from "../views/dashboard/Leads/Deals/AddDealsQt";
 
 // employee profile 01 Sep
 
@@ -468,9 +469,13 @@ export const DefaultRouter = [
         element: <DealList />,
       },
 
+      // {
+      //   path: "/AddDeals",
+      //   element: <AddDeals />,
+      // },
       {
         path: "/AddDeals",
-        element: <AddDeals />,
+        element: <AddDealsQt />,
       },
       {
         path: "/edit-deal/:id",
