@@ -11,6 +11,7 @@ import {
 } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -20,7 +21,6 @@ import ViewModal from "./ViewModal";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import ReorderLeadStatusModal from "./ReorderLeadStatusModal";
 
 const LeadsList = () => {
   const [leadList, setLeadList] = useState([]);
@@ -44,39 +44,36 @@ const LeadsList = () => {
   const [itemsPerPage] = useState(10); // same as backend limit
   const [totalPages, setTotalPages] = useState(1);
 
-  // const [formData, setFormData] = useState({
-  //   customerType: "Individual",
-  //   companyName: "",
-  //   salutation: "",
-  //   name: "",
-  //   amount: "",
-  //   email: "",
-  //   contact: "",
-  //   leadSource: "",
-  //   addedBy: "",
-  //   leadOwner: "",
-  //   city: "",
-  //   state: "",
-  //   pincode: "",
-  //   reference: "",
-  //   address: "",
-  //   requirementType: "",
-  //   capacity: "",
-  //   status: "Progress",
-  //   company_remark: "",
-  //   customer_remark: "",
-  //   last_call: "",
-  //   priority: "",
-  //   requirement_lead_id: "",
-  // });
+  const [formData, setFormData] = useState({
+    customerType: "Individual",
+    companyName: "",
+    salutation: "",
+    name: "",
+    amount: "",
+    email: "",
+    contact: "",
+    leadSource: "",
+    addedBy: "",
+    leadOwner: "",
+    city: "",
+    state: "",
+    pincode: "",
+    reference: "",
+    address: "",
+    requirementType: "",
+    capacity: "",
+    status: "Progress",
+    company_remark: "",
+    customer_remark: "",
+    last_call: "",
+    priority: "",
+    requirement_lead_id: "",
+  });
 
   const [editIndex, setEditIndex] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
-
-  // for drag dropdown
-  const [showReorder, setShowReorder] = useState(false);
 
   // 🔑 Fetch Permission
   const FETCHPERMISSION = async () => {
@@ -174,122 +171,122 @@ const LeadsList = () => {
     fetchLeads(currentPage);
   }, [currentPage]);
 
-  // const resetForm = () => {
-  //   setFormData({
-  //     customerType: "Individual",
-  //     companyName: "",
-  //     salutation: "",
-  //     name: "",
-  //     amount: "",
-  //     email: "",
-  //     contact: "",
-  //     leadSource: "",
-  //     addedBy: "",
-  //     leadOwner: "",
-  //     city: "",
-  //     state: "",
-  //     pincode: "",
-  //     reference: "",
-  //     address: "",
-  //     requirementType: "",
-  //     capacity: "",
-  //     status: "Progress",
-  //     company_remark: "",
-  //     customer_remark: "",
-  //     last_call: "",
-  //     priority: "",
-  //     requirement_lead_id: "",
-  //     unit_id: "",
-  //   });
-  //   setEditIndex(null);
-  // };
+  const resetForm = () => {
+    setFormData({
+      customerType: "Individual",
+      companyName: "",
+      salutation: "",
+      name: "",
+      amount: "",
+      email: "",
+      contact: "",
+      leadSource: "",
+      addedBy: "",
+      leadOwner: "",
+      city: "",
+      state: "",
+      pincode: "",
+      reference: "",
+      address: "",
+      requirementType: "",
+      capacity: "",
+      status: "Progress",
+      company_remark: "",
+      customer_remark: "",
+      last_call: "",
+      priority: "",
+      requirement_lead_id: "",
+      unit_id: "",
+    });
+    setEditIndex(null);
+  };
 
   // Save lead
-  // const handleAddOrUpdateLead = async (data) => {
-  //   console.log("dataEditTime", data);
-  //   const payload = {
-  //     customer_type: data.customerType,
-  //     name: data.name,
-  //     company_name: data.customerType === "Business" ? data.companyName : null,
-  //     salutation: data.customerType === "Individual" ? data.salutation : null,
-  //     email: data.email,
-  //     contact: data.contact,
-  //     lead_source: Number(data.leadSource),
-  //     added_by: Number(data.addedBy),
-  //     lead_owner: data.leadOwner ? Number(data.leadOwner) : null,
-  //     city: data.city,
-  //     state: data.state,
-  //     amount: data.amount ? Number(data.amount) : null,
-  //     pincode: data.pincode,
-  //     reference: data.reference,
-  //     address: data.address,
-  //     requirement_type_id: Number(data.requirementType) || null,
-  //     capacity: data.capacity ? Number(data.capacity) : null,
-  //     status: data.status,
-  //     company_remark: data.company_remark,
-  //     customer_remark: data.customer_remark,
-  //     last_call: data.last_call,
-  //     priority: data.priority,
-  //     requirement_lead_id: data.requirement_lead_id || "",
-  //     unit_id: data.unit_id || "",
-  //   };
+  const handleAddOrUpdateLead = async (data) => {
+    console.log("dataEditTime", data);
+    const payload = {
+      customer_type: data.customerType,
+      name: data.name,
+      company_name: data.customerType === "Business" ? data.companyName : null,
+      salutation: data.customerType === "Individual" ? data.salutation : null,
+      email: data.email,
+      contact: data.contact,
+      lead_source: Number(data.leadSource),
+      added_by: Number(data.addedBy),
+      lead_owner: data.leadOwner ? Number(data.leadOwner) : null,
+      city: data.city,
+      state: data.state,
+      amount: data.amount ? Number(data.amount) : null,
+      pincode: data.pincode,
+      reference: data.reference,
+      address: data.address,
+      requirement_type_id: Number(data.requirementType) || null,
+      capacity: data.capacity ? Number(data.capacity) : null,
+      status: data.status,
+      company_remark: data.company_remark,
+      customer_remark: data.customer_remark,
+      last_call: data.last_call,
+      priority: data.priority,
+      requirement_lead_id: data.requirement_lead_id || "",
+      unit_id: data.unit_id || "",
+    };
 
-  //   try {
-  //     if (editIndex !== null) {
-  //       setLoadingAPI(true);
-  //       await api.put(`/api/v1/admin/lead/${leadList[editIndex].id}`, payload);
-  //       successToast("Lead updated successfully");
-  //     } else {
-  //       setLoadingAPI(true);
-  //       await api.post("/api/v1/admin/lead", payload);
-  //       successToast("Lead created successfully");
-  //     }
-  //     fetchLeads();
-  //     setShowAddEdit(false);
-  //     resetForm();
-  //   } catch (err) {
-  //     setLoadingAPI(false);
-  //     console.error("Error saving lead:", err);
-  //     errorToast("Error while adding the lead");
-  //   } finally {
-  //     setLoadingAPI(false);
-  //   }
-  // };
+    try {
+      if (editIndex !== null) {
+        setLoadingAPI(true);
+        await api.put(`/api/v1/admin/lead/${leadList[editIndex].id}`, payload);
+        successToast("Lead updated successfully");
+      } else {
+        setLoadingAPI(true);
+        await api.post("/api/v1/admin/lead", payload);
+        successToast("Lead created successfully");
+      }
+      fetchLeads();
+      setShowAddEdit(false);
+      resetForm();
+    } catch (err) {
+      setLoadingAPI(false);
+      console.error("Error saving lead:", err);
+      errorToast("Error while adding the lead");
+    } finally {
+      setLoadingAPI(false);
+    }
+  };
 
-  // const handleEdit = (index) => {
-  //   const lead = leadList[index];
-  //   console.log("leadEdit", lead);
-  //   setFormData({
-  //     customerType: lead.customer_type || "Individual",
-  //     companyName: lead.company_name || "",
-  //     name: lead.name || "",
-  //     salutation:
-  //       lead.customer_type === "Individual" ? lead.salutation || "" : "",
-  //     amount: lead.amount || "",
-  //     email: lead.email || "",
-  //     contact: lead.contact || "",
-  //     leadSource: lead.lead_source?.id || lead.lead_source || "",
-  //     addedBy: lead.added_by?.id || lead.added_by || "",
-  //     leadOwner: lead.lead_owner?.id || lead.lead_owner || "",
-  //     city: lead.city || "",
-  //     state: lead.state || "",
-  //     pincode: lead.pincode || "",
-  //     reference: lead.reference || "",
-  //     address: lead.address || "",
-  //     requirementType:
-  //       lead.requirement_type_id?.id || lead.requirement_type_id || "",
-  //     capacity: lead.capacity || "",
-  //     status: lead.status || "",
-  //     company_remark: lead.company_remark || "",
-  //     customer_remark: lead.customer_remark || "",
-  //     last_call: lead.last_call || "",
-  //     priority: lead.priority || "",
-  //     requirement_lead_id: lead.requirement_lead_id || "",
-  //     unit_id: lead.unit_id || "",
-  //   });
-  //   setEditIndex(index);
-  //   setShowAddEdit(true);
-  // };
+  const handleEdit = (index) => {
+    const lead = leadList[index];
+    console.log("leadEdit", lead);
+    setFormData({
+      customerType: lead.customer_type || "Individual",
+      companyName: lead.company_name || "",
+      name: lead.name || "",
+      salutation:
+        lead.customer_type === "Individual" ? lead.salutation || "" : "",
+      amount: lead.amount || "",
+      email: lead.email || "",
+      contact: lead.contact || "",
+      leadSource: lead.lead_source?.id || lead.lead_source || "",
+      addedBy: lead.added_by?.id || lead.added_by || "",
+      leadOwner: lead.lead_owner?.id || lead.lead_owner || "",
+      city: lead.city || "",
+      state: lead.state || "",
+      pincode: lead.pincode || "",
+      reference: lead.reference || "",
+      address: lead.address || "",
+      requirementType:
+        lead.requirement_type_id?.id || lead.requirement_type_id || "",
+      capacity: lead.capacity || "",
+      status: lead.status || "",
+      company_remark: lead.company_remark || "",
+      customer_remark: lead.customer_remark || "",
+      last_call: lead.last_call || "",
+      priority: lead.priority || "",
+      requirement_lead_id: lead.requirement_lead_id || "",
+      unit_id: lead.unit_id || "",
+    });
+    setEditIndex(index);
+    setShowAddEdit(true);
+  };
 
   const handleDeleteConfirm = async () => {
     if (deleteIndex !== null) {
@@ -348,7 +345,8 @@ const LeadsList = () => {
                 <Button
                   className="btn-primary"
                   onClick={() => {
-                    navigate("/add-lead");
+                    resetForm();
+                    setShowAddEdit(true);
                   }}
                 >
                   + New
@@ -441,7 +439,7 @@ const LeadsList = () => {
                             </td>
 
                             <td>
-                              {/* <Form.Select
+                              <Form.Select
                                 size="sm"
                                 value={item.status || "Progress"}
                                 onChange={async (e) => {
@@ -475,70 +473,7 @@ const LeadsList = () => {
                                     {option.icon} {option.leadStatus_name}
                                   </option>
                                 ))}
-                              </Form.Select> */}
-
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "6px",
-                                }}
-                              >
-                                <Form.Select
-                                  size="sm"
-                                  value={item.status || "Progress"}
-                                  onChange={async (e) => {
-                                    const newStatus = e.target.value;
-                                    try {
-                                      await api.put(
-                                        `/api/v1/admin/lead/${item.id}`,
-                                        {
-                                          ...item,
-                                          status: newStatus,
-                                        }
-                                      );
-                                      successToast(
-                                        "Status updated successfully"
-                                      );
-                                      setLeadList((prev) =>
-                                        prev.map((lead) =>
-                                          lead.id === item.id
-                                            ? { ...lead, status: newStatus }
-                                            : lead
-                                        )
-                                      );
-                                    } catch (err) {
-                                      console.error(
-                                        "Error updating status:",
-                                        err
-                                      );
-                                    }
-                                  }}
-                                >
-                                  {leadStatus.map((option) => (
-                                    <option key={option.id} value={option.name}>
-                                      {option.leadStatus_name}
-                                    </option>
-                                  ))}
-                                </Form.Select>
-
-                                {/* Small reorder button */}
-                                <Button
-                                  size="sm"
-                                  variant="outline-secondary"
-                                  onClick={() => setShowReorder(true)}
-                                >
-                                  ⚙️
-                                </Button>
-
-                                {/* Modal for drag-and-drop reorder */}
-                                <ReorderLeadStatusModal
-                                  show={showReorder}
-                                  onHide={() => setShowReorder(false)}
-                                  leadStatus={leadStatus}
-                                  setLeadStatus={setLeadStatus}
-                                />
-                              </div>
+                              </Form.Select>
                             </td>
 
                             <td>
@@ -553,9 +488,7 @@ const LeadsList = () => {
                               />
                               {permissions.edit && (
                                 <CreateTwoToneIcon
-                                  onClick={() => {
-                                    navigate(`/update-lead/${item.id}`);
-                                  }}
+                                  onClick={() => handleEdit(idx)}
                                   color="primary"
                                   style={{ cursor: "pointer" }}
                                 />
@@ -570,7 +503,7 @@ const LeadsList = () => {
                                   style={{ cursor: "pointer" }}
                                 />
                               )}
-                              {clients.some(
+                              {/* {clients.some(
                                 (client) => client.lead_id === item.id
                               ) ? (
                                 <Tooltip title="Already Customer">
@@ -597,7 +530,7 @@ const LeadsList = () => {
                                     }
                                   />
                                 </Tooltip>
-                              )}
+                              )} */}
                             </td>
                           </tr>
                         ))
@@ -649,7 +582,7 @@ const LeadsList = () => {
       </Row>
 
       {/* Add/Edit Modal */}
-      {/* <AddEditModal
+      <AddEditModal
         show={showAddEdit}
         handleClose={() => {
           setShowAddEdit(false);
@@ -660,7 +593,7 @@ const LeadsList = () => {
         onSave={handleAddOrUpdateLead}
         editData={editIndex !== null}
         loadingAPI={loadingAPI}
-      /> */}
+      />
       <ViewModal
         show={showView}
         handleClose={() => {
