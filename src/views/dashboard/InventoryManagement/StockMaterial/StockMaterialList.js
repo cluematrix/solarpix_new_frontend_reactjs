@@ -258,7 +258,7 @@ const StockMaterialList = () => {
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
                           <td>{item.material}</td>
-                          <td>{item?.stockName?.InventoryCat.category}</td>
+                          <td>{item?.stockName?.InventoryCat?.category}</td>
                           {/* <td>{item.balance}</td> */}
                           <td style={{ minWidth: "90px" }}>
                             <span
