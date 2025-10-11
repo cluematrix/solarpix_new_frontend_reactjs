@@ -1,261 +1,149 @@
-import React, { useEffect, useState } from "react";
-import { Modal, Button, Row, Col, Form } from "react-bootstrap";
-import api from "../../../../api/axios";
-import { errorToast } from "../../../../components/Toast/errorToast";
+import React from "react";
+import { Modal, Row, Col, Form, Badge } from "react-bootstrap";
 
 const ViewModal = ({ show, handleClose, item }) => {
-  const [metaData, setMetaData] = useState({
-    unitData: [],
-    taxPreferenceData: [],
-    venderData: [],
-    invCatData: [],
-    invTypeData: [],
-    warehouse: [],
-    intraTaxData: [],
-    interTaxData: [],
-    custData: [],
-    brandData: [],
-    stockNameData: [], // Added to store stock name data
-  });
-
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        setLoading(true);
-        const [
-          unitRes,
-          taxPrefRes,
-          vendorRes,
-          invCatRes,
-          invTypeRes,
-          warehouseRes,
-          intraTaxRes,
-          interTaxRes,
-          custRes,
-          brandRes,
-          stockNameRes, // Added stock name API call
-        ] = await Promise.all([
-          api.get("/api/v1/admin/unit"),
-          api.get("/api/v1/admin/taxPreference/active"),
-          api.get("/api/v1/admin/supplierManagement/active"),
-          api.get("/api/v1/admin/inventoryCategory/active"),
-          api.get("/api/v1/admin/inventoryType/active/pagination?page=1&limit=10"),
-          api.get("/api/v1/admin/branch"),
-          api.get("/api/v1/admin/intraTax/active"),
-          api.get("/api/v1/admin/interTax/active"),
-          api.get("/api/v1/admin/client/active"),
-          api.get("/api/v1/admin/brand/active"),
-          api.get("/api/v1/admin/stockName/active"), // Fetch active stock names
-        ]);
-
-        setMetaData({
-          unitData: unitRes?.data?.data?.filter((e) => e.isActive) || [],
-          taxPreferenceData: taxPrefRes.data.data || [],
-          venderData: vendorRes.data || [],
-          invCatData: invCatRes.data || [],
-          invTypeData: invTypeRes.data.data || [],
-          warehouse: warehouseRes.data.data || [],
-          intraTaxData: intraTaxRes.data.data || [],
-          interTaxData: interTaxRes.data.data || [],
-          custData: custRes.data.data || [],
-          brandData: brandRes.data || [],
-          stockNameData: stockNameRes.data.data || stockNameRes.data || [], // Handle different API response structures
-        });
-      } catch (error) {
-        errorToast("Error loading metadata");
-        console.error("Error fetching metadata:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (show) {
-      fetchAll();
-    }
-  }, [show]);
-
   if (!item) return null;
 
-  const taxPrefName = metaData.taxPreferenceData.find(
-    (d) => d.id === item.tax_preference_id
-  )?.name;
+  const formatCurrency = (value) =>
+    value !== undefined && value !== null ? `₹ ${value}` : "-";
 
-  const getLabel = (key, dataArray, labelKey = "name", valueKey = "id") => {
-    const found = dataArray.find((d) => d[valueKey] === item[key]);
-    return found ? found[labelKey] : "N/A";
-  };
-
-  if (loading) {
-    return (
-      <Modal show={show} onHide={handleClose} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>View Stock Material</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div>Loading...</div>
-        </Modal.Body>
-      </Modal>
-    );
-  }
+  const formatPercentage = (value) =>
+    value !== undefined && value !== null ? `${value}%` : "-";
 
   return (
-    <Modal show={show} onHide={handleClose} size="lg">
+    <Modal show={show} onHide={handleClose} size="lg" centered scrollable>
       <Modal.Header closeButton>
         <Modal.Title>View Stock Material</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Row className="mb-3">
           <Col md={4}>
-            <Form.Group>
-              <Form.Label>Quotation No</Form.Label>
-              <p>{item.short_code || "N/A"}</p>
-            </Form.Group>
+            <Form.Label>Type</Form.Label>
+            <Form.Control plaintext readOnly defaultValue={item.type || "-"} />
           </Col>
           <Col md={4}>
-            <Form.Group>
-              <Form.Label>Type</Form.Label>
-              <p>{item.type || "N/A"}</p>
-            </Form.Group>
+            <Form.Label>Item Name</Form.Label>
+            <Form.Control
+              plaintext
+              readOnly
+              defaultValue={item.stockName?.name || "-"}
+            />
           </Col>
           <Col md={4}>
-            <Form.Group>
-              <Form.Label>Direct Send</Form.Label>
-              <p>{item.direct_send || "N/A"}</p>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>{item.direct_send === "Warehouse" ? "Warehouse" : "Customer"}</Form.Label>
-              <p>
-                {item.direct_send === "Warehouse"
-                  ? getLabel("branch_id", metaData.warehouse, "branch_name", "id")
-                  : getLabel("client_id", metaData.custData, "name", "id")}
-              </p>
-            </Form.Group>
-          </Col>
-
-                  
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Stock Name</Form.Label>
-              <p>{getLabel("stock_name_id", metaData.stockNameData, "name", "id")}</p>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Make</Form.Label>
-              <p>{getLabel("brand_id", metaData.brandData, "brand_name", "id")}</p>
-            </Form.Group>
-          </Col>
-         
-        </Row>
-
-    
-
-        <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>{item.type === "Goods" ? "HSN Code" : "SAC Code"}</Form.Label>
-              <p>{item.type === "Goods" ? item.hsc_code : item.sac || "N/A"}</p>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Unit</Form.Label>
-              <p>{getLabel("unit_id", metaData.unitData, "unit", "id")}</p>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Tax Preference</Form.Label>
-              <p>{getLabel("tax_preference_id", metaData.taxPreferenceData, "name", "id")}</p>
-            </Form.Group>
+            <Form.Label>Make</Form.Label>
+            <Form.Control
+              plaintext
+              readOnly
+              defaultValue={item.brand?.brand_name || "-"}
+            />
           </Col>
         </Row>
 
         <Row className="mb-3">
-          {taxPrefName?.toLowerCase() === "non-taxable" && (
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label>Exemption Reason</Form.Label>
-                <p>{item.exemption_reason || "N/A"}</p>
-              </Form.Group>
-            </Col>
-          )}
           <Col md={4}>
-            <Form.Group>
-              <Form.Label>Balance</Form.Label>
-              <p>{item.balance || "N/A"}</p>
-            </Form.Group>
+            <Form.Label>
+              {item.type === "Goods" ? "HSN Code" : "SAC Code"}
+            </Form.Label>
+            <Form.Control
+              plaintext
+              readOnly
+              defaultValue={item.hsc_code || item.sac || "-"}
+            />
+          </Col>
+          <Col md={4}>
+            <Form.Label>Unit</Form.Label>
+            <Form.Control readOnly defaultValue={item.unit?.unit || "-"} />
+          </Col>
+          <Col md={4}>
+            <Form.Label>Tax Preference</Form.Label>
+            <div>
+              <Badge
+                bg={
+                  item.taxPreference?.name?.toLowerCase() === "non-taxable"
+                    ? "secondary"
+                    : "success"
+                }
+              >
+                {item.taxPreference?.name || "-"}
+              </Badge>
+            </div>
           </Col>
         </Row>
-        <hr />
 
-        <Row className="mb-3">
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Sales Information</Form.Label>
-              <p>{item.type_sales_info ? "Yes" : "No"}</p>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Selling Price</Form.Label>
-              <p>INR {item.sales_info_selling_price || "N/A"}</p>
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Purchase Information</Form.Label>
-              <p>{item.type_purchase_info ? "Yes" : "No"}</p>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Cost Price</Form.Label>
-              <p>INR {item.purchase_info_cost_price || "N/A"}</p>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Preferred Vendor</Form.Label>
-              <p>{getLabel("purchase_info_vendor_id", metaData.venderData, "name", "id")}</p>
-            </Form.Group>
-          </Col>
-        </Row>
-        <hr />
-
-        {taxPrefName?.toLowerCase() !== "non-taxable" && (
+        {item.taxPreference?.name?.toLowerCase() === "non-taxable" && (
           <Row className="mb-3">
-            <h6 className="mb-3">Default Tax Rates</h6>
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label>Intra State Tax Rate</Form.Label>
-                <p>
-                  {getLabel("intra_state_tax_rate_id", metaData.intraTaxData, "name", "id")}
-                  {metaData.intraTaxData.find((d) => d.id === item.intra_state_tax_rate_id)
-                    ?.intra_per
-                    ? ` (${metaData.intraTaxData.find((d) => d.id === item.intra_state_tax_rate_id).intra_per}%)`
-                    : ""}
-                </p>
-              </Form.Group>
+            <Col md={6}>
+              <Form.Label>Exemption Reason</Form.Label>
+              <Form.Control
+                plaintext
+                readOnly
+                defaultValue={item.exemption_reason || "-"}
+              />
             </Col>
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label>Inter State Tax Rate</Form.Label>
-                <p>
-                  {getLabel("inter_state_tax_rate_id", metaData.interTaxData, "name", "id")}
-                  {metaData.interTaxData.find((d) => d.id === item.inter_state_tax_rate_id)
-                    ?.inter_per
-                    ? ` (${metaData.interTaxData.find((d) => d.id === item.inter_state_tax_rate_id).inter_per}%)`
-                    : ""}
-                </p>
-              </Form.Group>
+          </Row>
+        )}
+
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Label>Selling Price</Form.Label>
+            <Form.Control
+              plaintext
+              readOnly
+              defaultValue={
+                item.type_sales_info
+                  ? formatCurrency(item.sales_info_selling_price)
+                  : "-"
+              }
+            />
+          </Col>
+          <Col md={6}>
+            <Form.Label>Cost Price</Form.Label>
+            <Form.Control
+              plaintext
+              readOnly
+              defaultValue={
+                item.type_purchase_info
+                  ? formatCurrency(item.purchase_info_cost_price)
+                  : "-"
+              }
+            />
+          </Col>
+        </Row>
+
+        {item.type_purchase_info && (
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Label>Preferred Vendor</Form.Label>
+              <Form.Control
+                plaintext
+                readOnly
+                defaultValue={item.SupplierManagement?.name || "-"}
+              />
+            </Col>
+          </Row>
+        )}
+
+        {item.taxPreference?.name?.toLowerCase() !== "non-taxable" && (
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Label>Intra State Tax Rate</Form.Label>
+              <Form.Control
+                plaintext
+                readOnly
+                defaultValue={formatPercentage(item.IntraTax?.intra_per)}
+              />
+            </Col>
+            <Col md={6}>
+              <Form.Label>Inter State Tax Rate</Form.Label>
+              <Form.Control
+                plaintext
+                readOnly
+                defaultValue={formatPercentage(item.InterTax?.inter_per)}
+              />
             </Col>
           </Row>
         )}
       </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Close
-        </Button>
-      </Modal.Footer>
     </Modal>
   );
 };

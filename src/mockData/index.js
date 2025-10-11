@@ -82,7 +82,7 @@ export const tabConfig = {
     "Intra Tax",
   ],
   Account: ["Type"],
-  Inventory: ["Reason"],
+  Inventory: ["Reason", "Inventory Category", "Inventory Type"],
   Task: ["Type"],
   Project: [
     "Category",
