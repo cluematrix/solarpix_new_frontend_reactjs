@@ -61,12 +61,17 @@ const InventoryTypeList = () => {
       console.log(pathname, "current pathname");
 
       // ✅ Match current role + route
+      // const matchedPermission = data.find(
+      //   (perm) =>
+      //     String(perm.role_id) === roleId &&
+      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
+      // );
+
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "inventory-type-list"
       );
-
       if (matchedPermission) {
         setPermissions({
           view: matchedPermission.view === true || matchedPermission.view === 1,

@@ -108,7 +108,7 @@ const AddDealsQt = ({ editData }) => {
     <>
       <Card className="p-4 shadow-sm">
         <Card.Header>
-          <h5 className="mb-0">Lead</h5>
+          <h5 className="mb-0">Deal</h5>
         </Card.Header>
         <hr />
         <Card.Body className="pt-0">
@@ -229,12 +229,12 @@ const AddDealsQt = ({ editData }) => {
               </Table>
             </div>
             <Row>
-              <Card.Body className="px-0 pt-3"></Card.Body>
               <div className="text-start">
                 <Button variant="primary" onClick={() => setShowModal(true)}>
                   + Item
                 </Button>
               </div>
+              <Card.Body className="px-0 pt-3"></Card.Body>
             </Row>
             {/* Save */}
             <div className="text-end mt-2">

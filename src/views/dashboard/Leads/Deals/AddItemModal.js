@@ -4,41 +4,29 @@ import api from "../../../../api/axios";
 
 const AddItemModal = ({ show, handleClose }) => {
   // loading for item category
-  const [loading, setLoading] = useState(false);
+  const [loadingCat, setLoadingCat] = useState(false);
 
   // item name - category
-  const [itemCategory, setItemCategory] = useState([]);
+  const [intCategory, setIntCategory] = useState([]);
 
-  // Pagination state for item category - like battery
-  const [currentPageCat, setCurrentPageCat] = useState(1);
-  const [itemsPerPageCat] = useState(10);
-  const [totalPagesCat, setTotalPagesCat] = useState(1);
-
-  const fetchItemCategory = async (page = 1) => {
+  const fetchIntCategory = async () => {
     try {
-      setLoading(true);
-      const res = await api.get(
-        `/api/v1/admin/stockName/active/pagination?page=${page}&limit=${itemsPerPageCat}`
-      );
+      setLoadingCat(true);
+      const res = await api.get("/api/v1/admin/inventoryCategory/active");
 
-      setItemCategory(res.data?.data || []);
-
-      //  Extract pagination info properly
-      const pagination = res.data?.pagination;
-
-      if (pagination) {
-        setTotalPagesCat(pagination.totalPages || 1);
-      }
+      setIntCategory(res.data || []);
     } catch (err) {
       console.error("Error fetching leads:", err);
     } finally {
-      setLoading(false);
+      setLoadingCat(false);
     }
   };
 
   useEffect(() => {
-    fetchItemCategory(currentPageCat);
-  }, [currentPageCat]);
+    fetchIntCategory();
+  }, []);
+
+  console.log("intCategory", intCategory);
 
   return (
     <Modal
@@ -53,7 +41,7 @@ const AddItemModal = ({ show, handleClose }) => {
       </Modal.Header>
 
       <Modal.Body>
-        {loading ? (
+        {loadingCat ? (
           <div className="loader-div text-center py-4">
             <Spinner animation="border" className="spinner" />
           </div>
@@ -70,47 +58,23 @@ const AddItemModal = ({ show, handleClose }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {itemCategory?.length === 0 ? (
+                      {intCategory?.length === 0 ? (
                         <tr>
                           <td colSpan="6" className="text-center">
-                            No Item Available
+                            No Item Category Available
                           </td>
                         </tr>
                       ) : (
-                        itemCategory.map((item, idx) => (
+                        intCategory.map((item, idx) => (
                           <tr key={item.id || item._id}>
-                            <td>
-                              {(currentPageCat - 1) * itemsPerPageCat + idx + 1}
-                            </td>
-                            <td>{item.name}</td>
+                            <td>{idx + 1}</td>
+                            <td>{item.category}</td>
                           </tr>
                         ))
                       )}
                     </tbody>
                   </Table>
                 </div>
-
-                {totalPagesCat > 1 && (
-                  <Pagination className="justify-content-center mt-3">
-                    <Pagination.First
-                      onClick={() => setCurrentPageCat(1)}
-                      disabled={currentPageCat === 1}
-                    />
-                    {[...Array(totalPagesCat)].map((_, i) => (
-                      <Pagination.Item
-                        key={i + 1}
-                        active={i + 1 === currentPageCat}
-                        onClick={() => setCurrentPageCat(i + 1)}
-                      >
-                        {i + 1}
-                      </Pagination.Item>
-                    ))}
-                    <Pagination.Last
-                      onClick={() => setCurrentPageCat(totalPagesCat)}
-                      disabled={currentPageCat === totalPagesCat}
-                    />
-                  </Pagination>
-                )}
               </Col>
               <Col md={8}>item according to item category</Col>
             </Row>

@@ -332,7 +332,7 @@ const TaxPreferenceList = () => {
         show={showAddEdit}
         handleClose={resetForm}
         gstName={taxName}
-        setGstName={setTaxName}
+        setTaxName={setTaxName}
         gstDesc={""} // Not needed here
         setGstDesc={() => {}}
         onSave={handleAddOrUpdate}

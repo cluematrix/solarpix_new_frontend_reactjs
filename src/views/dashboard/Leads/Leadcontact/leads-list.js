@@ -1,3 +1,4 @@
+// ✅ File: LeadsList.jsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -11,142 +12,136 @@ import {
 } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
+import ViewModal from "./ViewModal";
 import api from "../../../../api/axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import Tooltip from "@mui/material/Tooltip";
-import ViewModal from "./ViewModal";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import ReorderLeadStatusModal from "./ReorderLeadStatusModal";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const LeadsList = () => {
   const [leadList, setLeadList] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [clients, setClients] = useState([]);
+  const [leadStatus, setLeadStatus] = useState([]);
+  const [permissions, setPermissions] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [loadingAPI, setLoadingAPI] = useState(false);
-  const [leadStatus, setLeadStatus] = useState([]);
+
+  const [showAddEdit, setShowAddEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [showView, setShowView] = useState(false);
+
+  const [editIndex, setEditIndex] = useState(null);
+  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [viewData, setViewData] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const [showView, setShowView] = useState(false);
-  const [viewData, setViewData] = useState(null);
+  const [formData, setFormData] = useState({
+    customerType: "Individual",
+    companyName: "",
+    salutation: "",
+    name: "",
+    amount: "",
+    email: "",
+    contact: "",
+    leadSource: "",
+    addedBy: "",
+    leadOwner: "",
+    city: "",
+    state: "",
+    pincode: "",
+    reference: "",
+    address: "",
+    requirementType: "",
+    capacity: "",
+    status: "Progress",
+    company_remark: "",
+    customer_remark: "",
+    last_call: "",
+    priority: "",
+    requirement_lead_id: "",
+  });
 
-  const [permissions, setPermissions] = useState(null);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // same as backend limit
-  const [totalPages, setTotalPages] = useState(1);
-
-  // const [formData, setFormData] = useState({
-  //   customerType: "Individual",
-  //   companyName: "",
-  //   salutation: "",
-  //   name: "",
-  //   amount: "",
-  //   email: "",
-  //   contact: "",
-  //   leadSource: "",
-  //   addedBy: "",
-  //   leadOwner: "",
-  //   city: "",
-  //   state: "",
-  //   pincode: "",
-  //   reference: "",
-  //   address: "",
-  //   requirementType: "",
-  //   capacity: "",
-  //   status: "Progress",
-  //   company_remark: "",
-  //   customer_remark: "",
-  //   last_call: "",
-  //   priority: "",
-  //   requirement_lead_id: "",
-  // });
-
-  const [editIndex, setEditIndex] = useState(null);
-  const [showAddEdit, setShowAddEdit] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
-
-  // for drag dropdown
-  const [showReorder, setShowReorder] = useState(false);
-
-  // 🔑 Fetch Permission
-  const FETCHPERMISSION = async () => {
+  // 🔹 Fetch Permissions
+  const fetchPermissions = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-      let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.data)
+        ? res.data.data
+        : [];
 
       const roleId = String(sessionStorage.getItem("roleId"));
-
-      const matchedPermission = data.find(
+      const matched = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
           perm.route?.toLowerCase() === pathname?.toLowerCase()
       );
 
-      if (matchedPermission) {
+      if (matched) {
         setPermissions({
-          view: matchedPermission.view === true || matchedPermission.view === 1,
-          add: matchedPermission.add === true || matchedPermission.add === 1,
-          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
-          del: matchedPermission.del === true || matchedPermission.del === 1,
+          view: matched.view === true || matched.view === 1,
+          add: matched.add === true || matched.add === 1,
+          edit: matched.edit === true || matched.edit === 1,
+          del: matched.del === true || matched.del === 1,
         });
       } else {
         setPermissions(null);
       }
     } catch (err) {
-      console.error("Error fetching roles:", err);
+      console.error("Error fetching permissions:", err);
       setPermissions(null);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    setLoading(true);
-    FETCHPERMISSION();
-  }, [pathname]);
-
-  // Convert Lead to Customer
-  const handleConvertToCustomer = (lead) => {
-    navigate("/add-customer", { state: { leadData: lead } });
-  };
-
-  // Fetch dropdowns
+  // 🔹 Fetch Lead Dropdowns (Except Status)
   const fetchDropdowns = async () => {
     try {
-      const [leadRes, empRes, cliRes, statusRes] = await Promise.all([
+      const [leadRes, empRes, cliRes] = await Promise.all([
         api.get("/api/v1/admin/leadSource/active"),
         api.get("/api/v1/admin/employee/active"),
         api.get("/api/v1/admin/client/active"),
-        api.get("/api/v1/admin/leadStatus/active"),
       ]);
 
       setLeadSources(leadRes.data || []);
       if (empRes.data?.success) setEmployees(empRes.data.data || []);
       if (cliRes.data?.success) setClients(cliRes.data.data || []);
-      setLeadStatus(statusRes.data.data || []);
-
-      console.log("statusRes", statusRes);
     } catch (err) {
       console.error("Error fetching dropdowns:", err);
     }
   };
 
-  // Fetch Leads
+  // 🔹 Fetch Lead Status Separately
+  const fetchLeadStatus = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/leadStatus/active");
+      if (res.data?.data) {
+        setLeadStatus(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setLeadStatus(res.data);
+      } else {
+        setLeadStatus([]);
+      }
+    } catch (err) {
+      console.error("Error fetching lead status:", err);
+    }
+  };
+
+  // 🔹 Fetch Leads with Pagination
   const fetchLeads = async (page = 1) => {
     try {
       setLoading(true);
@@ -154,13 +149,9 @@ const LeadsList = () => {
         `/api/v1/admin/lead/pagination?page=${page}&limit=${itemsPerPage}`
       );
 
-      // ✅ Adjust this based on your backend response
       setLeadList(res.data?.data || []);
-      setTotalPages(res.data?.totalPages || 1);
-      // calculate totalCount from itemPerPage
-      if (res.data?.pagination.total) {
-        console.log("totalPageFun", res?.data?.pagination?.total);
-        setTotalPages(Math.ceil(res?.data?.pagination?.total / itemsPerPage));
+      if (res.data?.pagination?.total) {
+        setTotalPages(Math.ceil(res.data.pagination.total / itemsPerPage));
       }
     } catch (err) {
       console.error("Error fetching leads:", err);
@@ -169,129 +160,92 @@ const LeadsList = () => {
     }
   };
 
-  console.log("totalPage", totalPages);
-  useEffect(() => {
-    fetchDropdowns();
-    fetchLeads(currentPage);
-  }, [currentPage]);
+  // 🔹 Convert Lead to Customer
+  const handleConvertToCustomer = (lead) => {
+    navigate("/add-customer", { state: { leadData: lead } });
+  };
 
-  // const resetForm = () => {
-  //   setFormData({
-  //     customerType: "Individual",
-  //     companyName: "",
-  //     salutation: "",
-  //     name: "",
-  //     amount: "",
-  //     email: "",
-  //     contact: "",
-  //     leadSource: "",
-  //     addedBy: "",
-  //     leadOwner: "",
-  //     city: "",
-  //     state: "",
-  //     pincode: "",
-  //     reference: "",
-  //     address: "",
-  //     requirementType: "",
-  //     capacity: "",
-  //     status: "Progress",
-  //     company_remark: "",
-  //     customer_remark: "",
-  //     last_call: "",
-  //     priority: "",
-  //     requirement_lead_id: "",
-  //     unit_id: "",
-  //   });
-  //   setEditIndex(null);
-  // };
+  // 🔹 Reset Form
+  const resetForm = () => {
+    setFormData({
+      customerType: "Individual",
+      companyName: "",
+      salutation: "",
+      name: "",
+      amount: "",
+      email: "",
+      contact: "",
+      leadSource: "",
+      addedBy: "",
+      leadOwner: "",
+      city: "",
+      state: "",
+      pincode: "",
+      reference: "",
+      address: "",
+      requirementType: "",
+      capacity: "",
+      status: "Progress",
+      company_remark: "",
+      customer_remark: "",
+      last_call: "",
+      priority: "",
+      requirement_lead_id: "",
+      unit_id: "",
+    });
+    setEditIndex(null);
+  };
 
-  // Save lead
-  // const handleAddOrUpdateLead = async (data) => {
-  //   console.log("dataEditTime", data);
-  //   const payload = {
-  //     customer_type: data.customerType,
-  //     name: data.name,
-  //     company_name: data.customerType === "Business" ? data.companyName : null,
-  //     salutation: data.customerType === "Individual" ? data.salutation : null,
-  //     email: data.email,
-  //     contact: data.contact,
-  //     lead_source: Number(data.leadSource),
-  //     added_by: Number(data.addedBy),
-  //     lead_owner: data.leadOwner ? Number(data.leadOwner) : null,
-  //     city: data.city,
-  //     state: data.state,
-  //     amount: data.amount ? Number(data.amount) : null,
-  //     pincode: data.pincode,
-  //     reference: data.reference,
-  //     address: data.address,
-  //     requirement_type_id: Number(data.requirementType) || null,
-  //     capacity: data.capacity ? Number(data.capacity) : null,
-  //     status: data.status,
-  //     company_remark: data.company_remark,
-  //     customer_remark: data.customer_remark,
-  //     last_call: data.last_call,
-  //     priority: data.priority,
-  //     requirement_lead_id: data.requirement_lead_id || "",
-  //     unit_id: data.unit_id || "",
-  //   };
+  // 🔹 Save or Update Lead
+  const handleAddOrUpdateLead = async (data) => {
+    const payload = {
+      customer_type: data.customerType,
+      name: data.name,
+      company_name: data.customerType === "Business" ? data.companyName : null,
+      salutation: data.customerType === "Individual" ? data.salutation : null,
+      email: data.email,
+      contact: data.contact,
+      lead_source: Number(data.leadSource),
+      added_by: Number(data.addedBy),
+      lead_owner: data.leadOwner ? Number(data.leadOwner) : null,
+      city: data.city,
+      state: data.state,
+      amount: data.amount ? Number(data.amount) : null,
+      pincode: data.pincode,
+      reference: data.reference,
+      address: data.address,
+      requirement_type_id: Number(data.requirementType) || null,
+      capacity: data.capacity ? Number(data.capacity) : null,
+      status: data.status,
+      company_remark: data.company_remark,
+      customer_remark: data.customer_remark,
+      last_call: data.last_call,
+      priority: data.priority,
+      requirement_lead_id: data.requirement_lead_id || "",
+      unit_id: data.unit_id || "",
+    };
 
-  //   try {
-  //     if (editIndex !== null) {
-  //       setLoadingAPI(true);
-  //       await api.put(`/api/v1/admin/lead/${leadList[editIndex].id}`, payload);
-  //       successToast("Lead updated successfully");
-  //     } else {
-  //       setLoadingAPI(true);
-  //       await api.post("/api/v1/admin/lead", payload);
-  //       successToast("Lead created successfully");
-  //     }
-  //     fetchLeads();
-  //     setShowAddEdit(false);
-  //     resetForm();
-  //   } catch (err) {
-  //     setLoadingAPI(false);
-  //     console.error("Error saving lead:", err);
-  //     errorToast("Error while adding the lead");
-  //   } finally {
-  //     setLoadingAPI(false);
-  //   }
-  // };
+    try {
+      setLoadingAPI(true);
+      if (editIndex !== null) {
+        await api.put(`/api/v1/admin/lead/${leadList[editIndex].id}`, payload);
+        successToast("Lead updated successfully");
+      } else {
+        await api.post("/api/v1/admin/lead", payload);
+        successToast("Lead created successfully");
+      }
+      fetchLeads();
+      setShowAddEdit(false);
+      resetForm();
+    } catch (err) {
+      console.error("Error saving lead:", err);
+      errorToast("Error while adding the lead");
+    } finally {
+      setLoadingAPI(false);
+    }
+  };
 
-  // const handleEdit = (index) => {
-  //   const lead = leadList[index];
-  //   console.log("leadEdit", lead);
-  //   setFormData({
-  //     customerType: lead.customer_type || "Individual",
-  //     companyName: lead.company_name || "",
-  //     name: lead.name || "",
-  //     salutation:
-  //       lead.customer_type === "Individual" ? lead.salutation || "" : "",
-  //     amount: lead.amount || "",
-  //     email: lead.email || "",
-  //     contact: lead.contact || "",
-  //     leadSource: lead.lead_source?.id || lead.lead_source || "",
-  //     addedBy: lead.added_by?.id || lead.added_by || "",
-  //     leadOwner: lead.lead_owner?.id || lead.lead_owner || "",
-  //     city: lead.city || "",
-  //     state: lead.state || "",
-  //     pincode: lead.pincode || "",
-  //     reference: lead.reference || "",
-  //     address: lead.address || "",
-  //     requirementType:
-  //       lead.requirement_type_id?.id || lead.requirement_type_id || "",
-  //     capacity: lead.capacity || "",
-  //     status: lead.status || "",
-  //     company_remark: lead.company_remark || "",
-  //     customer_remark: lead.customer_remark || "",
-  //     last_call: lead.last_call || "",
-  //     priority: lead.priority || "",
-  //     requirement_lead_id: lead.requirement_lead_id || "",
-  //     unit_id: lead.unit_id || "",
-  //   });
-  //   setEditIndex(index);
-  //   setShowAddEdit(true);
-  // };
-
+  // 🔹 Delete Lead
   const handleDeleteConfirm = async () => {
     if (deleteIndex !== null) {
       try {
@@ -300,7 +254,6 @@ const LeadsList = () => {
         successToast("Lead deleted successfully");
         fetchLeads();
       } catch (err) {
-        setLoadingAPI(true);
         console.error("Error deleting lead:", err);
         errorToast("Error while deleting lead");
       } finally {
@@ -311,11 +264,54 @@ const LeadsList = () => {
     setDeleteIndex(null);
   };
 
-  // Pagination Logic
-  const indexOfLastItem = currentPage * totalPages;
-  const indexOfFirstItem = indexOfLastItem - totalPages;
+  // 🔹 Edit Lead
+  const handleEdit = (index) => {
+    const lead = leadList[index];
+    setFormData({
+      customerType: lead.customer_type || "Individual",
+      companyName: lead.company_name || "",
+      name: lead.name || "",
+      salutation:
+        lead.customer_type === "Individual" ? lead.salutation || "" : "",
+      amount: lead.amount || "",
+      email: lead.email || "",
+      contact: lead.contact || "",
+      leadSource: lead.lead_source?.id || lead.lead_source || "",
+      addedBy: lead.added_by?.id || lead.added_by || "",
+      leadOwner: lead.lead_owner?.id || lead.lead_owner || "",
+      city: lead.city || "",
+      state: lead.state || "",
+      pincode: lead.pincode || "",
+      reference: lead.reference || "",
+      address: lead.address || "",
+      requirementType:
+        lead.requirement_type_id?.id || lead.requirement_type_id || "",
+      capacity: lead.capacity || "",
+      status: lead.status || "",
+      company_remark: lead.company_remark || "",
+      customer_remark: lead.customer_remark || "",
+      last_call: lead.last_call || "",
+      priority: lead.priority || "",
+      requirement_lead_id: lead.requirement_lead_id || "",
+      unit_id: lead.unit_id || "",
+    });
+    setEditIndex(index);
+    setShowAddEdit(true);
+  };
 
-  // Loader while checking permissions
+  // 🔹 Lifecycle Calls
+  useEffect(() => {
+    setLoading(true);
+    fetchPermissions();
+  }, [pathname]);
+
+  useEffect(() => {
+    fetchDropdowns();
+    fetchLeadStatus(); // ✅ separate function for lead status
+    fetchLeads(currentPage);
+  }, [currentPage]);
+
+  // 🔹 Loader
   if (loading && !permissions) {
     return (
       <div className="loader-div">
@@ -335,7 +331,6 @@ const LeadsList = () => {
     );
   }
 
-  console.log("leadStatus", leadStatus);
   return (
     <>
       <Row className="mt-4">
@@ -343,14 +338,15 @@ const LeadsList = () => {
           <Card>
             <Card.Header
               className="d-flex justify-content-between"
-              style={{ padding: "15px 15px 0px 15px" }}
+              style={{ padding: "15px" }}
             >
               <h5 className="card-title fw-lighter">Leads Contact</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => {
-                    navigate("/add-lead");
+                    resetForm();
+                    setShowAddEdit(true);
                   }}
                 >
                   + New
@@ -372,7 +368,7 @@ const LeadsList = () => {
                         <th>Name</th>
                         <th>Company Name</th>
                         <th>Priority</th>
-                        <th>Status</th> {/* New column */}
+                        <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -384,7 +380,7 @@ const LeadsList = () => {
                           </td>
                         </tr>
                       ) : (
-                        leadList?.map((item, idx) => (
+                        leadList.map((item, idx) => (
                           <tr key={item.id}>
                             <td>
                               {(currentPage - 1) * itemsPerPage + idx + 1}
@@ -422,9 +418,6 @@ const LeadsList = () => {
                                       err
                                     );
                                   }
-                                  // errorToast(
-                                  //   "Error while updating the priority"
-                                  // );
                                 }}
                               >
                                 <option disabled value="">
@@ -443,24 +436,38 @@ const LeadsList = () => {
                             </td>
 
                             <td>
-                              {/* <Form.Select
+                              <Form.Select
                                 size="sm"
-                                value={item.status || "Progress"}
+                                value={item.lead_status_id || ""} // use ID as value, not name
                                 onChange={async (e) => {
-                                  const newStatus = e.target.value;
+                                  const newLeadStatusId = parseInt(
+                                    e.target.value
+                                  );
+                                  const selectedStatus = leadStatus.find(
+                                    (option) => option.id === newLeadStatusId
+                                  )?.leadStatus_name;
+
                                   try {
                                     await api.put(
                                       `/api/v1/admin/lead/${item.id}`,
                                       {
                                         ...item,
-                                        status: newStatus,
+                                        lead_status_id: newLeadStatusId,
+                                        status: selectedStatus, // optional — if your backend also needs name
                                       }
                                     );
+
                                     successToast("Status updated successfully");
+
+                                    // update local state
                                     setLeadList((prev) =>
                                       prev.map((lead) =>
                                         lead.id === item.id
-                                          ? { ...lead, status: newStatus }
+                                          ? {
+                                              ...lead,
+                                              status: selectedStatus,
+                                              lead_status_id: newLeadStatusId,
+                                            }
                                           : lead
                                       )
                                     );
@@ -472,81 +479,20 @@ const LeadsList = () => {
                                   }
                                 }}
                               >
+                                <option disabled value="">
+                                  -- Select Status --
+                                </option>
                                 {leadStatus?.map((option) => (
-                                  <option key={option.id} value={option.name}>
-                                    {option.icon} {option.leadStatus_name}
+                                  <option key={option.id} value={option.id}>
+                                    {option.leadStatus_name}
                                   </option>
                                 ))}
-                              </Form.Select> */}
-
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "6px",
-                                }}
-                              >
-                                <Form.Select
-                                  size="sm"
-                                  value={item.status || "Progress"}
-                                  onChange={async (e) => {
-                                    const newStatus = e.target.value;
-                                    try {
-                                      await api.put(
-                                        `/api/v1/admin/lead/${item.id}`,
-                                        {
-                                          ...item,
-                                          status: newStatus,
-                                        }
-                                      );
-                                      successToast(
-                                        "Status updated successfully"
-                                      );
-                                      setLeadList((prev) =>
-                                        prev.map((lead) =>
-                                          lead.id === item.id
-                                            ? { ...lead, status: newStatus }
-                                            : lead
-                                        )
-                                      );
-                                    } catch (err) {
-                                      console.error(
-                                        "Error updating status:",
-                                        err
-                                      );
-                                    }
-                                  }}
-                                >
-                                  {leadStatus.map((option) => (
-                                    <option key={option.id} value={option.name}>
-                                      {option.leadStatus_name}
-                                    </option>
-                                  ))}
-                                </Form.Select>
-
-                                {/* Small reorder button */}
-                                <Button
-                                  size="sm"
-                                  variant="outline-secondary"
-                                  onClick={() => setShowReorder(true)}
-                                >
-                                  ⚙️
-                                </Button>
-
-                                {/* Modal for drag-and-drop reorder */}
-                                <ReorderLeadStatusModal
-                                  show={showReorder}
-                                  onHide={() => setShowReorder(false)}
-                                  leadStatus={leadStatus}
-                                  setLeadStatus={setLeadStatus}
-                                />
-                              </div>
+                              </Form.Select>
                             </td>
 
                             <td>
                               <VisibilityIcon
                                 color="primary"
-                                size="sm"
                                 style={{ cursor: "pointer" }}
                                 onClick={() => {
                                   setViewData(item);
@@ -555,9 +501,7 @@ const LeadsList = () => {
                               />
                               {permissions.edit && (
                                 <CreateTwoToneIcon
-                                  onClick={() => {
-                                    navigate(`/update-lead/${item.id}`);
-                                  }}
+                                  onClick={() => handleEdit(idx)}
                                   color="primary"
                                   style={{ cursor: "pointer" }}
                                 />
@@ -565,40 +509,12 @@ const LeadsList = () => {
                               {permissions.del && (
                                 <DeleteRoundedIcon
                                   onClick={() => {
-                                    setDeleteIndex(indexOfFirstItem + idx);
+                                    setDeleteIndex(idx);
                                     setShowDelete(true);
                                   }}
                                   color="error"
                                   style={{ cursor: "pointer" }}
                                 />
-                              )}
-                              {clients.some(
-                                (client) => client.lead_id === item.id
-                              ) ? (
-                                <Tooltip title="Already Customer">
-                                  <span>
-                                    <PersonAddIcon
-                                      size="sm"
-                                      style={{
-                                        cursor: "not-allowed",
-                                        color: "gray",
-                                      }}
-                                    />
-                                  </span>
-                                </Tooltip>
-                              ) : (
-                                <Tooltip title="Add to Customer">
-                                  <PersonAddIcon
-                                    size="sm"
-                                    style={{
-                                      cursor: "pointer",
-                                      color: "blue",
-                                    }}
-                                    onClick={() =>
-                                      handleConvertToCustomer(item)
-                                    }
-                                  />
-                                </Tooltip>
                               )}
                             </td>
                           </tr>
@@ -607,19 +523,12 @@ const LeadsList = () => {
                     </tbody>
                   </Table>
 
-                  {/* 🔹 Pagination Controls */}
                   {totalPages > 1 && (
                     <Pagination className="justify-content-center mt-3">
                       <Pagination.First
                         onClick={() => setCurrentPage(1)}
                         disabled={currentPage === 1}
                       />
-                      {/* <Pagination.Prev
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(prev - 1, 1))
-                        }
-                        disabled={currentPage === 1}
-                      /> */}
                       {[...Array(totalPages)].map((_, i) => (
                         <Pagination.Item
                           key={i + 1}
@@ -629,14 +538,6 @@ const LeadsList = () => {
                           {i + 1}
                         </Pagination.Item>
                       ))}
-                      {/* <Pagination.Next
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, totalPages)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                      /> */}
                       <Pagination.Last
                         onClick={() => setCurrentPage(totalPages)}
                         disabled={currentPage === totalPages}
@@ -650,8 +551,8 @@ const LeadsList = () => {
         </Col>
       </Row>
 
-      {/* Add/Edit Modal */}
-      {/* <AddEditModal
+      {/* Modals */}
+      <AddEditModal
         show={showAddEdit}
         handleClose={() => {
           setShowAddEdit(false);
@@ -662,7 +563,8 @@ const LeadsList = () => {
         onSave={handleAddOrUpdateLead}
         editData={editIndex !== null}
         loadingAPI={loadingAPI}
-      /> */}
+      />
+
       <ViewModal
         show={showView}
         handleClose={() => {
@@ -671,6 +573,7 @@ const LeadsList = () => {
         }}
         lead={viewData}
       />
+
       <DeleteModal
         show={showDelete}
         handleClose={() => {

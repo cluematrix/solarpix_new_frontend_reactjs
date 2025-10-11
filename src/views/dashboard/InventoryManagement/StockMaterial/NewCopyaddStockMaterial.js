@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Form, Button, Row, Col, Card, Modal } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Row,
+  Col,
+  Card,
+  Modal,
+  Pagination,
+  Spinner,
+} from "react-bootstrap";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import { useFormik } from "formik";
@@ -12,28 +21,37 @@ import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import { typeOfMaterial } from "../../../../mockData";
 import CustomCheckbox from "../../../../components/Form/CustomCheckbox";
 
-const AddStockMaterial = ({ invCatData }) => {
-  const [materialList, setMaterialList] = useState([]);
+const AddStockMaterial = () => {
+  const [stockNames, setStockNames] = useState([]);
+  const [brandNames, setBrandNames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showSerialModal, setShowSerialModal] = useState(false);
+  const [showSerialModalCr, setShowSerialModalCr] = useState(false);
   const { id } = useParams();
   const [directSend, setDirectSend] = useState("Warehouse");
-  const [customerData, setCustomerData] = useState([]);
   const navigate = useNavigate();
+  const [serialData, setSerialData] = useState([]);
   const [metaData, setMetaData] = useState({
     unitData: [],
     taxPreferenceData: [],
     venderData: [],
-    invCatData: [],
-    invTypeData: [],
     warehouse: [],
     intraTaxData: [],
     interTaxData: [],
     custData: [],
   });
 
+  const [srNoPagList, setSrNoPagList] = useState([]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   const initialValues = {
     type: "Goods",
+    stock_name_id: "",
+    brand_id: "",
     material: "",
     balance: "",
     hsc_code: "",
@@ -47,45 +65,61 @@ const AddStockMaterial = ({ invCatData }) => {
     purchase_info_vendor_id: "",
     intra_state_tax_rate_id: "",
     inter_state_tax_rate_id: "",
-    inventory_category_id: "",
-    inventoryType_id: "",
     branch_id: "",
     client_id: "",
     serialNumbers: [],
     direct_send: "Warehouse",
     unit_id: "",
+
+    Credit: 0,
+    Debit: 0,
+    remark: "",
+    stock_material_id: "",
+    stock_particular_id: "",
+    supplier_management_id: "",
+    select_type: "Debit",
+    serialNumbersCr: [],
   };
 
-  const validationSchema = Yup.object().shape({
-    material: Yup.string().required("Material name is required"),
-    type: Yup.string().required("Type is required"),
-    tax_preference_id: Yup.string().required("Tax preference is required"),
-    sales_info_selling_price: Yup.string().required(
-      "Selling price is required"
-    ),
-    purchase_info_cost_price: Yup.string().required("Cost price is required"),
-    unit_id: Yup.string().required("Unit is required"),
-    ...(directSend === "Customer" && {
-      client_id: Yup.string().required("Customer is required"),
-    }),
-    ...(directSend === "Warehouse" && {
-      branch_id: Yup.string().required("Warehouse is required"),
-    }),
-  });
+  // const validationSchema = Yup.object().shape({
+  //   stock_name_id: Yup.string().required("Stock name is required"),
+  //   brand_id: Yup.string().required("Brand is required"),
+  //   type: Yup.string().required("Type is required"),
+  //   tax_preference_id: Yup.string().required("Tax preference is required"),
+  //   sales_info_selling_price: Yup.string().required(
+  //     "Selling price is required"
+  //   ),
+  //   purchase_info_cost_price: Yup.string().required("Cost price is required"),
+  //   unit_id: Yup.string().required("Unit is required"),
+  //   ...(directSend === "Customer" && {
+  //     client_id: Yup.string().required("Customer is required"),
+  //   }),
+  //   ...(directSend === "Warehouse" && {
+  //     branch_id: Yup.string().required("Warehouse is required"),
+  //   }),
+  // });
 
   const formik = useFormik({
     initialValues,
-    validationSchema,
+    // validationSchema,
     onSubmit: (values) => {
-      if (values.branch_id) {
-        delete values.client_id;
-      } else if (values.client_id) {
-        delete values.branch_id;
+      const selectedStock = stockNames.find(
+        (stock) => stock.id === Number(values.stock_name_id)
+      );
+      const submissionValues = {
+        ...values,
+        material: selectedStock ? selectedStock.name : "",
+      };
+
+      if (submissionValues.branch_id) {
+        delete submissionValues.client_id;
+      } else if (submissionValues.client_id) {
+        delete submissionValues.branch_id;
       }
-      console.log("onsubmitvalue", values);
+
       if (id) {
         api
-          .put(`/api/v1/admin/stockMaterial/${id}`, values)
+          .put(`/api/v1/admin/stockMaterial/${id}`, submissionValues)
           .then(() => {
             successToast("Stock material updated successfully");
             navigate("/stock-material-list");
@@ -98,7 +132,7 @@ const AddStockMaterial = ({ invCatData }) => {
           });
       } else {
         api
-          .post("/api/v1/admin/stockMaterial", values)
+          .post("/api/v1/admin/stockMaterial", submissionValues)
           .then(() => {
             successToast("Stock material added successfully");
             navigate("/stock-material-list");
@@ -115,7 +149,6 @@ const AddStockMaterial = ({ invCatData }) => {
 
   const {
     handleSubmit,
-    isSubmitting,
     values,
     handleBlur,
     handleChange,
@@ -124,21 +157,40 @@ const AddStockMaterial = ({ invCatData }) => {
     setFieldValue,
   } = formik;
 
-  const fetchStockMaterial = () => {
+  const fetchStockNames = () => {
     api
-      .get("/api/v1/admin/stockMaterial")
+      .get("/api/v1/admin/stockName/active")
       .then((res) => {
-        if (Array.isArray(res.data)) {
-          setMaterialList(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setMaterialList(res.data.data);
+        if (Array.isArray(res.data.data)) {
+          setStockNames(res.data.data);
         } else {
-          setMaterialList([]);
+          setStockNames([]);
+          console.warn("Stock names API returned non-array data:", res.data);
         }
       })
       .catch((err) => {
-        console.error("Error fetching stock material:", err);
-        setMaterialList([]);
+        console.error("Error fetching stock names:", err);
+        setStockNames([]);
+      });
+  };
+
+  const fetchBrand = () => {
+    api
+      .get("/api/v1/admin/brand/active")
+      .then((res) => {
+        // Handle different possible API response structures
+        const brandData = res.data.data || res.data || [];
+        if (Array.isArray(brandData)) {
+          setBrandNames(brandData);
+        } else {
+          setBrandNames([]);
+          console.warn("Brand API returned non-array data:", res.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching brands:", err);
+        setBrandNames([]);
+        errorToast("Failed to fetch brand data");
       });
   };
 
@@ -150,8 +202,6 @@ const AddStockMaterial = ({ invCatData }) => {
           unitRes,
           taxPrefRes,
           vendorRes,
-          invCatRes,
-          invTypeRes,
           warehouseRes,
           intraTaxRes,
           interTaxRes,
@@ -160,10 +210,6 @@ const AddStockMaterial = ({ invCatData }) => {
           api.get("/api/v1/admin/unit"),
           api.get("/api/v1/admin/taxPreference/active"),
           api.get("/api/v1/admin/supplierManagement/active"),
-          api.get("/api/v1/admin/inventoryCategory/active"),
-          api.get(
-            "/api/v1/admin/inventoryType/active/pagination?page=1&limit=10"
-          ),
           api.get("/api/v1/admin/branch"),
           api.get("/api/v1/admin/intraTax/active"),
           api.get("/api/v1/admin/interTax/active"),
@@ -174,8 +220,6 @@ const AddStockMaterial = ({ invCatData }) => {
           unitData: unitRes?.data?.data?.filter((e) => e.isActive) || [],
           taxPreferenceData: taxPrefRes.data.data || [],
           venderData: vendorRes.data || [],
-          invCatData: invCatRes.data || [],
-          invTypeData: invTypeRes.data.data || [],
           warehouse: warehouseRes.data.data || [],
           intraTaxData: intraTaxRes.data.data || [],
           interTaxData: interTaxRes.data.data || [],
@@ -190,78 +234,111 @@ const AddStockMaterial = ({ invCatData }) => {
     };
 
     fetchAll();
+    fetchStockNames();
+    fetchBrand();
   }, []);
 
-  useEffect(() => {
-    if (id) {
+  const fetchSerialNumberByStockMaterialIdPag = async (page = 1) => {
+    try {
       setLoading(true);
-      Promise.all([
-        api.get(`/api/v1/admin/stockMaterial/${id}`),
-        api.get(
-          `/api/v1/admin/stockMaterialSerialNumber/${id}/pagination?page=1&limit=10`
-        ),
-      ])
-        .then(([materialRes, serialRes]) => {
-          const data = materialRes.data; // Adjust if nested, e.g., materialRes.data.data
-          setFieldValue("type", data.type || "Goods");
-          setFieldValue("material", data.material || "");
-          setFieldValue("balance", data.balance || "");
-          setFieldValue("hsc_code", data.hsc_code || "");
-          setFieldValue("sac", data.sac || "");
-          setFieldValue("tax_preference_id", data.tax_preference_id || "");
-          setFieldValue("exemption_reason", data.exemption_reason || "");
-          setFieldValue("type_sales_info", data.type_sales_info || false);
-          setFieldValue("type_purchase_info", data.type_purchase_info || false);
-          setFieldValue(
-            "sales_info_selling_price",
-            data.sales_info_selling_price || ""
-          );
-          setFieldValue(
-            "purchase_info_cost_price",
-            data.purchase_info_cost_price || ""
-          );
-          setFieldValue(
-            "purchase_info_vendor_id",
-            data.purchase_info_vendor_id || ""
-          );
-          setFieldValue(
-            "intra_state_tax_rate_id",
-            data.intra_state_tax_rate_id || ""
-          );
-          setFieldValue(
-            "inter_state_tax_rate_id",
-            data.inter_state_tax_rate_id || ""
-          );
-          setFieldValue(
-            "inventory_category_id",
-            data.inventory_category_id || ""
-          );
-          setFieldValue("inventoryType_id", data.inventoryType_id || "");
-          setFieldValue("branch_id", data.branch_id || "");
-          setFieldValue("client_id", data.client_id || "");
-          setFieldValue("direct_send", data.direct_send || "Warehouse");
-          setFieldValue("unit_id", data.unit_id || "");
+      const res = await api.get(
+        `/api/v1/admin/stockMaterialSerialNumber/${id}/pagination?page=${page}&limit=${itemsPerPage}`
+      );
 
-          // Handle serial numbers from the serial number API
-          const serialNumbers =
-            serialRes.data.data.map((item) => item.serialNumber) || [];
-          setFieldValue("serialNumbers", serialNumbers);
-          setDirectSend(data.direct_send || "Warehouse");
-        })
-        .catch((err) => {
-          console.error(
-            "Error fetching stock material or serial numbers:",
-            err
-          );
-          errorToast(
-            err.response?.data?.message || "Failed to fetch stock material"
-          );
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      setSrNoPagList(res.data?.data || []);
+
+      const serialNumbers =
+        res.data.data.map((item) => item.serialNumber) || [];
+      setSerialData(res.data.data);
+      setFieldValue("serialNumbers", serialNumbers);
+
+      //  Extract pagination info properly
+      const pagination = res.data?.pagination;
+
+      if (pagination) {
+        setTotalPages(pagination.totalPages || 1);
+      }
+    } catch (err) {
+      console.error("Error fetching leads:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [id, setFieldValue]);
+  };
+
+  //  Fetch again when page changes
+  useEffect(() => {
+    fetchSerialNumberByStockMaterialIdPag(currentPage);
+  }, [currentPage]);
+
+  const fetchStockMaterial = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/api/v1/admin/stockMaterial/${id}`);
+      const data = res.data;
+
+      console.log("Stock Material API Response:", data);
+
+      // Sare fields ko directly yahan set kar do:
+      setFieldValue("type", data.type || "Goods");
+      setFieldValue("stock_name_id", data.stock_name_id || "");
+      setFieldValue("brand_id", data.brand_id || "");
+      setFieldValue("material", data.material || "");
+      setFieldValue("balance", data.balance || "");
+      setFieldValue("hsc_code", data.hsc_code || "");
+      setFieldValue("sac", data.sac || "");
+      setFieldValue("tax_preference_id", data.tax_preference_id || "");
+      setFieldValue("exemption_reason", data.exemption_reason || "");
+      setFieldValue("type_sales_info", data.type_sales_info || false);
+      setFieldValue("type_purchase_info", data.type_purchase_info || false);
+      setFieldValue(
+        "sales_info_selling_price",
+        data.sales_info_selling_price || ""
+      );
+      setFieldValue(
+        "purchase_info_cost_price",
+        data.purchase_info_cost_price || ""
+      );
+      setFieldValue(
+        "purchase_info_vendor_id",
+        data.purchase_info_vendor_id || ""
+      );
+      setFieldValue(
+        "intra_state_tax_rate_id",
+        data.intra_state_tax_rate_id || ""
+      );
+      setFieldValue(
+        "inter_state_tax_rate_id",
+        data.inter_state_tax_rate_id || ""
+      );
+      // setFieldValue("branch_id", data.branch_id || "");
+      // setFieldValue("client_id", data.client_id || "");
+      // setFieldValue("direct_send", data.direct_send || "Warehouse");
+      setFieldValue("unit_id", data.unit_id || "");
+
+      setDirectSend(data.direct_send || "Warehouse");
+
+      // Optional: Brand check
+      if (data.brand_id && !brandNames.find((b) => b.id === data.brand_id)) {
+        console.warn(
+          `Brand ID ${data.brand_id} not found in brandNames:`,
+          brandNames
+        );
+      }
+    } catch (err) {
+      console.error("Error fetching stock material:", err);
+      errorToast(
+        err.response?.data?.message || "Failed to fetch stock material"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!id) return;
+
+    fetchStockMaterial();
+  }, [id, setFieldValue, brandNames]);
 
   const taxPrefName = metaData?.taxPreferenceData?.find(
     (item) => item?.id === Number(values.tax_preference_id)
@@ -272,6 +349,7 @@ const AddStockMaterial = ({ invCatData }) => {
     { id: "2", name: "Customer" },
   ];
 
+  // for update serial number
   const handleSerialModalOpen = () => {
     const count = parseInt(values.balance, 10) || 0;
     let serials = values.serialNumbers;
@@ -290,11 +368,112 @@ const AddStockMaterial = ({ invCatData }) => {
     setFieldValue("serialNumbers", updated);
   };
 
+  const handleSaveSerialNumbers = async () => {
+    if (!id) {
+      setShowSerialModal(false);
+      return;
+    }
+    try {
+      // Backend ke liye payload bana rahe hain
+      const payload = {
+        updates: values.serialNumbers.map((serialNumber, index) => ({
+          id: serialData[index]?.id, // ← isme tumhe har serial ka id chahiye hoga
+          serialNumber,
+        })),
+      };
+
+      console.log("Sending payload:", payload);
+
+      await api.put(
+        "/api/v1/admin/stockMaterialSerialNumber/updateMultipleSrNo",
+        payload
+      );
+
+      successToast("Serial numbers updated successfully");
+      setShowSerialModal(false);
+    } catch (err) {
+      console.error("Error updating serial numbers:", err);
+      errorToast(
+        err.response?.data?.message || "Failed to update serial numbers"
+      );
+    }
+  };
+
+  // for add new serial number
+
+  // Auto-update serialNumbersCr length whenever Credit changes
+  useEffect(() => {
+    const count = parseInt(values.Credit, 10) || 0;
+    let serials = values.serialNumbersCr || [];
+
+    if (serials.length !== count) {
+      serials = Array(count)
+        .fill("")
+        .map((_, i) => serials[i] || "");
+      setFieldValue("serialNumbersCr", serials);
+    }
+  }, [values.Credit]); // <- runs whenever Credit changes
+
+  const handleSerialModalOpenCr = () => {
+    setShowSerialModalCr(true);
+  };
+
+  const handleSerialChangeCr = (index, value) => {
+    const updated = [...values.serialNumbersCr];
+    updated[index] = value;
+    setFieldValue("serialNumbersCr", updated);
+  };
+
+  const handleSaveSerialNumbersCr = async () => {
+    console.log(
+      "purchase_info_vendor_id",
+      typeof values.purchase_info_vendor_id
+    );
+    try {
+      const payload = {
+        Credit: values.Credit,
+        Debit: 0,
+        remark: "Purchase",
+        stock_material_id: Number(id),
+        stock_particular_id: 2,
+        supplier_management_id: values.purchase_info_vendor_id,
+        select_type: "Credit",
+        client_id: values.client_id,
+        serialNumbers: values.serialNumbersCr,
+      };
+
+      if (values.purchase_info_vendor_id) {
+        delete payload.client_id;
+      }
+      // if (values.client_id) {
+      //   delete payload.supplier_management_id;
+      // }
+
+      console.log("Sending payload srno:", payload);
+
+      await api.post("/api/v1/admin/stockManagement", payload);
+      fetchSerialNumberByStockMaterialIdPag(currentPage);
+      fetchStockMaterial();
+      successToast("Stock serial  number added successfully");
+      setShowSerialModalCr(false);
+    } catch (err) {
+      console.error("Error adding serial numbers:", err);
+      errorToast(
+        err.response?.data?.message || "Failed to adding serial numbers"
+      );
+    }
+  };
+
+  //  Loader
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
   }
 
-  console.log("values", values);
+  console.log("formik.valuesSrNo", formik.values);
   return (
     <Card>
       <Card.Header>
@@ -317,7 +496,7 @@ const AddStockMaterial = ({ invCatData }) => {
                 required
               />
             </Col>
-            <Col md={4}>
+            {/* <Col md={4}>
               <CustomRadioGroup
                 label="Direct Send"
                 name="direct_send"
@@ -332,8 +511,8 @@ const AddStockMaterial = ({ invCatData }) => {
                 error={errors.direct_send}
                 required
               />
-            </Col>
-            <Col md={4}>
+            </Col> */}
+            {/* <Col md={4}>
               {values.direct_send === "Warehouse" ? (
                 <CustomSelect
                   label="Warehouse"
@@ -371,60 +550,44 @@ const AddStockMaterial = ({ invCatData }) => {
                   lableKey="id"
                 />
               )}
-            </Col>
+            </Col> */}
           </Row>
 
           <Row className="mb-3">
             <Col md={4}>
               <CustomSelect
-                label="Inventory Category"
-                name="inventory_category_id"
-                value={values.inventory_category_id}
+                label="Stock Name"
+                name="stock_name_id"
+                value={values.stock_name_id}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                options={metaData.invCatData}
+                options={stockNames}
                 placeholder="--"
-                error={errors.inventory_category_id}
-                touched={touched.inventory_category_id}
+                error={errors.stock_name_id}
+                touched={touched.stock_name_id}
                 required
-                lableName="category"
+                lableName="name"
                 lableKey="id"
               />
             </Col>
             <Col md={4}>
               <CustomSelect
-                label="Inventory Type"
-                name="inventoryType_id"
-                value={values.inventoryType_id}
+                label="Make"
+                name="brand_id"
+                value={values.brand_id}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                options={metaData.invTypeData}
-                placeholder="--"
-                error={errors.inventoryType_id}
-                touched={touched.inventoryType_id}
+                options={brandNames}
+                placeholder={brandNames.length ? "--" : "No brands available"}
+                error={errors.brand_id}
+                touched={touched.brand_id}
                 required
-                lableName="type"
+                lableName="brand_name"
                 lableKey="id"
               />
             </Col>
             <Col md={4}>
-              <CustomInput
-                label="Material Name"
-                name="material"
-                value={values.material}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter material name"
-                touched={touched.material}
-                errors={errors.material}
-                required
-              />
-            </Col>
-          </Row>
-
-          <Row className="mb-3">
-            {values.type === "Goods" ? (
-              <Col md={4}>
+              {values.type === "Goods" ? (
                 <CustomInput
                   label="HSN Code"
                   name="hsc_code"
@@ -433,9 +596,7 @@ const AddStockMaterial = ({ invCatData }) => {
                   onBlur={handleBlur}
                   placeholder="Enter HSN Code"
                 />
-              </Col>
-            ) : (
-              <Col md={4}>
+              ) : (
                 <CustomInput
                   label="SAC Code"
                   name="sac"
@@ -444,9 +605,8 @@ const AddStockMaterial = ({ invCatData }) => {
                   onBlur={handleBlur}
                   placeholder="Enter SAC Code"
                 />
-              </Col>
-            )}
-
+              )}
+            </Col>
             <Col md={4}>
               <CustomSelect
                 label="Unit"
@@ -463,7 +623,6 @@ const AddStockMaterial = ({ invCatData }) => {
                 lableKey="id"
               />
             </Col>
-
             <Col md={4}>
               <CustomSelect
                 label="Tax Preference"
@@ -480,9 +639,6 @@ const AddStockMaterial = ({ invCatData }) => {
                 lableKey="id"
               />
             </Col>
-          </Row>
-
-          <Row className="mb-3 d-flex align-items-center">
             {taxPrefName?.name.toLowerCase() === "non-taxable" && (
               <Col md={4}>
                 <CustomInput
@@ -498,9 +654,12 @@ const AddStockMaterial = ({ invCatData }) => {
                 />
               </Col>
             )}
+          </Row>
+
+          {/* <Row className="mb-3">
             <Col md={4}>
               <Form.Group>
-                <Form.Label>Balance</Form.Label>
+                <Form.Label>{id ? "Balance" : "Qty"}</Form.Label>
                 <Form.Control
                   type="number"
                   name="balance"
@@ -514,19 +673,81 @@ const AddStockMaterial = ({ invCatData }) => {
               </Form.Group>
             </Col>
             <Col className="mt-4" md={4}>
-              {values.balance > 0 && (
-                <Button variant="primary" onClick={handleSerialModalOpen}>
+              <Button variant="primary" onClick={handleSerialModalOpen}>
+                {id && values.balance > 0
+                  ? "Update Serial Number"
+                  : "+ Serial Number"}
+              </Button>
+            </Col>
+            {id && (
+              <Col className="mt-4" md={4}>
+                <Button variant="primary" onClick={handleSerialModalOpenCr}>
                   + Serial Number
                 </Button>
-              )}
-            </Col>
+              </Col>
+            )}
+          </Row> */}
 
+          {/* Credit srNo*/}
+          {/* <Row>
+            <Modal
+              show={showSerialModalCr}
+              onHide={() => setShowSerialModalCr(false)}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Add Serial Number</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Col md={4}>
+                  <CustomInput
+                    type="number"
+                    min={0}
+                    label="Enter Number"
+                    name="Credit"
+                    value={formik.values.Credit}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    placeholder="Enter Credit"
+                    touched={formik.touched.Credit}
+                    errors={formik.errors.Credit}
+                  />
+                </Col>
+                {values.Credit &&
+                  values.serialNumbersCr.map((sn, index) => (
+                    <Form.Group key={index} className="mb-2">
+                      <Form.Label>Serial Number {index + 1}</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={sn}
+                        required
+                        onChange={(e) =>
+                          handleSerialChangeCr(index, e.target.value)
+                        }
+                      />
+                    </Form.Group>
+                  ))}
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="primary" onClick={handleSaveSerialNumbersCr}>
+                  Save
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          </Row> */}
+
+          {/* for update srNo and add srNo */}
+          <Row className="mb-3 d-flex align-items-center">
             <Modal
               show={showSerialModal}
               onHide={() => setShowSerialModal(false)}
             >
               <Modal.Header closeButton>
-                <Modal.Title>Enter Serial Numbers</Modal.Title>
+                <Modal.Title>
+                  {" "}
+                  {id && values.balance > 0
+                    ? "Update Serial Number"
+                    : "Add Serial Number"}
+                </Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 {values.serialNumbers.map((sn, index) => (
@@ -539,20 +760,45 @@ const AddStockMaterial = ({ invCatData }) => {
                       onChange={(e) =>
                         handleSerialChange(index, e.target.value)
                       }
+                      // disabled={id ? true : false}
+                      // style={{ cursor: id ? "not-allowed" : "auto" }}
                     />
                   </Form.Group>
                 ))}
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <Pagination className="justify-content-center mt-3">
+                    <Pagination.First
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                    />
+                    {[...Array(totalPages)].map((_, i) => (
+                      <Pagination.Item
+                        key={i + 1}
+                        active={i + 1 === currentPage}
+                        onClick={() => setCurrentPage(i + 1)}
+                      >
+                        {i + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Last
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
+                )}
               </Modal.Body>
               <Modal.Footer>
                 <Button
                   variant="primary"
-                  onClick={() => {
-                    setShowSerialModal(false);
-                    // Optionally, include serial numbers in the form submission
-                  }}
+                  
+
+                  onClick={handleSaveSerialNumbers}
                 >
                   Save
                 </Button>
+            
               </Modal.Footer>
             </Modal>
           </Row>
@@ -576,7 +822,7 @@ const AddStockMaterial = ({ invCatData }) => {
               <Row>
                 <Col md={8}>
                   <CustomInput
-                    label="Selling Price"
+                    label="Selling Price (1 Qty)"
                     name="sales_info_selling_price"
                     value={values.sales_info_selling_price}
                     onChange={handleChange}
@@ -611,7 +857,7 @@ const AddStockMaterial = ({ invCatData }) => {
               <Row className="mb-3">
                 <Col md={12}>
                   <CustomInput
-                    label="Cost Price"
+                    label="Cost Price (1 Qty)"
                     name="purchase_info_cost_price"
                     value={values.purchase_info_cost_price}
                     onChange={handleChange}

@@ -17,7 +17,7 @@ const DeleteModal = ({
       <Modal.Body>{modalMessage}</Modal.Body>
       <Modal.Footer>
         <Button variant="danger" disabled={loading} onClick={onConfirm}>
-          {loading ? "Deleting..." : "Yes, Delete"}
+          {loading ? "Deleting..." : "Delete"}
         </Button>
       </Modal.Footer>
     </Modal>
