@@ -222,7 +222,7 @@ const StockMaterialList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Stock Material</h5>
+              <h5 className="card-title fw-lighter">Item</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -239,9 +239,9 @@ const StockMaterialList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Material Name</th>
-                      <th>Supplier</th>
-                      <th>Balance</th>
+                      <th>Item</th>
+                      <th>Item Category</th>
+                      {/* <th>Balance</th> */}
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -250,18 +250,16 @@ const StockMaterialList = () => {
                     {userlist.length === 0 ? (
                       <tr>
                         <td colSpan="6" className="text-center">
-                          No Stock Material Available
+                          No Item Available
                         </td>
                       </tr>
                     ) : (
                       currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>
-                            {item.material} (₹{item.sales_info_selling_price})
-                          </td>
-                          <td>{item?.SupplierManagement?.name}</td>
-                          <td>{item.balance}</td>
+                          <td>{item.material}</td>
+                          <td>{item?.inv_cat_id?.name}</td>
+                          {/* <td>{item.balance}</td> */}
                           <td style={{ minWidth: "90px" }}>
                             <span
                               className={`status-dot ${
@@ -334,7 +332,7 @@ const StockMaterialList = () => {
                               />
                             </Tooltip>
 
-                            <PictureAsPdfIcon
+                            {/* <PictureAsPdfIcon
                               color="error"
                               size="sm"
                               style={{ marginLeft: "5px" }}
@@ -342,7 +340,7 @@ const StockMaterialList = () => {
                                 setQuotationItem(item);
                                 setShowQuotation(true);
                               }}
-                            />
+                            /> */}
                           </td>
                         </tr>
                       ))
