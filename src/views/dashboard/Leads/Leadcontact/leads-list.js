@@ -129,7 +129,6 @@ const LeadsList = () => {
         api.get("/api/v1/admin/leadSource/active"),
         api.get("/api/v1/admin/employee/active"),
         api.get("/api/v1/admin/client/active"),
-        // api.get("/api/v1/admin/requirementLead/active"),
         api.get("/api/v1/admin/leadStatus/active"),
       ]);
 
@@ -137,6 +136,8 @@ const LeadsList = () => {
       if (empRes.data?.success) setEmployees(empRes.data.data || []);
       if (cliRes.data?.success) setClients(cliRes.data.data || []);
       setLeadStatus(statusRes.data.data || []);
+
+      console.log("statusRes", statusRes);
     } catch (err) {
       console.error("Error fetching dropdowns:", err);
     }
@@ -331,6 +332,7 @@ const LeadsList = () => {
     );
   }
 
+  console.log("leadStatus", leadStatus);
   return (
     <>
       <Row className="mt-4">
