@@ -1,4 +1,4 @@
-// Created by sufyan, modified by Rishi on 7 Oct 2025
+// Created by Sufyan | Modified by Rishi on 10 Oct 2025
 
 import React, { useState, useEffect } from "react";
 import {
@@ -6,7 +6,6 @@ import {
   Row,
   Col,
   Button,
-  Form,
   Spinner,
   Table,
   Pagination,
@@ -45,7 +44,7 @@ const StockNameList = () => {
 
   const [loading, setLoading] = useState(true);
 
-  // Fetch inventory category
+  // Fetch categories
   const fetchInventoryCategories = async () => {
     try {
       const res = await api.get("/api/v1/admin/inventoryCategory/active");
@@ -56,13 +55,12 @@ const StockNameList = () => {
     }
   };
 
-  // Fetch inventory types
+  // Fetch types
   const fetchInventoryTypes = async () => {
     try {
       const res = await api.get(
         "/api/v1/admin/inventoryType/active/pagination?page=1&limit=10"
       );
-      console.log("Inventory type response:", res.data); // 👈 Add this line
       setInventoryTypes(res.data.data || res.data || []);
     } catch (err) {
       console.error("Error fetching types:", err);
@@ -70,7 +68,7 @@ const StockNameList = () => {
     }
   };
 
-  // Fetch stock name list
+  // Fetch stock list
   const fetchStockNames = async () => {
     try {
       const res = await api.get("/api/v1/admin/stockName");
@@ -89,7 +87,7 @@ const StockNameList = () => {
     fetchStockNames();
   }, []);
 
-  // Add / Update
+  // Add or update stock
   const handleAddOrUpdateStock = async () => {
     if (!stockName.trim()) {
       setErrors("Stock name is required");
@@ -129,7 +127,7 @@ const StockNameList = () => {
     }
   };
 
-  // Delete
+  // Delete stock
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
     setLoadingBtn(true);
@@ -148,7 +146,7 @@ const StockNameList = () => {
 
   // Edit
   const handleEdit = (stock) => {
-    setStockName(stock.name || ""); // Use correct field
+    setStockName(stock.name || "");
     setSelectedCategory(stock.inv_cat_id || stock.InventoryCat?.id || "");
     setSelectedType(stock.inv_type_id || stock.InventoryType?.id || "");
     setEditId(stock.id);
@@ -177,8 +175,8 @@ const StockNameList = () => {
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title fw-lighter">Stock Name List</h5>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5 className="card-title fw-lighter mb-0">Stock Name List</h5>
               <Button
                 className="btn-primary"
                 onClick={() => setShowAddEdit(true)}
@@ -261,7 +259,9 @@ const StockNameList = () => {
         stockName={stockName}
         setStockName={setStockName}
         inventoryCategories={inventoryCategories}
+        setInventoryCategories={setInventoryCategories} // ✅ Added
         inventoryTypes={inventoryTypes}
+        setInventoryTypes={setInventoryTypes} // ✅ Added
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         selectedType={selectedType}

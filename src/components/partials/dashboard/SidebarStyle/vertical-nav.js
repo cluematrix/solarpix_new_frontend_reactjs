@@ -11,7 +11,6 @@ import WorkIcon from "@mui/icons-material/Work";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import PeopleIcon from "@mui/icons-material/People";
 import KeyIcon from "@mui/icons-material/Key";
-import FormatListBulletedSharpIcon from "@mui/icons-material/FormatListBulletedSharp";
 import WarehouseSharpIcon from "@mui/icons-material/WarehouseSharp";
 import CurrencyRupeeSharpIcon from "@mui/icons-material/CurrencyRupeeSharp";
 import AccountBalanceWalletSharpIcon from "@mui/icons-material/AccountBalanceWalletSharp";
@@ -22,7 +21,6 @@ import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import { BsAwardFill } from "react-icons/bs";
 import AddCardIcon from "@mui/icons-material/AddCard";
 import { MdInventory, MdPeopleAlt, MdStore, MdWarehouse } from "react-icons/md";
-// install: npm i react-icons
 import { FiBox } from "react-icons/fi"; // Inventory Categories
 import { TfiPackage } from "react-icons/tfi";
 import { AiOutlineBarcode } from "react-icons/ai"; // Stock (Current Inventory)
@@ -31,11 +29,11 @@ import { BiCalendarCheck } from "react-icons/bi"; // Payment Terms (Master)
 import { ImListNumbered } from "react-icons/im"; // Stock Particulars (Master)
 import { MdReceiptLong } from "react-icons/md"; // Stock Management (Transactions / Ledger)
 import { FaTrademark } from "react-icons/fa"; // Brand (Master)
-import WarehouseIcon from "@mui/icons-material/Warehouse";
 import SettingsPhoneIcon from "@mui/icons-material/SettingsPhone";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import CalculateIcon from "@mui/icons-material/Calculate";
+import { FaBabyCarriage } from "react-icons/fa";
+import { IoBagHandleOutline } from "react-icons/io5";
+
 import {
   Accordion,
   useAccordionButton,
@@ -466,6 +464,152 @@ const VerticalNav = memo((props) => {
                 </Link>
               </li> */}
 
+              {/* <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/deals-list" ? "active" : ""
+                  } nav-link`}
+                  to="/deals-list"
+                >
+                  <i className="icon">
+                    <CalculateIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <CalculateIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Quotation</span>
+                </Link>
+              </li> */}
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* item => stock */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-item"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-item"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <MdInventory fontSize="medium" />
+            </i>
+            <span className="item-name sidebar-font-size">Item</span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-item">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/StockNameList" ? "active" : ""
+                  } nav-link`}
+                  to="/StockNameList"
+                >
+                  <i className="icon">
+                    <TfiPackage fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <TfiPackage fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">Item Name</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/stock-material-list" ? "active" : ""
+                  } nav-link`}
+                  to="/stock-material-list"
+                >
+                  <i className="icon">
+                    <AiOutlineBarcode fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <AiOutlineBarcode fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Item</span>
+                </Link>
+              </li>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* sales */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-sales"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-sales"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <FaBabyCarriage fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">Sales</span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-sales">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/customerList" ? "active" : ""
+                  } nav-link`}
+                  to="/customerList"
+                >
+                  <i className="icon">
+                    <PersonAddIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <PersonAddIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Customer</span>
+                </Link>
+              </li>
               <li className="nav-item">
                 <Link
                   className={`${
@@ -483,12 +627,126 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">Quotation</span>
                 </Link>
               </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/stock-particulars-list"
+                      ? "active"
+                      : ""
+                  } nav-link`}
+                  to="/stock-particulars-list"
+                >
+                  <i className="icon">
+                    <ImListNumbered fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <ImListNumbered fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Stock Particulars
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/brand-list" ? "active" : ""
+                  } nav-link`}
+                  to="/brand-list"
+                >
+                  <i className="icon">
+                    <FaTrademark fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <FaTrademark fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">Make</span>
+                </Link>
+              </li>
             </ul>
           </Accordion.Collapse>
         </Accordion.Item>
 
-        {/* Customer */}
+        {/* Purchase */}
         <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-purchase"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-purchase"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <IoBagHandleOutline fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">Purchase</span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-purchase">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/supplier-management-list"
+                      ? "active"
+                      : ""
+                  } nav-link`}
+                  to="/supplier-management-list"
+                >
+                  <i className="icon">
+                    <FaTruck fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <FaTruck fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Supplier Management
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/payment-terms-list" ? "active" : ""
+                  } nav-link`}
+                  to="/payment-terms-list"
+                >
+                  <i className="icon">
+                    <BiCalendarCheck fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <BiCalendarCheck fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Payment Terms
+                  </span>
+                </Link>
+              </li>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+        {/* Customer */}
+        {/* <Accordion.Item
           as="li"
           className={`${activeMenu === "0" ? "active" : ""}`}
           eventKey="sidebar-cust"
@@ -577,7 +835,7 @@ const VerticalNav = memo((props) => {
               </li>
             </ul>
           </Accordion.Collapse>
-        </Accordion.Item>
+        </Accordion.Item> */}
 
         {/* Inventory Manage */}
         {/* Created by sufyan on 16 Sep */}
@@ -617,7 +875,7 @@ const VerticalNav = memo((props) => {
           </CustomToggle>
           <Accordion.Collapse eventKey="sidebar-inventory-management">
             <ul className="sub-nav">
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/inventory-categories-list"
@@ -637,8 +895,8 @@ const VerticalNav = memo((props) => {
                     Inventory Categories
                   </span>
                 </Link>
-              </li>
-              <li className="nav-item">
+              </li> */}
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/inventory-type-list" ? "active" : ""
@@ -656,9 +914,9 @@ const VerticalNav = memo((props) => {
                     Inventory Type
                   </span>
                 </Link>
-              </li>
+              </li> */}
 
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/StockNameList" ? "active" : ""
@@ -676,8 +934,8 @@ const VerticalNav = memo((props) => {
                     Stock Name
                   </span>
                 </Link>
-              </li>
-              <li className="nav-item">
+              </li> */}
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/stock-material-list" ? "active" : ""
@@ -695,8 +953,8 @@ const VerticalNav = memo((props) => {
                     Stock Material
                   </span>
                 </Link>
-              </li>
-              <li className="nav-item">
+              </li> */}
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/payment-terms-list" ? "active" : ""
@@ -733,8 +991,8 @@ const VerticalNav = memo((props) => {
                     Supplier Management
                   </span>
                 </Link>
-              </li>
-              <li className="nav-item">
+              </li> */}
+              {/* <li className="nav-item">
                 <Link
                   className={`${
                     location.pathname === "/stock-particulars-list"
@@ -771,7 +1029,7 @@ const VerticalNav = memo((props) => {
                   </i>
                   <span className="item-name sidebar-font-size">Make</span>
                 </Link>
-              </li>
+              </li> */}
               {/* <li className="nav-item">
                 <Link
                   className={`${

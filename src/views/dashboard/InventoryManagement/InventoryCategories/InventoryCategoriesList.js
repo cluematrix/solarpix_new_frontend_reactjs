@@ -64,10 +64,16 @@ const InventoryCategoriesList = () => {
       console.log(pathname, "current pathname");
 
       // ✅ Match current role + route
+      // const matchedPermission = data.find(
+      //   (perm) =>
+      //     String(perm.role_id) === roleId &&
+      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
+      // );
+
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.route?.toLowerCase() === pathname?.toLowerCase()
+          perm.display_name === "inventory-categories-list"
       );
 
       if (matchedPermission) {

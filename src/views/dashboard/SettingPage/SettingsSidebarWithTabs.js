@@ -42,6 +42,8 @@ import TCSList from "../Tax/tcs/TCSList";
 import MSEBFieldList from "../work/MSEB/MSEBFieldList";
 import NetMeteringFieldList from "../work/NetMetering/NetMeteringFieldList";
 import NodalPointList from "../work/NodalPoint/NodalPointList";
+import InventoryCategoriesList from "../InventoryManagement/InventoryCategories/InventoryCategoriesList";
+import InventoryTypeList from "../InventoryManagement/InventoryType/InventoryTypeList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -301,6 +303,18 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Inventory" && activeTab === 0 && (
               <>
                 <ReasonList />
+              </>
+            )}
+
+            {activeSidebar === "Inventory" && activeTab === 1 && (
+              <>
+                <InventoryCategoriesList />
+              </>
+            )}
+
+            {activeSidebar === "Inventory" && activeTab === 2 && (
+              <>
+                <InventoryTypeList />
               </>
             )}
 
