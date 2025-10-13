@@ -137,12 +137,12 @@ const AddEditModal = ({
               </Form.Select>
             </Form.Group>
 
-            {/* Stock Name */}
+            {/* Item Name */}
             <Form.Group>
-              <Form.Label>Stock Name</Form.Label>
+              <Form.Label>Item Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter stock name"
+                placeholder="Enter Item Name"
                 value={stockName}
                 onChange={(e) => setStockName(e.target.value)}
               />

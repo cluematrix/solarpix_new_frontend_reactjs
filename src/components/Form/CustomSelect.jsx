@@ -17,6 +17,7 @@ const CustomSelect = ({
   lableName = "name",
   disabled = false,
   readOnly = false,
+  percent,
 }) => {
   return (
     <Form.Group>
@@ -40,7 +41,10 @@ const CustomSelect = ({
         {options.length > 0 &&
           options?.map((item) => (
             <option key={item[lableKey]} value={item[lableKey]}>
-              {item[lableName]}
+              {item[lableName]}{" "}
+              {percent && item[percent] !== undefined
+                ? ` - [${item[percent]}%]`
+                : ""}
             </option>
           ))}
       </Form.Select>

@@ -178,7 +178,7 @@ const StockMaterialList = () => {
     api
       .delete(`/api/v1/admin/stockMaterial/${deleteId}`)
       .then(() => {
-        successToast("Stock Material deleted successfully");
+        successToast("Item deleted successfully");
         fetchStockMaterial();
         setShowDelete(false);
       })
@@ -258,7 +258,7 @@ const StockMaterialList = () => {
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
                           <td>{item.material}</td>
-                          <td>{item?.inv_cat_id?.name}</td>
+                          <td>{item?.stockName?.InventoryCat?.category}</td>
                           {/* <td>{item.balance}</td> */}
                           <td style={{ minWidth: "90px" }}>
                             <span
@@ -397,7 +397,7 @@ const StockMaterialList = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Stock Material"
+        modalTitle="Delete Item"
         modalMessage={
           deleteIndex !== null && userlist[deleteIndex]
             ? `Are you sure you want to delete the stock material" ${userlist[deleteIndex].material}"?`

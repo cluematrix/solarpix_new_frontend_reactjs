@@ -121,7 +121,7 @@ const StockNameList = () => {
       resetForm();
     } catch (err) {
       console.error("Error saving stock:", err);
-      errorToast(err.response?.data?.message || "Failed to save stock name");
+      errorToast(err.response?.data?.message || "Failed to save item name");
     } finally {
       setLoadingBtn(false);
     }
@@ -138,7 +138,7 @@ const StockNameList = () => {
       setShowDelete(false);
     } catch (err) {
       console.error("Delete failed:", err);
-      errorToast(err.response?.data?.message || "Failed to delete stock name");
+      errorToast(err.response?.data?.message || "Failed to delete item name");
     } finally {
       setLoadingBtn(false);
     }
@@ -176,7 +176,7 @@ const StockNameList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between align-items-center">
-              <h5 className="card-title fw-lighter mb-0">Stock Name List</h5>
+              <h5 className="card-title fw-lighter mb-0">Item Name</h5>
               <Button
                 className="btn-primary"
                 onClick={() => setShowAddEdit(true)}
@@ -191,7 +191,7 @@ const StockNameList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Stock Name</th>
+                      <th>Item Name</th>
                       <th>Category</th>
                       <th>Type</th>
                       <th>Action</th>
@@ -223,7 +223,7 @@ const StockNameList = () => {
                                 setShowDelete(true);
                               }}
                               color="error"
-                              style={{ cursor: "pointer", marginLeft: 8 }}
+                              style={{ cursor: "pointer" }}
                             />
                           </td>
                         </tr>
@@ -268,7 +268,7 @@ const StockNameList = () => {
         setSelectedType={setSelectedType}
         errors={errors}
         onSave={handleAddOrUpdateStock}
-        modalTitle={editId ? "Edit Stock Name" : "Add Stock Name"}
+        modalTitle={editId ? "Edit Item Name" : "Add Item Name"}
         buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
       />
@@ -278,8 +278,8 @@ const StockNameList = () => {
         show={showDelete}
         handleClose={() => setShowDelete(false)}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Stock Name"
-        modalMessage="Are you sure you want to delete this stock name?"
+        modalTitle="Delete Item Name"
+        modalMessage="Are you sure you want to delete this item name?"
         loading={loadingBtn}
       />
     </>
