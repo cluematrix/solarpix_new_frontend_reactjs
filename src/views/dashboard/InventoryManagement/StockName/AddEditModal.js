@@ -110,7 +110,7 @@ const AddEditModal = ({
                     {cat.category}
                   </option>
                 ))}
-                <option value="add_new">➕ Add New Category</option>
+                {/* <option value="add_new">➕ Add New Category</option> */}
               </Form.Select>
             </Form.Group>
 
@@ -133,7 +133,7 @@ const AddEditModal = ({
                     {type.type}
                   </option>
                 ))}
-                <option value="add_new">➕ Add New Type</option>
+                {/* <option value="add_new">➕ Add New Type</option> */}
               </Form.Select>
             </Form.Group>
 

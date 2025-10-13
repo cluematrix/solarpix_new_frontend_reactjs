@@ -1,4 +1,4 @@
-// Created by sufyan on 13 sep
+// Created by Sufyan on 13 Sep — Updated by Rishi on 13 Oct
 
 import React, { useState, useEffect } from "react";
 import {
@@ -14,7 +14,7 @@ import {
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import AddEditModal from "./AddEditModal";
+import InvCatAddEditModal from "./InvCatAddEditModal";
 import DeleteModal from "./DeleteModal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
@@ -33,43 +33,29 @@ const InventoryCategoriesList = () => {
   const [loadingBtn, setLoadingBtn] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // GST dropdown data
+  const [intraList, setIntraList] = useState([]);
+  const [interList, setInterList] = useState([]);
+  const [selectedIntraId, setSelectedIntraId] = useState("");
+  const [selectedInterId, setSelectedInterId] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // Pagination
   const indexOfLast = currentPage * rowsPerPage;
   const indexOfFirst = indexOfLast - rowsPerPage;
   const currentData = userlist.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(userlist.length / rowsPerPage);
 
-  const [loading, setLoading] = useState(true);
-
-  // const getrole = sessionStorage.getItem("roleId");
-  // 🔑 PERMISSION CHECK
-
+  // Fetch permissions
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-
-      let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
+      let data = Array.isArray(res.data) ? res.data : res.data?.data || [];
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
-
-      // ✅ Match current role + route
-      // const matchedPermission = data.find(
-      //   (perm) =>
-      //     String(perm.role_id) === roleId &&
-      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
-      // );
-
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
@@ -83,34 +69,31 @@ const InventoryCategoriesList = () => {
           edit: matchedPermission.edit === true || matchedPermission.edit === 1,
           del: matchedPermission.del === true || matchedPermission.del === 1,
         });
-      } else {
-        setPermissions(null);
-      }
+      } else setPermissions(null);
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); // ✅ Stop loader after API call
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    setLoading(true); // reset loader each time route changes
+    setLoading(true);
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch inventory category
+  // Fetch inventory categories
   const fetchInventoryCategory = () => {
     api
       .get("/api/v1/admin/inventoryCategory")
       .then((res) => {
-        if (Array.isArray(res.data)) {
-          setUserlist(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setUserlist(res.data.data);
-        } else {
-          setUserlist([]);
-        }
+        const data = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+        setUserlist(data);
       })
       .catch((err) => {
         console.error("Error fetching inventory category:", err);
@@ -122,7 +105,27 @@ const InventoryCategoriesList = () => {
     fetchInventoryCategory();
   }, []);
 
-  // Toggle Active/Inactive with optimistic update
+  // Fetch GST dropdown data
+  const fetchGSTLists = async () => {
+    try {
+      const [intraRes, interRes] = await Promise.all([
+        api.get("/api/v1/admin/intraTax"),
+        api.get("/api/v1/admin/interTax"),
+      ]);
+
+      setIntraList(intraRes.data?.data || []);
+      setInterList(interRes.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching GST lists:", err);
+      errorToast("Failed to load GST dropdowns");
+    }
+  };
+
+  useEffect(() => {
+    fetchGSTLists();
+  }, []);
+
+  // Toggle active/inactive
   const handleToggleActive = (id, currentStatus) => {
     const newStatus = !currentStatus;
 
@@ -135,13 +138,11 @@ const InventoryCategoriesList = () => {
 
     api
       .put(`/api/v1/admin/inventoryCategory/${id}`, { isActive: newStatus })
-      .then(() => {
-        successToast("Status updated successfully");
-      })
+      .then(() => successToast("Status updated successfully"))
       .catch((err) => {
         console.error("Update failed:", err);
         errorToast(err.response?.data?.message || "Failed to update status");
-        // Rollback if API fails
+        // rollback
         setUserlist((prev) =>
           prev.map((dept) =>
             dept.id === id ? { ...dept, isActive: currentStatus } : dept
@@ -150,59 +151,36 @@ const InventoryCategoriesList = () => {
       });
   };
 
-  // Add or Update inventory category
-  const handleAddOrUpdateRole = () => {
-    if (!roleName.trim()) {
-      setErrors("Inventory name is required");
-      return;
-    }
+  // Add or Update inventory
+  const handleAddOrUpdateRole = (payload) => {
+    setLoadingBtn(true);
 
-    if (editId) {
-      // Update
-      setLoadingBtn(true);
-      api
-        .put(`/api/v1/admin/inventoryCategory/${editId}`, {
-          category: roleName,
-        })
-        .then(() => {
-          successToast("Inventory updated successfully");
-          fetchInventoryCategory();
-          resetForm();
-          setErrors(null);
-        })
-        .catch((err) => {
-          console.error("Error updating inventory:", err);
-          errorToast(
-            err.response?.data?.message || "Failed to update inventory"
-          );
-        })
-        .finally(() => {
-          setLoadingBtn(false);
-        });
-    } else {
-      // Add
-      setLoadingBtn(true);
-      api
-        .post("/api/v1/admin/inventoryCategory", { category: roleName })
-        .then(() => {
-          successToast("Inventory added successfully");
-          fetchInventoryCategory();
-          resetForm();
-          setErrors(null);
-        })
-        .catch((err) => {
-          console.error("Error adding inventory:", err);
-          errorToast(err.response?.data?.message || "Failed to add inventory");
-        })
-        .finally(() => {
-          setLoadingBtn(false);
-        });
-    }
+    const apiCall = editId
+      ? api.put(`/api/v1/admin/inventoryCategory/${editId}`, payload)
+      : api.post("/api/v1/admin/inventoryCategory", payload);
+
+    apiCall
+      .then(() => {
+        successToast(
+          editId
+            ? "Inventory updated successfully"
+            : "Inventory added successfully"
+        );
+        fetchInventoryCategory();
+        resetForm();
+      })
+      .catch((err) => {
+        console.error("Error saving inventory:", err);
+        errorToast(err.response?.data?.message || "Failed to save inventory");
+      })
+      .finally(() => setLoadingBtn(false));
   };
 
   const handleEdit = (index) => {
     const inventory = userlist[index];
     setRoleName(inventory.category);
+    setSelectedIntraId(inventory.intra_id || "");
+    setSelectedInterId(inventory.inter_id || "");
     setEditId(inventory.id || inventory._id);
     setShowAddEdit(true);
   };
@@ -221,9 +199,7 @@ const InventoryCategoriesList = () => {
         console.error("Error deleting inventory:", err);
         errorToast(err.response?.data?.message || "Failed to delete inventory");
       })
-      .finally(() => {
-        setLoadingBtn(false);
-      });
+      .finally(() => setLoadingBtn(false));
   };
 
   const resetForm = () => {
@@ -231,9 +207,11 @@ const InventoryCategoriesList = () => {
     setRoleName("");
     setEditId(null);
     setErrors(null);
+    setSelectedIntraId("");
+    setSelectedInterId("");
   };
 
-  //  Loader while checking permissions
+  // Loader while checking permissions
   if (loading) {
     return (
       <div className="loader-div">
@@ -304,7 +282,7 @@ const InventoryCategoriesList = () => {
                             ></span>
                             {item.isActive ? "Active" : "Inactive"}
                           </td>
-                          <td className="d-flex align-items-center">
+                          <td className="d-flex align-items-center gap-2">
                             <Form.Check
                               type="switch"
                               id={`active-switch-${item.id}`}
@@ -313,7 +291,6 @@ const InventoryCategoriesList = () => {
                                 handleToggleActive(item.id, item.isActive)
                               }
                             />
-
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 onClick={() => handleEdit(idx)}
@@ -321,7 +298,6 @@ const InventoryCategoriesList = () => {
                                 style={{ cursor: "pointer" }}
                               />
                             )}
-
                             {permissions.del && (
                               <DeleteRoundedIcon
                                 onClick={() => {
@@ -341,7 +317,7 @@ const InventoryCategoriesList = () => {
                 </Table>
               </div>
 
-              {/* 🔹 Pagination Controls */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
                   <Pagination.First
@@ -381,7 +357,7 @@ const InventoryCategoriesList = () => {
       </Row>
 
       {/* Add/Edit Modal */}
-      <AddEditModal
+      <InvCatAddEditModal
         show={showAddEdit}
         handleClose={resetForm}
         roleName={roleName}
@@ -393,9 +369,15 @@ const InventoryCategoriesList = () => {
         }
         buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
+        intraList={intraList}
+        interList={interList}
+        selectedIntraId={selectedIntraId}
+        setSelectedIntraId={setSelectedIntraId}
+        selectedInterId={selectedInterId}
+        setSelectedInterId={setSelectedInterId}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
         handleClose={() => {
@@ -407,7 +389,7 @@ const InventoryCategoriesList = () => {
         modalTitle="Delete Inventory Category"
         modalMessage={
           deleteIndex !== null && userlist[deleteIndex]
-            ? `Are you sure you want to delete the inventory category "${userlist[deleteIndex].category}"?`
+            ? `Are you sure you want to delete "${userlist[deleteIndex].category}"?`
             : ""
         }
         loading={loadingBtn}
