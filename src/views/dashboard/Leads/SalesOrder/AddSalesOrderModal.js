@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Col, Modal, Row, Spinner, Table, Button, Form } from "react-bootstrap";
 import api from "../../../../api/axios";
 
-const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
+const AddSalesOrderModal = ({ show, handleClose, onSave, existingData }) => {
   const [loadingCat, setLoadingCat] = useState(false);
   const [intCategory, setIntCategory] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
@@ -191,7 +191,8 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
           <Col md={4}>
             {loadingCat ? (
               <div className="loader-div">
-                <Spinner animation="border" className="spinner" />
+                {/* <Spinner animation="border" className="spinner" /> */}
+                <p>Loading...</p>
               </div>
             ) : (
               <div className="table-responsive">
@@ -234,10 +235,14 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
           {/* RIGHT: Items per category */}
           <Col md={8}>
             {loadingItems ? (
-              <div className="loader-div">
-                <Spinner animation="border" className="spinner" />
-              </div>
+              <></>
             ) : (
+              // <div className="loader-div">
+              //   {/* <Spinner animation="border" className="spinner" /> */}
+              //   <p>
+              //     Please select at least one category to display related items.
+              //   </p>
+              // </div>
               intCategory
                 .filter((cat) => cat.selected)
                 .map((cat) => {
@@ -342,4 +347,4 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
   );
 };
 
-export default AddItemModal;
+export default AddSalesOrderModal;
