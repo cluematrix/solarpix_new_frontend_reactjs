@@ -16,7 +16,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import DeleteModal from "./delete-modal";
 import ViewModal from "./ViewModal";
-import QuotationModal from "./QuotationModal";
+import QuotationModal from "./NewQuatationModal";
 
 import api from "../../../../api/axios";
 
@@ -163,7 +163,9 @@ const DealList = () => {
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Lead Name</th>
-                      <th>Site Visit Date</th>
+                      <th>Assign To </th>
+                      <th>Final Amount </th>
+                      {/* <th>Site Visit Date</th> */}
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -181,13 +183,17 @@ const DealList = () => {
                           <td>{indexOfFirstItem + index + 1}</td>
                           {/* <td>{deal.deal_name}</td> */}
                           <td>{deal.lead?.name || "---"}</td>
-                          <td>
+                          <td>{deal.senderBy?.name || "---"}</td>
+
+                          <td>{deal?.total || "---"}</td>
+
+                          {/* <td>
                             {deal?.site_visit_date
                               ? new Date(
                                   deal.site_visit_date
                                 ).toLocaleDateString("en-GB")
                               : "---"}
-                          </td>
+                          </td> */}
 
                           <td>
                             <Form.Select
