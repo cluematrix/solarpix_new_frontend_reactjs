@@ -47,7 +47,7 @@ const DealList = () => {
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [pendingStageId, setPendingStageId] = useState(null);
 
-  const [filter, setFilter] = useState(""); // all / final
+  const [filter, setFilter] = useState("all"); // Default to "all"
 
   const getStageColor = (stageName) => {
     switch (stageName) {
@@ -100,20 +100,26 @@ const DealList = () => {
 
       const deals = res.data.data;
       const filteredDeals = deals.filter((deal) => {
-        if (filter === "final") {
-          return deal.isFinal === true && deal.deal_stage_id === 4;
-        } else if (filter === "lost") {
-          return deal.deal_stage_id === 5;
-        } else if (filter === "proposal sent") {
-          return deal.deal_stage_id === 2;
+        const stage = deal.dealStage?.deal_stages || "";
+        switch (filter) {
+          case "Qualified":
+            return deal.deal_stage_id === 1;
+          case "Proposal Sent":
+            return deal.deal_stage_id === 2;
+          case "Negotiation":
+            return deal.deal_stage_id === 3;
+          case "Won":
+            return deal.deal_stage_id === 4 && deal.isFinal === true;
+          case "Lost":
+            return deal.deal_stage_id === 5;
+          case "all":
+          default:
+            return true;
         }
-        return true;
       });
 
       setDealList(filteredDeals);
-      //  Extract pagination info properly
       const pagination = res.data?.pagination;
-
       if (pagination) {
         setTotalPages(pagination.totalPages || 1);
       }
@@ -126,7 +132,8 @@ const DealList = () => {
 
   useEffect(() => {
     fetchDealPag(currentPage);
-  }, [currentPage]);
+  }, [currentPage, filter]);
+
   const handleDeleteConfirm = async () => {
     try {
       await api.delete(`/api/v1/admin/deal/${deleteId}`);
@@ -164,9 +171,11 @@ const DealList = () => {
                 className="w-auto ms-auto"
               >
                 <option value="all">All</option>
-                <option value="final">Final</option>
-                <option value="lost">Lost</option>
-                <option value="proposal sent">Proposal sent</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Proposal Sent">Proposal Sent</option>
+                <option value="Negotiation">Negotiation</option>
+                <option value="Won">Won</option>
+                <option value="Lost">Lost</option>
               </Form.Select>
 
               {/* Add Deal Button */}
@@ -187,7 +196,6 @@ const DealList = () => {
                       <th>Lead Name</th>
                       <th>Assign To </th>
                       <th>Final Amount </th>
-                      {/* <th>Site Visit Date</th> */}
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -210,14 +218,6 @@ const DealList = () => {
 
                           <td>{deal?.total || "---"}</td>
 
-                          {/* <td>
-                            {deal?.site_visit_date
-                              ? new Date(
-                                  deal.site_visit_date
-                                ).toLocaleDateString("en-GB")
-                              : "---"}
-                          </td> */}
-
                           <td>
                             <Form.Select
                               size="sm"
@@ -229,17 +229,17 @@ const DealList = () => {
                                   : "pointer",
                                 cursor:
                                   deal.is_disable ||
-                                  deal.deal_stage_id_name === "Won" ||
-                                  deal.deal_stage_id_name === "Lost"
+                                  deal.dealStage?.deal_stages === "Won" ||
+                                  deal.dealStage?.deal_stages === "Lost"
                                     ? "not-allowed"
                                     : "pointer",
-                                backgroundColor: "transparent", // no background
+                                backgroundColor: "transparent",
                                 color: "#000",
                               }}
                               disabled={
                                 deal.is_disable ||
-                                deal.deal_stage_id_name === "Won" ||
-                                deal.deal_stage_id_name === "Lost"
+                                deal.dealStage?.deal_stages === "Won" ||
+                                deal.dealStage?.deal_stages === "Lost"
                               }
                               onChange={async (e) => {
                                 const newStageId = e.target.value;
@@ -280,14 +280,13 @@ const DealList = () => {
                                 const isDisabled =
                                   stage.id < deal.deal_stage_id &&
                                   !["Won", "Lost"].includes(
-                                    deal.deal_stage_id_name
+                                    deal.dealStage?.deal_stages
                                   );
 
-                                // Map stage id to icon
                                 const stageIcon = {
                                   1: "🟢", // Qualified
-                                  2: "🟠", // Proposal Sent / Negotiation
-                                  3: "🔵", // Negotiation - blue
+                                  2: "🟠", // Proposal Sent
+                                  3: "🔵", // Negotiation
                                   4: "🟢", // Won
                                   5: "🔴", // Lost
                                 }[stage.id];
@@ -382,33 +381,6 @@ const DealList = () => {
           </p>
         </Modal.Body>
         <Modal.Footer>
-          {/* <Button
-            variant="success"
-            onClick={async () => {
-              try {
-                await api.put(`/api/v1/admin/deal/${selectedDeal.id}`, {
-                  ...selectedDeal,
-                  deal_stage_id: 4,
-                  isFinal: 1,
-                });
-                await fetchDeals();
-                setDealList((prev) =>
-                  prev.map((d) =>
-                    d.id === selectedDeal.id
-                      ? { ...d, deal_stage_id: 4, isFinal: 1 }
-                      : d
-                  )
-                );
-                alert("Current quotation sent successfully!");
-              } catch (err) {
-                console.error("Error sending quotation:", err);
-              } finally {
-                setShowQuotationConfirm(false);
-              }
-            }}
-          >
-            Send Current
-          </Button> */}
           <Button
             variant="success"
             onClick={async () => {
@@ -428,8 +400,6 @@ const DealList = () => {
                   )
                 );
 
-                // ✅ Redirect to addcustomer with deal data
-                // navigate("/add-customer", { state: { deal: selectedDeal } });
                 navigate("/add-customer", {
                   state: { leadData: selectedDeal.lead, deal: selectedDeal },
                 });
