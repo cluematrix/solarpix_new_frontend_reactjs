@@ -630,6 +630,25 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
+                    location.pathname === "/sales-order-list" ? "active" : ""
+                  } nav-link`}
+                  to="/sales-order-list"
+                >
+                  <i className="icon">
+                    <FaBabyCarriage fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <FaBabyCarriage fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Sales Order
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
                     location.pathname === "/stock-particulars-list"
                       ? "active"
                       : ""

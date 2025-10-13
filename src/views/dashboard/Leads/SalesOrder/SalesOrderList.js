@@ -16,13 +16,13 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import DeleteModal from "./delete-modal";
 import ViewModal from "./ViewModal";
-import QuotationModal from "./NewQuatationModal";
+import QuotationModal from "./QuotationModal";
 
 import api from "../../../../api/axios";
 
-const DealList = () => {
+const SalesOrderList = () => {
   const navigate = useNavigate();
-  const [dealList, setDealList] = useState([]);
+  const [salesOrderList, setSalesOrderList] = useState([]);
   const [dealStages, setDealStages] = useState([]);
   const [leads, setLeads] = useState([]);
   const [clients, setClients] = useState([]);
@@ -91,15 +91,15 @@ const DealList = () => {
   }, [filter]);
 
   // Fetch
-  const fetchDealPag = async (page = 1) => {
+  const fetchSalesOrder = async (page = 1) => {
     try {
       setLoading(true);
       const res = await api.get(
-        `/api/v1/admin/deal/pagination?page=${page}&limit=${itemsPerPage}`
+        `/api/v1/admin/salesOrder/pagination?page=${page}&limit=${itemsPerPage}`
       );
 
-      const deals = res.data.data;
-      const filteredDeals = deals.filter((deal) => {
+      const salesOrder = res.data.data;
+      const filteredDeals = salesOrder.filter((deal) => {
         if (filter === "final") {
           return deal.isFinal === true && deal.deal_stage_id === 4;
         } else if (filter === "lost") {
@@ -110,7 +110,7 @@ const DealList = () => {
         return true;
       });
 
-      setDealList(filteredDeals);
+      setSalesOrderList(filteredDeals);
       //  Extract pagination info properly
       const pagination = res.data?.pagination;
 
@@ -125,12 +125,12 @@ const DealList = () => {
   };
 
   useEffect(() => {
-    fetchDealPag(currentPage);
+    fetchSalesOrder(currentPage);
   }, [currentPage]);
   const handleDeleteConfirm = async () => {
     try {
       await api.delete(`/api/v1/admin/deal/${deleteId}`);
-      setDealList((prev) => prev.filter((deal) => deal.id !== deleteId));
+      setSalesOrderList((prev) => prev.filter((deal) => deal.id !== deleteId));
       setShowDeleteModal(false);
       setDeleteId(null);
     } catch (error) {
@@ -141,10 +141,10 @@ const DealList = () => {
   const fetchDeals = async () => {
     try {
       const res = await api.get("/api/v1/admin/deal");
-      const deals = res.data?.data || res.data || [];
-      setDealList(deals);
+      const salesOrder = res.data?.data || res.data || [];
+      setSalesOrderList(salesOrder);
     } catch (err) {
-      console.error("Error fetching deals:", err);
+      console.error("Error fetching salesOrder:", err);
     }
   };
 
@@ -154,7 +154,7 @@ const DealList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex flex-wrap justify-content-between align-items-center gap-2">
-              <h5 className="card-title fw-lighter mb-0">Quotation</h5>
+              <h5 className="card-title fw-lighter mb-0">Sales Orders</h5>
 
               {/* Filter Dropdown */}
               <Form.Select
@@ -172,9 +172,9 @@ const DealList = () => {
               {/* Add Deal Button */}
               <Button
                 className="btn-primary w-auto"
-                onClick={() => navigate("/AddDeals")}
+                onClick={() => navigate("/add-sales-orders")}
               >
-                + Generate Quotation
+                + Generate Sales Orders
               </Button>
             </Card.Header>
 
@@ -184,32 +184,30 @@ const DealList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Lead Name</th>
-                      <th>Assign To </th>
-                      <th>Final Amount </th>
-                      {/* <th>Site Visit Date</th> */}
-                      <th>Status</th>
+                      <th>Customer Name</th>
+                      <th>Sales Order</th>
+                      {/* <th>Sales Order Date</th> */}
+                      <th>Amount</th>
+                      {/* <th>Status</th> */}
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {dealList.length === 0 ? (
+                    {salesOrderList.length === 0 ? (
                       <tr>
                         <td colSpan="11" className="text-center">
-                          No deals available
+                          No Sales Order available
                         </td>
                       </tr>
                     ) : (
-                      dealList.map((deal, index) => (
+                      salesOrderList.map((deal, index) => (
                         <tr key={deal.id}>
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
                           <td>{deal.lead?.name || "---"}</td>
-                          <td>{deal.senderBy?.name || "---"}</td>
-
-                          <td>{deal?.total || "---"}</td>
-
+                          <td>{deal?.sales_order_no || "---"}</td>
+                          <td>₹{deal?.total || "---"}</td>
                           {/* <td>
                             {deal?.site_visit_date
                               ? new Date(
@@ -218,7 +216,7 @@ const DealList = () => {
                               : "---"}
                           </td> */}
 
-                          <td>
+                          {/* <td>
                             <Form.Select
                               size="sm"
                               className="w-50"
@@ -262,7 +260,7 @@ const DealList = () => {
                                         deal_stage_id: newStageId,
                                       }
                                     );
-                                    setDealList((prev) =>
+                                    setSalesOrderList((prev) =>
                                       prev.map((d) =>
                                         d.id === deal.id
                                           ? { ...d, deal_stage_id: newStageId }
@@ -308,7 +306,7 @@ const DealList = () => {
                                 );
                               })}
                             </Form.Select>
-                          </td>
+                          </td> */}
 
                           <td>
                             <VisibilityIcon
@@ -366,7 +364,7 @@ const DealList = () => {
         </Col>
       </Row>
 
-      {/* Quotation Confirmation Modal */}
+      {/* Sales Orders Confirmation Modal */}
       <Modal
         show={showQuotationConfirm}
         onHide={() => setShowQuotationConfirm(false)}
@@ -374,11 +372,12 @@ const DealList = () => {
         backdrop="static"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Quotation Confirmation</Modal.Title>
+          <Modal.Title>Sales Orders Confirmation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>
-            Do you want to send the current quotation or update with a new one?
+            Do you want to send the current sales orders or update with a new
+            one?
           </p>
         </Modal.Body>
         <Modal.Footer>
@@ -392,16 +391,16 @@ const DealList = () => {
                   isFinal: 1,
                 });
                 await fetchDeals();
-                setDealList((prev) =>
+                setSalesOrderList((prev) =>
                   prev.map((d) =>
                     d.id === selectedDeal.id
                       ? { ...d, deal_stage_id: 4, isFinal: 1 }
                       : d
                   )
                 );
-                alert("Current quotation sent successfully!");
+                alert("Current sales orders sent successfully!");
               } catch (err) {
-                console.error("Error sending quotation:", err);
+                console.error("Error sending sales orders:", err);
               } finally {
                 setShowQuotationConfirm(false);
               }
@@ -420,7 +419,7 @@ const DealList = () => {
                 });
 
                 await fetchDeals();
-                setDealList((prev) =>
+                setSalesOrderList((prev) =>
                   prev.map((d) =>
                     d.id === selectedDeal.id
                       ? { ...d, deal_stage_id: 4, isFinal: 1 }
@@ -434,7 +433,7 @@ const DealList = () => {
                   state: { leadData: selectedDeal.lead, deal: selectedDeal },
                 });
               } catch (err) {
-                console.error("Error sending quotation:", err);
+                console.error("Error sending sales orders:", err);
               } finally {
                 setShowQuotationConfirm(false);
               }
@@ -469,7 +468,7 @@ const DealList = () => {
         viewData={viewData}
       />
 
-      {/* Quotation Modal */}
+      {/* Sales Orders Modal */}
       <QuotationModal
         show={showQuotationModal}
         handleClose={() => setShowQuotationModal(false)}
@@ -479,4 +478,4 @@ const DealList = () => {
   );
 };
 
-export default DealList;
+export default SalesOrderList;

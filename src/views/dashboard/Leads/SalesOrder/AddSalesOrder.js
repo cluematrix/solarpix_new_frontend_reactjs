@@ -9,9 +9,9 @@ import { errorToast } from "../../../../components/Toast/errorToast";
 import { useFormik } from "formik";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
-import AddItemModal from "./AddItemModal";
+import AddSalesOrderModal from "./AddSalesOrderModal";
 
-const AddDealsQt = () => {
+const AddSalesOrder = () => {
   const { id } = useParams();
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
@@ -23,6 +23,7 @@ const AddDealsQt = () => {
     bankData: [],
     tdsData: [],
     tcsData: [],
+    paymentTermData: [],
   });
 
   const [selectedItemsData, setSelectedItemsData] = useState(null); // modal data
@@ -36,13 +37,15 @@ const AddDealsQt = () => {
   });
 
   const initialValues = {
-    sender_by_id: "",
+    assign_to_emp_id: "",
     lead_id: "",
-    Qt_date: "",
-    expiry_date: "",
+    sales_order_date: "",
+    expected_shipment_date: "",
     companyBank_id: "",
     notes_customer: "",
     quotation_no: "",
+    reference: "",
+    payment_terms_id: "",
   };
 
   const formik = useFormik({
@@ -81,9 +84,9 @@ const AddDealsQt = () => {
           TCS_id: isTCS ? subTotals.deductionId || null : null,
 
           lead_id: values.lead_id || "",
-          leaQt_dated_id: values.Qt_date || "",
-          sender_by_id: values.sender_by_id || "",
-          expiry_date: values.expiry_date || "",
+          leaQt_dated_id: values.sales_order_date || "",
+          assign_to_emp_id: values.assign_to_emp_id || "",
+          expected_shipment_date: values.expected_shipment_date || "",
           companyBank_id: values.companyBank_id || "",
           notes_customer: values.notes_customer || "",
           deal_stage_id: 2,
@@ -92,13 +95,13 @@ const AddDealsQt = () => {
         console.log("📤 Final Payload Sent:", payload);
 
         if (id) {
-          await api.put(`/api/v1/admin/deal/${id}`, payload);
-          successToast("Quotation updated successfully");
+          await api.put(`/api/v1/admin/salesOrder/${id}`, payload);
+          successToast("Sales Orders updated successfully");
         } else {
-          await api.post("/api/v1/admin/deal", payload);
-          successToast("Quotation created successfully");
+          await api.post("/api/v1/admin/salesOrder", payload);
+          successToast("Sales Orders created successfully");
           console.log("payload", payload);
-          navigate("/deals-list");
+          navigate("/sales-order-list");
         }
       } catch (err) {
         console.error(err);
@@ -123,13 +126,15 @@ const AddDealsQt = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [leadRes, empRes, bankRes, tdsRes, tcsRes] = await Promise.all([
-          api.get("/api/v1/admin/lead/active"),
-          api.get("/api/v1/admin/employee/active"),
-          api.get("/api/v1/admin/companyBank/active"),
-          api.get("/api/v1/admin/TDS/active"),
-          api.get("/api/v1/admin/TCS/active"),
-        ]);
+        const [leadRes, empRes, bankRes, tdsRes, tcsRes, paymentRes] =
+          await Promise.all([
+            api.get("/api/v1/admin/lead/active"),
+            api.get("/api/v1/admin/employee/active"),
+            api.get("/api/v1/admin/companyBank/active"),
+            api.get("/api/v1/admin/TDS/active"),
+            api.get("/api/v1/admin/TCS/active"),
+            api.get("/api/v1/admin/paymentTerm/active"),
+          ]);
 
         setMetaData({
           leadData: leadRes?.data || [],
@@ -137,6 +142,7 @@ const AddDealsQt = () => {
           bankData: bankRes?.data?.data || [],
           tdsData: tdsRes?.data?.data || [],
           tcsData: tcsRes?.data?.data || [],
+          paymentTermData: paymentRes?.data || [],
         });
       } catch (err) {
         console.error(err);
@@ -147,42 +153,52 @@ const AddDealsQt = () => {
     fetchData();
   }, []);
 
-  // Fetch deal data if editing (id present)
+  // Fetch sales orders data if editing (id present)
   useEffect(() => {
     if (!id) return;
 
     const fetchDealById = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(`/api/v1/admin/deal/${id}`);
-        const deal = data?.data || data;
+        const { data } = await api.get(`/api/v1/admin/salesOrder/${id}`);
+        const salesOrder = data?.data || data;
 
         // ✅ Prefill form fields
-        setFieldValue("lead_id", deal.lead_id || "");
-        setFieldValue("sender_by_id", deal.sender_by_id || "");
-        setFieldValue("Qt_date", deal.Qt_date?.split("T")[0] || "");
-        setFieldValue("expiry_date", deal.expiry_date?.split("T")[0] || "");
-        setFieldValue("companyBank_id", deal.companyBank_id || "");
-        setFieldValue("notes_customer", deal.notes_customer || "");
-        setFieldValue("quotation_no", deal.quotation_no || "");
+        setFieldValue("lead_id", salesOrder.lead_id || "");
+        setFieldValue("assign_to_emp_id", salesOrder.assign_to_emp_id || "");
+        setFieldValue(
+          "sales_order_date",
+          salesOrder.sales_order_date?.split("T")[0] || ""
+        );
+        setFieldValue(
+          "expected_shipment_date",
+          salesOrder.expected_shipment_date?.split("T")[0] || ""
+        );
+        setFieldValue("companyBank_id", salesOrder.companyBank_id || "");
+        setFieldValue("notes_customer", salesOrder.notes_customer || "");
+        setFieldValue("quotation_no", salesOrder.quotation_no || "");
 
         // ✅ Prefill item details
-        if (deal.item_details) {
-          setSelectedItemsData(deal.item_details);
+        if (salesOrder.item_details) {
+          setSelectedItemsData(salesOrder.item_details);
         }
 
         // ✅ Prefill subtotal and tax data
-        const isTDS = !!deal.TDS_id;
-        const isTCS = !!deal.TCS_id;
+        const isTDS = !!salesOrder.TDS_id;
+        const isTCS = !!salesOrder.TCS_id;
         const taxType = isTDS ? "TDS" : isTCS ? "TCS" : "";
-        const deductionId = isTDS ? deal.TDS_id : isTCS ? deal.TCS_id : null;
+        const deductionId = isTDS
+          ? salesOrder.TDS_id
+          : isTCS
+          ? salesOrder.TCS_id
+          : null;
 
         // ✅ Recalculate deduction based on response
-        const deductionAmount = parseFloat(deal.deductionAmount || 0);
-        const subTotal = parseFloat(deal.sub_total || 0);
-        const adjustment = parseFloat(deal.adjustment || 0);
+        const deductionAmount = parseFloat(salesOrder.deductionAmount || 0);
+        const subTotal = parseFloat(salesOrder.sub_total || 0);
+        const adjustment = parseFloat(salesOrder.adjustment || 0);
         const deductionPercentage =
-          deal.percentage ||
+          salesOrder.percentage ||
           (subTotal > 0 ? ((deductionAmount / subTotal) * 100).toFixed(2) : 0);
 
         setSubTotals({
@@ -190,13 +206,13 @@ const AddDealsQt = () => {
           taxType: taxType,
           deductionId: deductionId,
           deductionOption: deductionPercentage,
-          deductionName: deal.deductionName || "",
+          deductionName: salesOrder.deductionName || "",
           deductionAmount: deductionAmount,
           adjustment: adjustment,
         });
       } catch (err) {
-        console.error("Failed to fetch deal data:", err);
-        errorToast("Failed to load deal details");
+        console.error("Failed to fetch sales orders data:", err);
+        errorToast("Failed to load sales orders details");
       } finally {
         setLoading(false);
       }
@@ -234,7 +250,7 @@ const AddDealsQt = () => {
     }
   }, [subTotals.deductionOption, subTotals.subTotal]);
 
-  // create quotation number
+  // create sales orders number
   const getFinancialYear = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -248,7 +264,7 @@ const AddDealsQt = () => {
     const initQuotation = async () => {
       try {
         const fy = getFinancialYear();
-        const res = await api.get("/api/v1/admin/deal");
+        const res = await api.get("/api/v1/admin/salesOrder");
         const deals = res.data || [];
         const fyDeals = deals.filter(
           (d) => d.quotation_no && d.quotation_no.includes(`QT/${fy}/`)
@@ -264,7 +280,7 @@ const AddDealsQt = () => {
           setFieldValue("quotation_no", `QT/${fy}/01`);
         }
       } catch (err) {
-        console.error("Failed to set quotation number:", err);
+        console.error("Failed to set sales orders number:", err);
       }
     };
 
@@ -291,26 +307,12 @@ const AddDealsQt = () => {
     <>
       <Card>
         <Card.Header>
-          <h5 className="mb-0">Deal</h5>
+          <h5 className="mb-0">Sales Orders</h5>
         </Card.Header>
         <hr />
         <Card.Body className="pt-0">
           <Form onSubmit={handleSubmit}>
             <Row className="mb-3">
-              <Col md={4}>
-                <CustomInput
-                  label="Quote No"
-                  name="quotation_no"
-                  value={values.quotation_no}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="--"
-                  touched={touched.quotation_no}
-                  errors={errors.quotation_no}
-                  readOnly={true}
-                  disabled={true}
-                />
-              </Col>
               <Col md={4}>
                 <CustomSelect
                   label="Customer"
@@ -328,16 +330,28 @@ const AddDealsQt = () => {
                 />
               </Col>
               <Col md={4}>
+                <CustomInput
+                  label="Reference"
+                  name="reference"
+                  value={values.reference}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Reference"
+                  touched={touched.reference}
+                  errors={errors.reference}
+                />
+              </Col>
+              <Col md={4}>
                 <CustomSelect
                   label="Assign To"
-                  name="sender_by_id"
-                  value={values.sender_by_id}
+                  name="assign_to_emp_id"
+                  value={values.assign_to_emp_id}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   options={metaData.employeeData}
                   placeholder="--"
-                  error={errors.sender_by_id}
-                  touched={touched.sender_by_id}
+                  error={errors.assign_to_emp_id}
+                  touched={touched.assign_to_emp_id}
                   required
                   lableName="name"
                   lableKey="id"
@@ -347,16 +361,34 @@ const AddDealsQt = () => {
 
             <Row className="mb-3">
               <Col md={4}>
+                <CustomSelect
+                  label="Payment Terms"
+                  name="payment_terms_id"
+                  value={values.payment_terms_id}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={metaData.paymentTermData}
+                  placeholder="--"
+                  error={errors.payment_terms_id}
+                  touched={touched.payment_terms_id}
+                  required
+                  lableName="payment_term"
+                  lableKey="id"
+                />
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={4}>
                 <CustomInput
                   type="date"
-                  label="Quote Date"
-                  name="Qt_date"
-                  value={values.Qt_date}
+                  label="Sales Order Date"
+                  name="sales_order_date"
+                  value={values.sales_order_date}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Enter Quote Date"
-                  touched={touched.Qt_date}
-                  errors={errors.Qt_date}
+                  touched={touched.sales_order_date}
+                  errors={errors.sales_order_date}
                   required
                   min={new Date().toISOString().split("T")[0]}
                 />
@@ -364,14 +396,14 @@ const AddDealsQt = () => {
               <Col md={4}>
                 <CustomInput
                   type="date"
-                  label="Expiry Date"
-                  name="expiry_date"
-                  value={values.expiry_date}
+                  label="Expected Shipment Date"
+                  name="expected_shipment_date"
+                  value={values.expected_shipment_date}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Enter Quote Expiry Date"
-                  touched={touched.expiry_date}
-                  errors={errors.expiry_date}
+                  touched={touched.expected_shipment_date}
+                  errors={errors.expected_shipment_date}
                   min={new Date().toISOString().split("T")[0]}
                 />
               </Col>
@@ -665,7 +697,7 @@ const AddDealsQt = () => {
       </Card>
 
       {showModal && (
-        <AddItemModal
+        <AddSalesOrderModal
           show={showModal}
           handleClose={() => setShowModal(false)}
           existingData={selectedItemsData}
@@ -679,4 +711,4 @@ const AddDealsQt = () => {
   );
 };
 
-export default AddDealsQt;
+export default AddSalesOrder;

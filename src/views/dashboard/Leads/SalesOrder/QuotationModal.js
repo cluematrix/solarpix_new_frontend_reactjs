@@ -271,7 +271,7 @@ const QuotationModal = ({ show, handleClose, deal }) => {
 
       <Modal.Footer>
         <Button variant="primary" onClick={handleDownload}>
-          Download PDF XXX
+          Download PDF
         </Button>
       </Modal.Footer>
     </Modal>
