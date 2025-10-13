@@ -241,14 +241,33 @@ const AddSalesOrder = () => {
   }, [selectedItemsData]);
 
   // Handle deduction option dynamically
+  // useEffect(() => {
+  //   if (subTotals.deductionOption === "commission") {
+  //     setSubTotals((prev) => ({
+  //       ...prev,
+  //       deductionAmount: parseFloat((prev.subTotal * 0.02).toFixed(2)),
+  //     }));
+  //   }
+  // }, [subTotals.deductionOption, subTotals.subTotal]);
+
+  // Whenever selectedItemsData changes, recalc subtotal including CGST & SGST
   useEffect(() => {
-    if (subTotals.deductionOption === "commission") {
-      setSubTotals((prev) => ({
-        ...prev,
-        deductionAmount: parseFloat((prev.subTotal * 0.02).toFixed(2)),
-      }));
-    }
-  }, [subTotals.deductionOption, subTotals.subTotal]);
+    if (!selectedItemsData) return;
+
+    const total = selectedItemsData.selectedCategories.reduce(
+      (acc, cat) => acc + (cat.finalAmount || cat.grandTotal),
+      0
+    );
+
+    setSubTotals((prev) => ({
+      ...prev,
+      subTotal: total,
+      deductionAmount:
+        prev.deductionOption === "commission"
+          ? parseFloat((total * 0.02).toFixed(2))
+          : prev.deductionAmount,
+    }));
+  }, [selectedItemsData]);
 
   // create sales orders number
   const getFinancialYear = () => {
@@ -299,6 +318,31 @@ const AddSalesOrder = () => {
       </div>
     );
   }
+
+  // Handle tax change per category
+  const handleTaxChange = (catId, selectedTax, type) => {
+    setSelectedItemsData((prev) => {
+      const newCats = prev.selectedCategories.map((cat) => {
+        if (cat.id === catId) {
+          const taxRate =
+            type === "intra" ? selectedTax.intra_per : selectedTax.inter_per;
+          const totalTax = (cat.grandTotal * taxRate) / 100;
+          const cgst = totalTax / 2;
+          const sgst = totalTax / 2;
+
+          return {
+            ...cat,
+            selectedTax,
+            cgst,
+            sgst,
+            finalAmount: cat.grandTotal + cgst + sgst,
+          };
+        }
+        return cat;
+      });
+      return { ...prev, selectedCategories: newCats };
+    });
+  };
 
   console.log("metaData.tdsData", metaData.tdsData);
   console.log("selectedItemsData", selectedItemsData);
@@ -377,6 +421,7 @@ const AddSalesOrder = () => {
                 />
               </Col>
             </Row>
+
             <Row className="mb-3">
               <Col md={4}>
                 <CustomInput
@@ -443,7 +488,7 @@ const AddSalesOrder = () => {
             </Row>
 
             {/* Items Table */}
-            <div className="table-responsive">
+            {/* <div className="table-responsive">
               <Table hover responsive className="table">
                 <thead>
                   <tr className="table-gray">
@@ -485,6 +530,103 @@ const AddSalesOrder = () => {
                         </td>
                       </tr>
                     ))
+                  )}
+                </tbody>
+              </Table>
+            </div> */}
+
+            {/* Items Table */}
+            <div className="table-responsive">
+              <Table hover responsive>
+                <thead>
+                  <tr className="table-gray">
+                    <th>Item Category</th>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Amount</th>
+                    <th>Tax</th>
+                    <th>CGST</th>
+                    <th>SGST</th>
+                    <th>Final Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!selectedItemsData ? (
+                    <tr>
+                      <td colSpan="8" className="text-center">
+                        No Item Available
+                      </td>
+                    </tr>
+                  ) : (
+                    selectedItemsData.selectedCategories.map((cat) => {
+                      console.log("cat", cat);
+                      return (
+                        <tr key={cat.id}>
+                          <td>
+                            <strong>{cat.name}</strong>
+                          </td>
+                          <td>
+                            <ul style={{ paddingLeft: "18px", margin: 0 }}>
+                              {cat.items.map((item) => (
+                                <li key={item.id}>
+                                  {item.name} <br />
+                                  Qty: {item.quantity} <br /> Price: ₹
+                                  {parseFloat(item.price).toFixed(2)} <br />
+                                  Total: ₹{parseFloat(item.total).toFixed(2)}
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                          <td>{cat.totalQuantity}</td>
+                          <td>₹{cat.grandTotal.toFixed(2)}</td>
+                          <td>
+                            <Form.Select
+                              size="sm"
+                              value={cat.selectedTax?.id || ""}
+                              onChange={(e) => {
+                                const selectedId = parseInt(e.target.value);
+                                if (
+                                  cat.intraTax &&
+                                  cat.intraTax.id === selectedId
+                                ) {
+                                  handleTaxChange(
+                                    cat.id,
+                                    cat.intraTax,
+                                    "intra"
+                                  );
+                                } else if (
+                                  cat.interTax &&
+                                  cat.interTax.id === selectedId
+                                ) {
+                                  handleTaxChange(
+                                    cat.id,
+                                    cat.interTax,
+                                    "inter"
+                                  );
+                                }
+                              }}
+                            >
+                              <option value="">-- Select Tax --</option>
+                              {cat.intraTax && (
+                                <option value={cat.intraTax.id}>
+                                  Intra Tax - {cat.intraTax.name} -{" "}
+                                  {cat.intraTax.intra_per}%
+                                </option>
+                              )}
+                              {cat.interTax && (
+                                <option value={cat.interTax.id}>
+                                  Inter Tax - {cat.interTax.name} -{" "}
+                                  {cat.interTax.inter_per}%
+                                </option>
+                              )}
+                            </Form.Select>
+                          </td>
+                          <td>₹{cat?.cgst?.toFixed(2)}</td>
+                          <td>₹{cat?.sgst?.toFixed(2)}</td>
+                          <td>₹{cat?.finalAmount?.toFixed(2)}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </Table>
