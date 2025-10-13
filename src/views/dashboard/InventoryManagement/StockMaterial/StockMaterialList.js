@@ -319,7 +319,7 @@ const StockMaterialList = () => {
                               )}
                             </Tooltip>
 
-                            <Tooltip title="History" arrow>
+                            {/* <Tooltip title="History" arrow>
                               <FormatListNumberedIcon
                                 variant="outline-secondary"
                                 size="sm"
@@ -330,7 +330,7 @@ const StockMaterialList = () => {
                                   )
                                 }
                               />
-                            </Tooltip>
+                            </Tooltip> */}
 
                             {/* <PictureAsPdfIcon
                               color="error"

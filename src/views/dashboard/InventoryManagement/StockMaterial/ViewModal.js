@@ -13,7 +13,7 @@ const ViewModal = ({ show, handleClose, item }) => {
   return (
     <Modal show={show} onHide={handleClose} size="lg" centered scrollable>
       <Modal.Header closeButton>
-        <Modal.Title>View Stock Material</Modal.Title>
+        <Modal.Title>View Item</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Row className="mb-3">
@@ -54,7 +54,7 @@ const ViewModal = ({ show, handleClose, item }) => {
             <Form.Label>Unit</Form.Label>
             <Form.Control readOnly defaultValue={item.unit?.unit || "-"} />
           </Col>
-          <Col md={4}>
+          {/* <Col md={4}>
             <Form.Label>Tax Preference</Form.Label>
             <div>
               <Badge
@@ -67,7 +67,7 @@ const ViewModal = ({ show, handleClose, item }) => {
                 {item.taxPreference?.name || "-"}
               </Badge>
             </div>
-          </Col>
+          </Col> */}
         </Row>
 
         {item.taxPreference?.name?.toLowerCase() === "non-taxable" && (
@@ -123,7 +123,7 @@ const ViewModal = ({ show, handleClose, item }) => {
           </Row>
         )}
 
-        {item.taxPreference?.name?.toLowerCase() !== "non-taxable" && (
+        {/* {item.taxPreference?.name?.toLowerCase() !== "non-taxable" && (
           <Row className="mb-3">
             <Col md={6}>
               <Form.Label>Intra State Tax Rate</Form.Label>
@@ -142,7 +142,7 @@ const ViewModal = ({ show, handleClose, item }) => {
               />
             </Col>
           </Row>
-        )}
+        )} */}
       </Modal.Body>
     </Modal>
   );

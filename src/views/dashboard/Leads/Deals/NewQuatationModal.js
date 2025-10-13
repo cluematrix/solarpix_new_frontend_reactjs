@@ -1,15 +1,17 @@
+// Created by Sufyan | Modified by Rishi on 13 Oct 2025
+
 import React, { useRef, useEffect } from "react";
 import { Modal, Button, Table, Row, Col } from "react-bootstrap";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import logo from "../../../../assets/images/logo/main_logo.jpg"; // Adjust path
+import logo from "../../../../assets/images/logo/main_logo.jpg"; // adjust path
 
 const NewQuotationModal = ({ show, handleClose, deal }) => {
   const modalContentRef = useRef(null);
 
   useEffect(() => {
     if (show) {
-      // No API call needed as per your request, assuming deal is provided
+      // deal data already passed from parent
     }
   }, [show]);
 
@@ -82,7 +84,7 @@ const NewQuotationModal = ({ show, handleClose, deal }) => {
             color: "#000",
           }}
         >
-          {/* HEADER WITH LOGO */}
+          {/* HEADER */}
           <Row className="align-items-center border-bottom pb-2 mb-2">
             <Col xs={8}>
               <h6 className="fw-bold">Solarpix Energy Pvt. Ltd.</h6>
@@ -97,52 +99,59 @@ const NewQuotationModal = ({ show, handleClose, deal }) => {
             </Col>
           </Row>
 
-          {/* TITLE AND INFO */}
+          {/* QUOTE INFO */}
           <div className="text-center mb-2">
             <strong>Quotation</strong>
           </div>
+
           <div className="mb-2">
             <div>
-              <strong>Quote #:</strong> {deal.quotation_no || "QT-037"}
+              <strong>Quote #:</strong> {deal.quotation_no || "QT-000"}
             </div>
             <div>
               <strong>Quote Date:</strong>{" "}
               {deal.Qt_date
                 ? new Date(deal.Qt_date).toLocaleDateString("en-GB")
-                : "04/10/2024"}
+                : "N/A"}
             </div>
             <div>
               <strong>Place of Supply:</strong> Maharashtra (27)
             </div>
           </div>
-
-          {/* BILL TO AND SHIP TO */}
-          <div className="mb-2">
-            <div>
+          <hr />
+          {/* BILL & SHIP TO */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "20px",
+            }}
+            className="mb-2"
+          >
+            <div style={{ flex: 1 }}>
               <strong>Bill To:</strong>
+              <div>{deal.lead?.name || "N/A"}</div>
+              <div>{deal.lead?.billing_address}</div>
+              <div>
+                {deal.lead?.billing_city}, {deal.lead?.billing_state} -{" "}
+                {deal.lead?.billing_pincode}
+              </div>
             </div>
-            <div>{deal.lead?.name || "Mr. Shankar Zade"}</div>
-            <div>
-              {deal.lead?.billing_address ||
-                "At. Mahagaon Ta. Aheri, Dist. Gadchiroli"}
-            </div>
-            <div>{deal.lead?.billing_city || "442705"} Maharashtra, India</div>
-          </div>
-          <div className="mb-2">
-            <div>
-              <strong>Ship To:</strong>
-            </div>
-            <div>{deal.lead?.name || "Mr. Shankar Zade"}</div>
-            <div>
-              {deal.lead?.billing_address ||
-                "At. Mahagaon Ta. Aheri, Dist. Gadchiroli"}
-            </div>
-            <div>{deal.lead?.billing_city || "442705"} Maharashtra, India</div>
-          </div>
 
+            <div style={{ flex: 1, textAlign: "left" }}>
+              <strong>Ship To:</strong>
+              <div>{deal.lead?.name || "N/A"}</div>
+              <div>{deal.lead?.shipping_address}</div>
+              <div>
+                {deal.lead?.shipping_city}, {deal.lead?.shipping_state} -{" "}
+                {deal.lead?.shipping_pincode}
+              </div>
+            </div>
+          </div>
+          <hr />
           {/* SUBJECT */}
           <div className="mb-2">
-            <strong>Subject:</strong> 3.8KW Solar Power Generating System
+            <strong>Subject:</strong> {deal.description || "Solar Power System"}
           </div>
 
           {/* ITEMS TABLE */}
@@ -154,52 +163,89 @@ const NewQuotationModal = ({ show, handleClose, deal }) => {
                 <th>Qty</th>
                 <th>Rate</th>
                 <th>CGST</th>
-                <th>SGST</th>
+                <th>SGST / IGST</th>
                 <th>Amount</th>
               </tr>
             </thead>
+
             <tbody>
-              {selectedCategories.map((category, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{category.name}</td>
-                  <td>{category.totalQuantity}</td>
-                  <td>₹{category.grandTotal / category.totalQuantity}</td>
-                  <td>₹{(category.grandTotal * 0.06).toFixed(2)}</td>
-                  <td>₹{(category.grandTotal * 0.06).toFixed(2)}</td>
-                  <td>₹{category.grandTotal}</td>
-                </tr>
-              ))}
+              {selectedCategories.map((category, index) => {
+                const isTaxable = category.taxPreference?.name === "Taxable";
+                const cgst = category.cgst || 0; // Direct CGST from response
+                const sgst = category.sgst || 0; // Direct SGST from response
+                const igst = category.interTax?.inter_per
+                  ? (category.grandTotal * category.interTax.inter_per) / 100
+                  : 0; // IGST only if interTax exists
+                const totalAmount = category.finalAmount || category.grandTotal; // Use finalAmount or grandTotal
+
+                return (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>
+                      {category.name}
+                      <br />
+                      <small className="text-muted">
+                        ({category.taxPreference?.name || "N/A"})
+                      </small>
+                      <br />
+                      <small className="text-muted">
+                        Tax Type:{" "}
+                        {isTaxable
+                          ? category.intraTax
+                            ? "Intra (CGST + SGST)"
+                            : "Inter (IGST)"
+                          : "Out of Scope"}
+                      </small>
+                    </td>
+                    <td>{category.totalQuantity}</td>
+                    <td>
+                      ₹{Number(category.items?.[0]?.price || 0).toFixed(2)}
+                    </td>
+                    {category.intraTax ? (
+                      <>
+                        <td>₹{Number(cgst).toFixed(2)}</td>
+                        <td>₹{Number(sgst).toFixed(2)}</td>
+                      </>
+                    ) : (
+                      <td colSpan="2">₹{Number(igst).toFixed(2)}</td>
+                    )}
+                    <td>₹{Number(totalAmount).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+
+              {/* Subtotal */}
               <tr>
                 <td colSpan="6" className="text-right">
                   <strong>Sub Total</strong>
                 </td>
-                <td>₹{overallGrandTotal}</td>
+                <td>₹{deal.sub_total}</td>
               </tr>
+
+              {/* TDS */}
               {deal.TDS && (
                 <tr>
                   <td colSpan="6" className="text-right">
                     {deal.TDS.name} ({deal.TDS.percentage}%)
                   </td>
-                  <td>
-                    -₹
-                    {((deal.TDS.percentage / 100) * overallGrandTotal).toFixed(
-                      2
-                    )}
-                  </td>
+                  <td>-₹{deal.deductionAmount}</td>
                 </tr>
               )}
+
+              {/* Adjustment */}
               <tr>
                 <td colSpan="6" className="text-right">
                   <strong>Adjustment</strong>
                 </td>
                 <td>₹{deal.adjustment || 0}</td>
               </tr>
+
+              {/* Total */}
               <tr>
                 <td colSpan="6" className="text-right">
                   <strong>Total</strong>
                 </td>
-                <td>₹{deal.total || overallGrandTotal}</td>
+                <td>₹{Number(deal.total || 0).toFixed(2)}</td>
               </tr>
             </tbody>
           </Table>
@@ -208,13 +254,9 @@ const NewQuotationModal = ({ show, handleClose, deal }) => {
           <div className="mb-2">
             <strong>Total in Words:</strong>{" "}
             {deal.total
-              ? `Indian Rupee ${deal.total
-                  .toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })
-                  .replace("₹", "")
-                  .trim()} Only`
+              ? `Indian Rupees ${Number(deal.total).toLocaleString(
+                  "en-IN"
+                )} Only`
               : "N/A"}
           </div>
 
@@ -222,12 +264,13 @@ const NewQuotationModal = ({ show, handleClose, deal }) => {
           <div className="mb-2">
             <strong>Notes:</strong>
             <ul>
-              <li>Subsidy - 78000/-</li>
+              <li>Subsidy - ₹78,000/-</li>
               <li>
-                Solar Panel Warranty = 12 Year Product, 13 Year Performance
+                Solar Panel Warranty = 12 Years Product, 13 Years Performance
               </li>
               <li>Solar On-Grid Inverter Warranty = 7-10 Years</li>
-              <li>Service = 5 Year CMC</li>
+              <li>Service = 5 Years CMC</li>
+              {deal.notes_customer && <li>{deal.notes_customer}</li>}
             </ul>
           </div>
 
@@ -235,30 +278,25 @@ const NewQuotationModal = ({ show, handleClose, deal }) => {
           <div className="mb-2">
             <strong>Terms & Conditions / Bank Details:</strong>
             <div>
-              <strong>Bank Name:</strong>{" "}
-              {deal.companyBank?.bank_name || "HDFC Bank"}
+              <strong>Bank Name:</strong> {deal.companyBank?.bank_name || "N/A"}
             </div>
             <div>
-              <strong>Acc Name:</strong>{" "}
-              {deal.companyBank?.acc_name || "Solarpix Enterprises"}
+              <strong>Acc Name:</strong> {deal.companyBank?.acc_name || "N/A"}
             </div>
             <div>
-              <strong>Acc No:</strong>{" "}
-              {deal.companyBank?.acc_no || "50200044383342"}
+              <strong>Acc No:</strong> {deal.companyBank?.acc_no || "N/A"}
             </div>
             <div>
-              <strong>IFSC Code:</strong>{" "}
-              {deal.companyBank?.IFSC_code || "HDFC0005409"}
+              <strong>IFSC Code:</strong> {deal.companyBank?.IFSC_code || "N/A"}
             </div>
             <div>
-              <strong>Acc Type:</strong>{" "}
-              {deal.companyBank?.acc_type || "Current"}
+              <strong>Acc Type:</strong> {deal.companyBank?.acc_type || "N/A"}
             </div>
           </div>
 
           {/* SIGNATURE */}
           <div className="text-right mb-2">
-            <div>For Solarpix Enterprises 24-25</div>
+            <div>For Solarpix Energy Pvt. Ltd.</div>
             <div>Authorized Signatory</div>
           </div>
         </div>
