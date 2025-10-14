@@ -97,6 +97,7 @@ const AddPurchaseOrder = () => {
         };
 
         // Send only one of them (client_id or branch_id)
+        // Send only one of them (client_id or branch_id)
         if (values.client_id) {
           delete payload.branch_id;
         } else if (values.branch_id) {
