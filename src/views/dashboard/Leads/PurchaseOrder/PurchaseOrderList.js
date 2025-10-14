@@ -20,9 +20,9 @@ import QuotationModal from "./QuotationModal";
 
 import api from "../../../../api/axios";
 
-const SalesOrderList = () => {
+const PurchaseOrderList = () => {
   const navigate = useNavigate();
-  const [salesOrderList, setSalesOrderList] = useState([]);
+  const [purchaseOrderList, setPurchaseOrderList] = useState([]);
   const [dealStages, setDealStages] = useState([]);
   const [leads, setLeads] = useState([]);
   const [clients, setClients] = useState([]);
@@ -91,26 +91,16 @@ const SalesOrderList = () => {
   }, [filter]);
 
   // Fetch
-  const fetchSalesOrder = async (page = 1) => {
+  const fetchPurchaseOrder = async (page = 1) => {
     try {
       setLoading(true);
       const res = await api.get(
-        `/api/v1/admin/salesOrder/pagination?page=${page}&limit=${itemsPerPage}`
+        `/api/v1/admin/purchaseOrder/pagination?page=${page}&limit=${itemsPerPage}`
       );
 
-      const salesOrder = res.data.data;
-      const filteredDeals = salesOrder.filter((deal) => {
-        if (filter === "final") {
-          return deal.isFinal === true && deal.deal_stage_id === 4;
-        } else if (filter === "lost") {
-          return deal.deal_stage_id === 5;
-        } else if (filter === "proposal sent") {
-          return deal.deal_stage_id === 2;
-        }
-        return true;
-      });
+      const purchaseOrder = res.data.data;
 
-      setSalesOrderList(filteredDeals);
+      setPurchaseOrderList(purchaseOrder);
       //  Extract pagination info properly
       const pagination = res.data?.pagination;
 
@@ -125,12 +115,14 @@ const SalesOrderList = () => {
   };
 
   useEffect(() => {
-    fetchSalesOrder(currentPage);
+    fetchPurchaseOrder(currentPage);
   }, [currentPage]);
   const handleDeleteConfirm = async () => {
     try {
       await api.delete(`/api/v1/admin/deal/${deleteId}`);
-      setSalesOrderList((prev) => prev.filter((deal) => deal.id !== deleteId));
+      setPurchaseOrderList((prev) =>
+        prev.filter((deal) => deal.id !== deleteId)
+      );
       setShowDeleteModal(false);
       setDeleteId(null);
     } catch (error) {
@@ -141,10 +133,10 @@ const SalesOrderList = () => {
   const fetchDeals = async () => {
     try {
       const res = await api.get("/api/v1/admin/deal");
-      const salesOrder = res.data?.data || res.data || [];
-      setSalesOrderList(salesOrder);
+      const purchaseOrder = res.data?.data || res.data || [];
+      setPurchaseOrderList(purchaseOrder);
     } catch (err) {
-      console.error("Error fetching salesOrder:", err);
+      console.error("Error fetching purchaseOrder:", err);
     }
   };
 
@@ -154,7 +146,7 @@ const SalesOrderList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex flex-wrap justify-content-between align-items-center gap-2">
-              <h5 className="card-title fw-lighter mb-0">Sales Orders</h5>
+              <h5 className="card-title fw-lighter mb-0">Purchase Orders</h5>
 
               {/* Filter Dropdown */}
               <Form.Select
@@ -172,9 +164,9 @@ const SalesOrderList = () => {
               {/* Add Deal Button */}
               <Button
                 className="btn-primary w-auto"
-                onClick={() => navigate("/add-sales-orders")}
+                onClick={() => navigate("/add-purchase-orders")}
               >
-                + Generate Sales Orders
+                + Generate Purchase Orders
               </Button>
             </Card.Header>
 
@@ -185,22 +177,22 @@ const SalesOrderList = () => {
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Customer Name</th>
-                      <th>Sales Order</th>
-                      {/* <th>Sales Order Date</th> */}
+                      <th>Purchase Order</th>
+                      {/* <th>Purchase Order Date</th> */}
                       <th>Amount</th>
                       {/* <th>Status</th> */}
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {salesOrderList.length === 0 ? (
+                    {purchaseOrderList.length === 0 ? (
                       <tr>
                         <td colSpan="11" className="text-center">
-                          No Sales Order available
+                          No Purchase Order available
                         </td>
                       </tr>
                     ) : (
-                      salesOrderList.map((deal, index) => (
+                      purchaseOrderList.map((deal, index) => (
                         <tr key={deal.id}>
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
@@ -260,7 +252,7 @@ const SalesOrderList = () => {
                                         deal_stage_id: newStageId,
                                       }
                                     );
-                                    setSalesOrderList((prev) =>
+                                    setPurchaseOrderList((prev) =>
                                       prev.map((d) =>
                                         d.id === deal.id
                                           ? { ...d, deal_stage_id: newStageId }
@@ -317,7 +309,9 @@ const SalesOrderList = () => {
                               }}
                             />
                             <CreateTwoToneIcon
-                              onClick={() => navigate(`/edit-sales/${deal.id}`)}
+                              onClick={() =>
+                                navigate(`/edit-purchase/${deal.id}`)
+                              }
                               color="primary"
                               style={{ cursor: "pointer" }}
                             />
@@ -364,7 +358,7 @@ const SalesOrderList = () => {
         </Col>
       </Row>
 
-      {/* Sales Orders Confirmation Modal */}
+      {/* Purchase Orders Confirmation Modal */}
       <Modal
         show={showQuotationConfirm}
         onHide={() => setShowQuotationConfirm(false)}
@@ -372,11 +366,11 @@ const SalesOrderList = () => {
         backdrop="static"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Sales Orders Confirmation</Modal.Title>
+          <Modal.Title>Purchase Orders Confirmation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>
-            Do you want to send the current sales orders or update with a new
+            Do you want to send the current purchase orders or update with a new
             one?
           </p>
         </Modal.Body>
@@ -391,16 +385,16 @@ const SalesOrderList = () => {
                   isFinal: 1,
                 });
                 await fetchDeals();
-                setSalesOrderList((prev) =>
+                setPurchaseOrderList((prev) =>
                   prev.map((d) =>
                     d.id === selectedDeal.id
                       ? { ...d, deal_stage_id: 4, isFinal: 1 }
                       : d
                   )
                 );
-                alert("Current sales orders sent successfully!");
+                alert("Current purchase orders sent successfully!");
               } catch (err) {
-                console.error("Error sending sales orders:", err);
+                console.error("Error sending purchase orders:", err);
               } finally {
                 setShowQuotationConfirm(false);
               }
@@ -419,7 +413,7 @@ const SalesOrderList = () => {
                 });
 
                 await fetchDeals();
-                setSalesOrderList((prev) =>
+                setPurchaseOrderList((prev) =>
                   prev.map((d) =>
                     d.id === selectedDeal.id
                       ? { ...d, deal_stage_id: 4, isFinal: 1 }
@@ -433,7 +427,7 @@ const SalesOrderList = () => {
                   state: { leadData: selectedDeal.lead, deal: selectedDeal },
                 });
               } catch (err) {
-                console.error("Error sending sales orders:", err);
+                console.error("Error sending purchase orders:", err);
               } finally {
                 setShowQuotationConfirm(false);
               }
@@ -468,7 +462,7 @@ const SalesOrderList = () => {
         viewData={viewData}
       />
 
-      {/* Sales Orders Modal */}
+      {/* Purchase Orders Modal */}
       <QuotationModal
         show={showQuotationModal}
         handleClose={() => setShowQuotationModal(false)}
@@ -478,4 +472,4 @@ const SalesOrderList = () => {
   );
 };
 
-export default SalesOrderList;
+export default PurchaseOrderList;

@@ -124,3 +124,8 @@ export const accountTypes = [
   { id: "1", name: "Current" },
   { id: "2", name: "Saving" },
 ];
+
+export const personType = [
+  { id: "1", name: "Warehouse" },
+  { id: "2", name: "Customer" },
+];
