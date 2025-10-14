@@ -1,32 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Table,
-  Form,
-  Modal,
-  Pagination,
-} from "react-bootstrap";
+import { Card, Row, Col, Button, Table, Pagination } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import DeleteModal from "./delete-modal";
-import ViewModal from "./ViewModal";
-import QuotationModal from "./QuotationModal";
+import PurchaseOrderModal from "./QuotationModal";
 
 import api from "../../../../api/axios";
 
 const PurchaseOrderList = () => {
   const navigate = useNavigate();
   const [purchaseOrderList, setPurchaseOrderList] = useState([]);
-  const [dealStages, setDealStages] = useState([]);
-  const [leads, setLeads] = useState([]);
-  const [clients, setClients] = useState([]);
-
   const [loading, setLoading] = useState(true);
 
   // Pagination state
@@ -37,106 +23,44 @@ const PurchaseOrderList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [viewData, setViewData] = useState(null);
+  const [showPurchaseOrderModal, setShowPurchaseOrderModal] = useState(false);
+  const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState(null);
 
-  const [showQuotationModal, setShowQuotationModal] = useState(false);
-  const [quotationDeal, setQuotationDeal] = useState(null);
-
-  const [showQuotationConfirm, setShowQuotationConfirm] = useState(false);
-  const [selectedDeal, setSelectedDeal] = useState(null);
-  const [pendingStageId, setPendingStageId] = useState(null);
-
-  const [filter, setFilter] = useState(""); // all / final
-
-  const getStageColor = (stageName) => {
-    switch (stageName) {
-      case "New":
-        return "#e3f2fd";
-      case "Qualified":
-        return "#fff9c4";
-      case "Proposal Sent":
-        return "#ffe0b2";
-      case "Negotiation":
-        return "#d1c4e9";
-      case "Won":
-        return "#c8e6c9";
-      case "Lost":
-        return "#ffcdd2";
-      default:
-        return "#f0f0f0";
-    }
-  };
-
-  // Fetch data from API whenever filter changes
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [stagesRes, leadsRes, clientsRes] = await Promise.all([
-          api.get("/api/v1/admin/dealStages/active"),
-          api.get("/api/v1/admin/lead/active"),
-          api.get("/api/v1/admin/client/active"),
-        ]);
-
-        setDealStages(stagesRes.data || []);
-        setLeads(leadsRes.data?.data || leadsRes.data || []);
-        setClients(clientsRes.data?.data || clientsRes.data || []);
-        setCurrentPage(1); // reset page when filter changes
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, [filter]);
-
-  // Fetch
-  const fetchPurchaseOrder = async (page = 1) => {
+  // Fetch purchase orders
+  const fetchPurchaseOrders = async (page = 1) => {
     try {
       setLoading(true);
       const res = await api.get(
         `/api/v1/admin/purchaseOrder/pagination?page=${page}&limit=${itemsPerPage}`
       );
 
-      const purchaseOrder = res.data.data;
+      const purchaseOrders = res.data.data || [];
+      setPurchaseOrderList(purchaseOrders);
 
-      setPurchaseOrderList(purchaseOrder);
-      //  Extract pagination info properly
+      // Extract pagination info
       const pagination = res.data?.pagination;
-
       if (pagination) {
         setTotalPages(pagination.totalPages || 1);
       }
     } catch (err) {
-      console.error("Error fetching leads:", err);
+      console.error("Error fetching purchase orders:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPurchaseOrder(currentPage);
+    fetchPurchaseOrders(currentPage);
   }, [currentPage]);
+
   const handleDeleteConfirm = async () => {
     try {
-      await api.delete(`/api/v1/admin/deal/${deleteId}`);
-      setPurchaseOrderList((prev) =>
-        prev.filter((deal) => deal.id !== deleteId)
-      );
+      await api.delete(`/api/v1/admin/purchaseOrder/${deleteId}`);
       setShowDeleteModal(false);
       setDeleteId(null);
+      fetchPurchaseOrders(currentPage); // Refresh list after delete
     } catch (error) {
-      console.error("Error deleting deal:", error.response || error);
-    }
-  };
-
-  const fetchDeals = async () => {
-    try {
-      const res = await api.get("/api/v1/admin/deal");
-      const purchaseOrder = res.data?.data || res.data || [];
-      setPurchaseOrderList(purchaseOrder);
-    } catch (err) {
-      console.error("Error fetching purchaseOrder:", err);
+      console.error("Error deleting purchase order:", error.response || error);
     }
   };
 
@@ -148,25 +72,12 @@ const PurchaseOrderList = () => {
             <Card.Header className="d-flex flex-wrap justify-content-between align-items-center gap-2">
               <h5 className="card-title fw-lighter mb-0">Purchase Orders</h5>
 
-              {/* Filter Dropdown */}
-              <Form.Select
-                size="sm"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-auto ms-auto"
-              >
-                <option value="all">All</option>
-                <option value="final">Final</option>
-                <option value="lost">Lost</option>
-                <option value="proposal sent">Proposal sent</option>
-              </Form.Select>
-
-              {/* Add Deal Button */}
+              {/* Add Purchase Order Button */}
               <Button
                 className="btn-primary w-auto"
                 onClick={() => navigate("/add-purchase-orders")}
               >
-                + Generate Purchase Orders
+                + Generate Purchase Order
               </Button>
             </Card.Header>
 
@@ -176,148 +87,65 @@ const PurchaseOrderList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Customer Name</th>
-                      <th>Purchase Order</th>
-                      {/* <th>Purchase Order Date</th> */}
+                      <th>Supplier Name</th>
+                      <th>Purchase Order No.</th>
+                      <th>Purchase Date</th>
                       <th>Amount</th>
-                      {/* <th>Status</th> */}
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {purchaseOrderList.length === 0 ? (
+                    {loading ? (
                       <tr>
-                        <td colSpan="11" className="text-center">
-                          No Purchase Order available
+                        <td colSpan="6" className="text-center">
+                          Loading...
+                        </td>
+                      </tr>
+                    ) : purchaseOrderList.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center">
+                          No Purchase Orders available
                         </td>
                       </tr>
                     ) : (
-                      purchaseOrderList.map((deal, index) => (
-                        <tr key={deal.id}>
+                      purchaseOrderList.map((order, index) => (
+                        <tr key={order.id}>
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td>{deal.lead?.name || "---"}</td>
-                          <td>{deal?.sales_order_no || "---"}</td>
-                          <td>₹{deal?.total || "---"}</td>
-                          {/* <td>
-                            {deal?.site_visit_date
-                              ? new Date(
-                                  deal.site_visit_date
-                                ).toLocaleDateString("en-GB")
-                              : "---"}
-                          </td> */}
-
-                          {/* <td>
-                            <Form.Select
-                              size="sm"
-                              className="w-50"
-                              value={deal.deal_stage_id || ""}
-                              style={{
-                                cursor: deal.is_disable
-                                  ? "not-allowed"
-                                  : "pointer",
-                                cursor:
-                                  deal.is_disable ||
-                                  deal.deal_stage_id_name === "Won" ||
-                                  deal.deal_stage_id_name === "Lost"
-                                    ? "not-allowed"
-                                    : "pointer",
-                                backgroundColor: "transparent", // no background
-                                color: "#000",
-                              }}
-                              disabled={
-                                deal.is_disable ||
-                                deal.deal_stage_id_name === "Won" ||
-                                deal.deal_stage_id_name === "Lost"
-                              }
-                              onChange={async (e) => {
-                                const newStageId = e.target.value;
-                                if (!newStageId) return;
-
-                                const stageName = dealStages.find(
-                                  (s) => s.id == newStageId
-                                )?.deal_stages;
-
-                                if (stageName === "Won") {
-                                  setSelectedDeal(deal);
-                                  setPendingStageId(newStageId);
-                                  setShowQuotationConfirm(true);
-                                } else {
-                                  try {
-                                    await api.put(
-                                      `/api/v1/admin/deal/${deal.id}`,
-                                      {
-                                        ...deal,
-                                        deal_stage_id: newStageId,
-                                      }
-                                    );
-                                    setPurchaseOrderList((prev) =>
-                                      prev.map((d) =>
-                                        d.id === deal.id
-                                          ? { ...d, deal_stage_id: newStageId }
-                                          : d
-                                      )
-                                    );
-                                  } catch (err) {
-                                    console.error("Error updating stage:", err);
+                          <td>{order.supplierManagement?.name || "---"}</td>
+                          <td>{order.purchase_order_no || "---"}</td>
+                          <td>
+                            {order.date
+                              ? new Date(order.date).toLocaleDateString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
                                   }
-                                }
-                              }}
-                            >
-                              <option value="">Select Stage</option>
-                              {dealStages.map((stage) => {
-                                const isDisabled =
-                                  stage.id < deal.deal_stage_id &&
-                                  !["Won", "Lost"].includes(
-                                    deal.deal_stage_id_name
-                                  );
-
-                                // Map stage id to icon
-                                const stageIcon = {
-                                  1: "🟢", // Qualified
-                                  2: "🟠", // Proposal Sent / Negotiation
-                                  3: "🔵", // Negotiation - blue
-                                  4: "🟢", // Won
-                                  5: "🔴", // Lost
-                                }[stage.id];
-
-                                return (
-                                  <option
-                                    key={stage.id}
-                                    value={stage.id}
-                                    disabled={isDisabled}
-                                    style={{
-                                      cursor: isDisabled
-                                        ? "not-allowed"
-                                        : "pointer",
-                                    }}
-                                  >
-                                    {stageIcon} {stage.deal_stages}
-                                  </option>
-                                );
-                              })}
-                            </Form.Select>
-                          </td> */}
-
+                                )
+                              : "---"}
+                          </td>
+                          <td>₹{order.total || "---"}</td>
                           <td>
                             <VisibilityIcon
                               style={{ color: "#0d6efd", cursor: "pointer" }}
                               onClick={() => {
-                                setQuotationDeal(deal);
-                                setShowQuotationModal(true);
+                                setSelectedPurchaseOrder(order);
+                                setShowPurchaseOrderModal(true);
                               }}
                             />
                             <CreateTwoToneIcon
                               onClick={() =>
-                                navigate(`/edit-purchase/${deal.id}`)
+                                navigate(`/edit-purchase/${order.id}`)
                               }
                               color="primary"
                               style={{ cursor: "pointer" }}
                             />
                             <DeleteRoundedIcon
                               onClick={() => {
-                                setDeleteId(deal.id);
+                                setDeleteId(order.id);
                                 setShowDeleteModal(true);
                               }}
                               color="error"
@@ -358,96 +186,6 @@ const PurchaseOrderList = () => {
         </Col>
       </Row>
 
-      {/* Purchase Orders Confirmation Modal */}
-      <Modal
-        show={showQuotationConfirm}
-        onHide={() => setShowQuotationConfirm(false)}
-        centered
-        backdrop="static"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Purchase Orders Confirmation</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            Do you want to send the current purchase orders or update with a new
-            one?
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          {/* <Button
-            variant="success"
-            onClick={async () => {
-              try {
-                await api.put(`/api/v1/admin/deal/${selectedDeal.id}`, {
-                  ...selectedDeal,
-                  deal_stage_id: 4,
-                  isFinal: 1,
-                });
-                await fetchDeals();
-                setPurchaseOrderList((prev) =>
-                  prev.map((d) =>
-                    d.id === selectedDeal.id
-                      ? { ...d, deal_stage_id: 4, isFinal: 1 }
-                      : d
-                  )
-                );
-                alert("Current purchase orders sent successfully!");
-              } catch (err) {
-                console.error("Error sending purchase orders:", err);
-              } finally {
-                setShowQuotationConfirm(false);
-              }
-            }}
-          >
-            Send Current
-          </Button> */}
-          <Button
-            variant="success"
-            onClick={async () => {
-              try {
-                await api.put(`/api/v1/admin/deal/${selectedDeal.id}`, {
-                  ...selectedDeal,
-                  deal_stage_id: 4,
-                  isFinal: 1,
-                });
-
-                await fetchDeals();
-                setPurchaseOrderList((prev) =>
-                  prev.map((d) =>
-                    d.id === selectedDeal.id
-                      ? { ...d, deal_stage_id: 4, isFinal: 1 }
-                      : d
-                  )
-                );
-
-                // ✅ Redirect to addcustomer with deal data
-                // navigate("/add-customer", { state: { deal: selectedDeal } });
-                navigate("/add-customer", {
-                  state: { leadData: selectedDeal.lead, deal: selectedDeal },
-                });
-              } catch (err) {
-                console.error("Error sending purchase orders:", err);
-              } finally {
-                setShowQuotationConfirm(false);
-              }
-            }}
-          >
-            Send Current
-          </Button>
-
-          <Button
-            variant="primary"
-            onClick={() => {
-              setShowQuotationConfirm(false);
-              navigate(`/UpdateQuotationNew/${selectedDeal.id}`);
-            }}
-          >
-            Update New
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       {/* Delete Modal */}
       <DeleteModal
         show={showDeleteModal}
@@ -455,18 +193,11 @@ const PurchaseOrderList = () => {
         onDelete={handleDeleteConfirm}
       />
 
-      {/* View Modal */}
-      <ViewModal
-        show={showViewModal}
-        handleClose={() => setShowViewModal(false)}
-        viewData={viewData}
-      />
-
-      {/* Purchase Orders Modal */}
-      <QuotationModal
-        show={showQuotationModal}
-        handleClose={() => setShowQuotationModal(false)}
-        deal={quotationDeal}
+      {/* Purchase Order Modal */}
+      <PurchaseOrderModal
+        show={showPurchaseOrderModal}
+        handleClose={() => setShowPurchaseOrderModal(false)}
+        deal={selectedPurchaseOrder}
       />
     </>
   );

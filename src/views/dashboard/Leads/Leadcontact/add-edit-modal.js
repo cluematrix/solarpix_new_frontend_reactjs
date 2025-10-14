@@ -186,23 +186,24 @@ const AddEditModal = ({
                     />
                   </Form.Group>
                 </Col>
-                <Col md={4}>
-                  <Form.Group>
-                    <Form.Label>
-                      Email <span className="text-danger">*</span>
-                    </Form.Label>
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter Email"
-                      required
-                    />
-                  </Form.Group>
-                </Col>
               </>
             )}
+
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label>
+                  Email <span className="text-danger">*</span>
+                </Form.Label>
+                <Form.Control
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter Email"
+                  required
+                />
+              </Form.Group>
+            </Col>
           </Row>
 
           <Row className="mb-3">
