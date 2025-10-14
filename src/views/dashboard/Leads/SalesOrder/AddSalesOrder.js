@@ -43,7 +43,7 @@ const AddSalesOrder = () => {
     expected_shipment_date: "",
     companyBank_id: "",
     notes_customer: "",
-    quotation_no: "",
+    sales_order_no: "",
     reference: "",
     payment_terms_id: "",
   };
@@ -89,13 +89,15 @@ const AddSalesOrder = () => {
           expected_shipment_date: values.expected_shipment_date || "",
           companyBank_id: values.companyBank_id || "",
           notes_customer: values.notes_customer || "",
-          deal_stage_id: 2,
+          reference: values.reference || "",
+          payment_terms_id: values.payment_terms_id || "",
         };
 
         console.log("📤 Final Payload Sent:", payload);
 
         if (id) {
           await api.put(`/api/v1/admin/salesOrder/${id}`, payload);
+          navigate("/sales-order-list");
           successToast("Sales Orders updated successfully");
         } else {
           await api.post("/api/v1/admin/salesOrder", payload);
@@ -176,7 +178,9 @@ const AddSalesOrder = () => {
         );
         setFieldValue("companyBank_id", salesOrder.companyBank_id || "");
         setFieldValue("notes_customer", salesOrder.notes_customer || "");
-        setFieldValue("quotation_no", salesOrder.quotation_no || "");
+        setFieldValue("sales_order_no", salesOrder.sales_order_no || "");
+        setFieldValue("reference", salesOrder.reference || "");
+        setFieldValue("payment_terms_id", salesOrder.payment_terms_id || "");
 
         // ✅ Prefill item details
         if (salesOrder.item_details) {
@@ -286,17 +290,19 @@ const AddSalesOrder = () => {
         const res = await api.get("/api/v1/admin/salesOrder");
         const deals = res.data || [];
         const fyDeals = deals.filter(
-          (d) => d.quotation_no && d.quotation_no.includes(`QT/${fy}/`)
+          (d) => d.sales_order_no && d.sales_order_no.includes(`QT/${fy}/`)
         );
 
         if (fyDeals.length > 0) {
           const lastNo = Math.max(
-            ...fyDeals.map((d) => parseInt(d.quotation_no.split("/").pop(), 10))
+            ...fyDeals.map((d) =>
+              parseInt(d.sales_order_no.split("/").pop(), 10)
+            )
           );
           const newNo = String(lastNo + 1).padStart(2, "0");
-          setFieldValue("quotation_no", `QT/${fy}/${newNo}`);
+          setFieldValue("sales_order_no", `QT/${fy}/${newNo}`);
         } else {
-          setFieldValue("quotation_no", `QT/${fy}/01`);
+          setFieldValue("sales_order_no", `QT/${fy}/01`);
         }
       } catch (err) {
         console.error("Failed to set sales orders number:", err);
@@ -306,7 +312,7 @@ const AddSalesOrder = () => {
     if (!id) {
       initQuotation();
     } else if (id) {
-      setFieldValue("quotation_no", values.quotation_no);
+      setFieldValue("sales_order_no", values.sales_order_no);
     }
   }, [id]);
 
@@ -420,9 +426,6 @@ const AddSalesOrder = () => {
                   lableKey="id"
                 />
               </Col>
-            </Row>
-
-            <Row className="mb-3">
               <Col md={4}>
                 <CustomInput
                   type="date"
@@ -435,7 +438,7 @@ const AddSalesOrder = () => {
                   touched={touched.sales_order_date}
                   errors={errors.sales_order_date}
                   required
-                  min={new Date().toISOString().split("T")[0]}
+                  min={!id && new Date().toISOString().split("T")[0]}
                 />
               </Col>
               <Col md={4}>
@@ -449,9 +452,12 @@ const AddSalesOrder = () => {
                   placeholder="Enter Quote Expiry Date"
                   touched={touched.expected_shipment_date}
                   errors={errors.expected_shipment_date}
-                  min={new Date().toISOString().split("T")[0]}
+                  min={!id && new Date().toISOString().split("T")[0]}
                 />
               </Col>
+            </Row>
+
+            <Row className="mb-3">
               <Col md={4}>
                 <CustomSelect
                   label="Bank"
@@ -486,54 +492,6 @@ const AddSalesOrder = () => {
                 />
               </Col>
             </Row>
-
-            {/* Items Table */}
-            {/* <div className="table-responsive">
-              <Table hover responsive className="table">
-                <thead>
-                  <tr className="table-gray">
-                    <th>Item Category</th>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!selectedItemsData ? (
-                    <tr>
-                      <td colSpan="4" className="text-center">
-                        No Item Available
-                      </td>
-                    </tr>
-                  ) : (
-                    selectedItemsData.selectedCategories.map((cat) => (
-                      <tr key={cat.id}>
-                        <td>
-                          <strong>{cat.name}</strong>
-                        </td>
-                        <td>
-                          <ul style={{ paddingLeft: "18px", margin: 0 }}>
-                            {cat.items.map((item) => (
-                              <li key={item.id}>
-                                {item.name} — Qty: {item.quantity} — Price: ₹
-                                {parseFloat(item.price).toFixed(2)} — Total: ₹
-                                {parseFloat(item.total).toFixed(2)}
-                              </li>
-                            ))}
-                          </ul>
-                        </td>
-                        <td>
-                          <strong>{cat.totalQuantity}</strong>
-                        </td>
-                        <td>
-                          <strong>₹{cat.grandTotal.toFixed(2)}</strong>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </Table>
-            </div> */}
 
             {/* Items Table */}
             <div className="table-responsive">

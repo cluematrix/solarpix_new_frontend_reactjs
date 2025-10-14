@@ -1,12 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { Col, Modal, Row, Spinner, Table, Button, Form } from "react-bootstrap";
 import api from "../../../../api/axios";
+import { errorToast } from "../../../../components/Toast/errorToast";
+import { successToast } from "../../../../components/Toast/successToast";
 
-const AddPurchaseOrderModal = ({ show, handleClose, onSave, existingData }) => {
+const AddPurchaseOrderModal = ({
+  show,
+  handleClose,
+  onSave,
+  existingData,
+  formik,
+}) => {
   const [loadingCat, setLoadingCat] = useState(false);
   const [intCategory, setIntCategory] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [allItems, setAllItems] = useState([]);
+
+  // Serial modal state
+  const [serialModal, setSerialModal] = useState({
+    show: false,
+    item: null,
+    serials: [],
+  });
 
   // Fetch categories
   const fetchIntCategory = async () => {
@@ -41,7 +56,7 @@ const AddPurchaseOrderModal = ({ show, handleClose, onSave, existingData }) => {
 
         return {
           ...item,
-          quantity: existingItem?.quantity || 1,
+          quantity: existingItem?.quantity || 0,
           total:
             existingItem?.total ||
             parseFloat(item.sales_info_selling_price || 0),
@@ -84,6 +99,19 @@ const AddPurchaseOrderModal = ({ show, handleClose, onSave, existingData }) => {
   };
 
   // Quantity update
+  // const updateQuantity = (id, type) => {
+  //   setAllItems((prev) =>
+  //     prev.map((item) => {
+  //       if (item.id === id) {
+  //         const newQty =
+  //           type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
+  //         const total = newQty * parseFloat(item.sales_info_selling_price || 0);
+  //         return { ...item, quantity: newQty, total };
+  //       }
+  //       return item;
+  //     })
+  //   );
+  // };
   const updateQuantity = (id, type) => {
     setAllItems((prev) =>
       prev.map((item) => {
@@ -91,13 +119,18 @@ const AddPurchaseOrderModal = ({ show, handleClose, onSave, existingData }) => {
           const newQty =
             type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
           const total = newQty * parseFloat(item.sales_info_selling_price || 0);
-          return { ...item, quantity: newQty, total };
+          return {
+            ...item,
+            quantity: newQty,
+            total,
+            serialAdded: false,
+            serialNumbers: [],
+          };
         }
         return item;
       })
     );
   };
-
   // Price edit
   const handlePriceChange = (id, value) => {
     setAllItems((prev) =>
@@ -114,13 +147,87 @@ const AddPurchaseOrderModal = ({ show, handleClose, onSave, existingData }) => {
   };
 
   // Toggle item checkbox
+  // const toggleItemSelect = (id) => {
+  //   setAllItems((prev) =>
+  //     prev.map((item) =>
+  //       item.id === id ? { ...item, selected: !item.selected } : item
+  //     )
+  //   );
+  // };
+
   const toggleItemSelect = (id) => {
     setAllItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, selected: !item.selected } : item
+        item.id === id
+          ? {
+              ...item,
+              selected: !item.selected,
+              serialAdded: false,
+              serialNumbers: [],
+            }
+          : item
       )
     );
   };
+
+  // Open serial modal
+  const openSerialModal = (item) => {
+    const serials = Array.from(
+      { length: item.quantity },
+      (_, i) => item.serialNumbers[i] || ""
+    );
+    setSerialModal({ show: true, item, serials });
+  };
+
+  // Handle serial change
+  const handleSerialChange = (index, value) => {
+    setSerialModal((prev) => {
+      const updated = [...prev.serials];
+      updated[index] = value;
+      return { ...prev, serials: updated };
+    });
+  };
+
+  // Save serials & hit API
+  const saveSerials = async () => {
+    const { item, serials } = serialModal;
+    if (serials.some((s) => !s.trim()))
+      return errorToast("Please fill all serial numbers");
+
+    try {
+      const payload = {
+        Credit: item.quantity,
+        remark: "Stock purchase",
+        stock_material_id: item.id,
+        stock_particular_id: 3,
+        supplier_management_id: formik.values.supplier_id,
+        brand_id: formik.values?.branch_id || null,
+        serialNumbers: serials,
+      };
+
+      await api.post("/api/v1/admin/stockManagement", payload);
+      successToast(`Serials added for ${item.material}`);
+
+      // Update item in state
+      setAllItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? { ...i, serialNumbers: serials, serialAdded: true }
+            : i
+        )
+      );
+
+      setSerialModal({ show: false, item: null, serials: [] });
+    } catch (err) {
+      setSerialModal({ show: false, item: null, serials: [] });
+      errorToast(err.response?.data?.message || "Error saving serials");
+    }
+  };
+
+  // Check if all selected items have serials added
+  const allSerialsAdded = allItems
+    .filter((i) => i.selected)
+    .every((i) => i.serialAdded);
 
   // Save button logic
   const handleSave = () => {
@@ -139,6 +246,7 @@ const AddPurchaseOrderModal = ({ show, handleClose, onSave, existingData }) => {
             price: item.sales_info_selling_price,
             quantity: item.quantity,
             total: item.total,
+            serialNumbers: item.serialNumbers,
           }));
 
         const totalQuantity = categoryItems.reduce(
@@ -174,175 +282,260 @@ const AddPurchaseOrderModal = ({ show, handleClose, onSave, existingData }) => {
   };
 
   return (
-    <Modal
-      show={show}
-      onHide={handleClose}
-      centered
-      backdrop="static"
-      size="xl"
-    >
-      <Modal.Header closeButton>
-        <Modal.Title>Add Item</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Row>
-          {/* LEFT: Categories */}
-          <Col md={4}>
-            {loadingCat ? (
-              <div className="loader-div">
-                {/* <Spinner animation="border" className="spinner" /> */}
-                <p>Loading...</p>
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <Table hover bordered>
-                  <thead>
-                    <tr className="table-gray">
-                      <th>Select</th>
-                      <th>Sr.No</th>
-                      <th>Category</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {intCategory.length === 0 ? (
-                      <tr>
-                        <td colSpan="3" className="text-center">
-                          No Item Category Available
-                        </td>
+    <>
+      <Modal
+        show={show}
+        onHide={handleClose}
+        centered
+        backdrop="static"
+        size="xl"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Add Item</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Row>
+            {/* LEFT: Categories */}
+            <Col md={4}>
+              {loadingCat ? (
+                <div className="loader-div">
+                  {/* <Spinner animation="border" className="spinner" /> */}
+                  <p>Loading...</p>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <Table hover bordered>
+                    <thead>
+                      <tr className="table-gray">
+                        <th>Select</th>
+                        <th>Sr.No</th>
+                        <th>Category</th>
                       </tr>
-                    ) : (
-                      intCategory.map((cat, idx) => (
-                        <tr key={cat.id}>
-                          <td>
-                            <Form.Check
-                              type="checkbox"
-                              checked={cat.selected}
-                              onChange={() => toggleCategorySelect(cat.id)}
-                            />
+                    </thead>
+                    <tbody>
+                      {intCategory.length === 0 ? (
+                        <tr>
+                          <td colSpan="3" className="text-center">
+                            No Item Category Available
                           </td>
-                          <td>{idx + 1}</td>
-                          <td>{cat.category}</td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-            )}
-          </Col>
-
-          {/* RIGHT: Items per category */}
-          <Col md={8}>
-            {loadingItems ? (
-              <></>
-            ) : (
-              // <div className="loader-div">
-              //   {/* <Spinner animation="border" className="spinner" /> */}
-              //   <p>
-              //     Please select at least one category to display related items.
-              //   </p>
-              // </div>
-              intCategory
-                .filter((cat) => cat.selected)
-                .map((cat) => {
-                  const categoryItems = getItemsForCategory(cat.id);
-                  const selectedItems = categoryItems.filter((i) => i.selected);
-                  const totalQuantity = selectedItems.reduce(
-                    (sum, i) => sum + i.quantity,
-                    0
-                  );
-                  const grandTotal = selectedItems.reduce(
-                    (sum, i) => sum + i.total,
-                    0
-                  );
-
-                  return (
-                    <div key={cat.id} className="mb-5">
-                      <h5 className="mb-3 text-primary">{cat.category}</h5>
-                      <div className="table-responsive">
-                        <Table bordered hover>
-                          <thead className="table-light">
-                            <tr>
-                              <th>Select</th>
-                              <th>Item Name</th>
-                              <th>Price (₹)</th>
-                              <th>Qty</th>
-                              <th>Total (₹)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {categoryItems.map((item) => (
-                              <tr key={item.id}>
-                                <td>
-                                  <Form.Check
-                                    type="checkbox"
-                                    checked={item.selected}
-                                    onChange={() => toggleItemSelect(item.id)}
-                                  />
-                                </td>
-                                <td>{item.material}</td>
-                                <td>
-                                  <Form.Control
-                                    type="number"
-                                    value={item.sales_info_selling_price}
-                                    onChange={(e) =>
-                                      handlePriceChange(item.id, e.target.value)
-                                    }
-                                    style={{ width: "100px" }}
-                                  />
-                                </td>
-                                <td>
-                                  <div className="d-flex align-items-center">
-                                    <Button
-                                      variant="outline-secondary"
-                                      size="sm"
-                                      onClick={() =>
-                                        updateQuantity(item.id, "dec")
-                                      }
-                                    >
-                                      -
-                                    </Button>
-                                    <span className="px-2">
-                                      {item.quantity}
-                                    </span>
-                                    <Button
-                                      variant="outline-secondary"
-                                      size="sm"
-                                      onClick={() =>
-                                        updateQuantity(item.id, "inc")
-                                      }
-                                    >
-                                      +
-                                    </Button>
-                                  </div>
-                                </td>
-                                <td>{item.total.toFixed(2)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </div>
-                      {selectedItems.length > 0 && (
-                        <div className="text-end mt-2">
-                          <strong>
-                            Total Quantity: {totalQuantity} | Grand Total: ₹
-                            {grandTotal.toFixed(2)}
-                          </strong>
-                        </div>
+                      ) : (
+                        intCategory.map((cat, idx) => (
+                          <tr key={cat.id}>
+                            <td>
+                              <Form.Check
+                                type="checkbox"
+                                checked={cat.selected}
+                                onChange={() => toggleCategorySelect(cat.id)}
+                              />
+                            </td>
+                            <td>{idx + 1}</td>
+                            <td>{cat.category}</td>
+                          </tr>
+                        ))
                       )}
-                    </div>
-                  );
-                })
-            )}
-          </Col>
-          <div className="text-end mt-3">
-            <Button variant="primary" onClick={handleSave}>
-              Save
-            </Button>
-          </div>
-        </Row>
-      </Modal.Body>
-    </Modal>
+                    </tbody>
+                  </Table>
+                </div>
+              )}
+            </Col>
+
+            {/* RIGHT: Items per category */}
+            <Col md={8}>
+              {loadingItems ? (
+                <></>
+              ) : (
+                // <div className="loader-div">
+                //   {/* <Spinner animation="border" className="spinner" /> */}
+                //   <p>
+                //     Please select at least one category to display related items.
+                //   </p>
+                // </div>
+                intCategory
+                  .filter((cat) => cat.selected)
+                  .map((cat) => {
+                    const categoryItems = getItemsForCategory(cat.id);
+                    const selectedItems = categoryItems.filter(
+                      (i) => i.selected
+                    );
+                    const totalQuantity = selectedItems.reduce(
+                      (sum, i) => sum + i.quantity,
+                      0
+                    );
+                    const grandTotal = selectedItems.reduce(
+                      (sum, i) => sum + i.total,
+                      0
+                    );
+
+                    return (
+                      <div key={cat.id} className="mb-5">
+                        <h5 className="mb-3 text-primary">{cat.category}</h5>
+                        <div className="table-responsive">
+                          <Table bordered hover>
+                            <thead className="table-light">
+                              <tr>
+                                <th>Select</th>
+                                <th>Item Name</th>
+                                <th>Price (₹)</th>
+                                <th>Qty</th>
+                                <th>Total (₹)</th>
+                                <th>Serial Numbers</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {categoryItems.map((item) => (
+                                <tr key={item.id}>
+                                  <td>
+                                    <Form.Check
+                                      type="checkbox"
+                                      checked={item.selected}
+                                      onChange={() => toggleItemSelect(item.id)}
+                                    />
+                                  </td>
+                                  <td>{item.material}</td>
+                                  <td>
+                                    <Form.Control
+                                      type="number"
+                                      value={item.sales_info_selling_price}
+                                      onChange={(e) =>
+                                        handlePriceChange(
+                                          item.id,
+                                          e.target.value
+                                        )
+                                      }
+                                      style={{ width: "100px" }}
+                                    />
+                                  </td>
+                                  <td>
+                                    <div className="d-flex align-items-center">
+                                      <Button
+                                        variant="outline-secondary"
+                                        size="sm"
+                                        onClick={() =>
+                                          updateQuantity(item.id, "dec")
+                                        }
+                                      >
+                                        -
+                                      </Button>
+                                      <span className="px-2">
+                                        {item.quantity}
+                                      </span>
+                                      <Button
+                                        variant="outline-secondary"
+                                        size="sm"
+                                        onClick={() =>
+                                          updateQuantity(item.id, "inc")
+                                        }
+                                      >
+                                        +
+                                      </Button>
+                                    </div>
+                                  </td>
+                                  <td>{item.total.toFixed(2)}</td>
+                                  <td>
+                                    {item.selected &&
+                                    formik.values.branch_id &&
+                                    formik.values.supplier_id ? (
+                                      <Button
+                                        variant={
+                                          item.serialAdded
+                                            ? "success"
+                                            : "outline-primary"
+                                        }
+                                        size="sm"
+                                        onClick={() => openSerialModal(item)}
+                                      >
+                                        {item.serialAdded
+                                          ? "Added"
+                                          : "Add Serials"}
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant={
+                                          item.serialAdded
+                                            ? "success"
+                                            : "outline-primary"
+                                        }
+                                        disabled={true}
+                                        style={{ cursor: "not-allowed" }}
+                                        title="Please select all required fill to enter serials"
+                                        size="sm"
+                                        onClick={() => openSerialModal(item)}
+                                      >
+                                        + Add Serials
+                                      </Button>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                        {selectedItems.length > 0 && (
+                          <div className="text-end mt-2">
+                            <strong>
+                              Total Quantity: {totalQuantity} | Grand Total: ₹
+                              {grandTotal.toFixed(2)}
+                            </strong>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+              )}
+            </Col>
+            <div className="text-end mt-3">
+              <Button
+                variant="primary"
+                onClick={handleSave}
+                disabled={!allSerialsAdded}
+              >
+                Save
+              </Button>
+            </div>
+          </Row>
+        </Modal.Body>
+      </Modal>
+
+      {/* 🔹 Serial Entry Modal */}
+      <Modal
+        show={serialModal.show}
+        onHide={() => setSerialModal({ show: false, item: null, serials: [] })}
+        centered
+        backdrop="static"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Add Serials for {serialModal.item?.material || ""}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {serialModal.item && (
+            <div>
+              {serialModal.serials.map((s, idx) => (
+                <Form.Group key={idx} className="mb-2">
+                  <Form.Label>Serial {idx + 1}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={s}
+                    onChange={(e) => handleSerialChange(idx, e.target.value)}
+                  />
+                </Form.Group>
+              ))}
+              <div className="text-end mt-3">
+                <Button
+                  variant="primary"
+                  onClick={saveSerials}
+                  disabled={serialModal.serials.some((s) => !s.trim())}
+                >
+                  Save Serials
+                </Button>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
+    </>
   );
 };
 
