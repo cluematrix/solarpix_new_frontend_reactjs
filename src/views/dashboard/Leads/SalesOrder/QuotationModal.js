@@ -2,30 +2,38 @@ import React, { useRef, useEffect, useState } from "react";
 import { Modal, Button, Table, Row, Col } from "react-bootstrap";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import logo from "../../../../assets/images/logo/main_logo.jpg"; // Adjust path
-import api from "../../../../api/axios"; // Adjust path
+import api from "../../../../api/axios"; // Adjust path if needed
 
 const QuotationModal = ({ show, handleClose, deal }) => {
   const modalContentRef = useRef(null);
   const [employees, setEmployees] = useState([]);
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
     if (show) {
+      // Fetch employees
       api
         .get("/api/v1/admin/employee/active")
         .then((res) => setEmployees(res.data.data || []))
         .catch((err) => console.error("Error fetching employees:", err));
+
+      // Fetch company details
+      api
+        .get("/api/v1/admin/companyMaster")
+        .then((res) => {
+          const companyData = res.data?.data?.[0];
+          setCompany(companyData);
+        })
+        .catch((err) => console.error("Error fetching company:", err));
     }
   }, [show]);
 
   if (!deal) return null;
 
-  // Find assigned employee
   const assignedEmployee = employees.find(
     (emp) => emp.id === deal.assign_to_emp_id
   );
 
-  // Download Modal Snapshot as PDF
   const handleDownload = () => {
     const input = modalContentRef.current;
     html2canvas(input, { scale: 2, useCORS: true })
@@ -33,10 +41,10 @@ const QuotationModal = ({ show, handleClose, deal }) => {
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF("p", "mm", "a4");
 
-        const pageWidth = 210; // A4 width mm
-        const pageHeight = 297; // A4 height mm
-        const marginX = 10; // left/right margin
-        const marginY = 10; // top margin
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const marginX = 10;
+        const marginY = 10;
         const usableWidth = pageWidth - marginX * 2;
 
         const imgHeight = (canvas.height * usableWidth) / canvas.width;
@@ -68,12 +76,11 @@ const QuotationModal = ({ show, handleClose, deal }) => {
       });
   };
 
-  // Amount calculations
   const subtotal = Number(deal.sub_total || 0);
   const deduction = Number(deal.deductionAmount || 0);
   const total = Number(deal.total || 0);
+  const adjustment = Number(deal.adjustment || 0);
 
-  // Convert number to words (simplified, can be enhanced)
   const numberToWords = (num) => {
     const units = [
       "",
@@ -116,21 +123,40 @@ const QuotationModal = ({ show, handleClose, deal }) => {
           {/* Header */}
           <Row className="align-items-center border-bottom pb-2 mb-2">
             <Col xs={8}>
-              <h6 className="fw-bold">Solarpix Energy Pvt. Ltd.</h6>
-              <div>Address: 312, Ratan Apt no 3, Ganeshpeth, Nagpur-440018</div>
-              <div>Phone: 9096941011 / 9552383397</div>
-              <div>Email: office.solarpix@gmail.com</div>
-              <div>GSTIN: 27ABCDE1234F1Z5</div>
-              <div>State: Maharashtra</div>
+              {company ? (
+                <>
+                  <h6 className="fw-bold">{company.name}</h6>
+                  <div>
+                    Address: {company.address}, {company.city}, {company.state}{" "}
+                    - {company.pincode}
+                  </div>
+                  <div>
+                    Phone: {company.mobile1}
+                    {company.mobile2 ? ` / ${company.mobile2}` : ""}
+                  </div>
+                  <div>Email: {company.email}</div>
+                  <div>GSTIN: {company.GSTno}</div>
+                  <div>State: {company.state}</div>
+                </>
+              ) : (
+                <div>Loading company info...</div>
+              )}
             </Col>
             <Col xs={4} className="text-end">
-              <img src={logo} alt="Logo" style={{ maxWidth: "80px" }} />
+              {company?.logo && (
+                <img
+                  src={company.logo}
+                  alt="Company Logo"
+                  style={{ maxWidth: "80px" }}
+                  crossOrigin="anonymous"
+                />
+              )}
             </Col>
           </Row>
 
           {/* Quotation title */}
           <div className="bg-primary text-white text-center fw-bold py-1 mb-3">
-            Quotation
+            Sales Quotation
           </div>
 
           {/* Bill To + Invoice Info */}
@@ -229,6 +255,10 @@ const QuotationModal = ({ show, handleClose, deal }) => {
                     </td>
                     <td className="text-end">₹{subtotal.toFixed(2)}</td>
                   </tr>
+                  <tr>
+                    <td>Adjustment</td>
+                    <td className="text-end">₹{adjustment.toFixed(2)}</td>
+                  </tr>
                   {deal.TDS && (
                     <tr>
                       <td>{deal.TDS.name}</td>
@@ -291,7 +321,7 @@ const QuotationModal = ({ show, handleClose, deal }) => {
           {/* Footer */}
           <Row className="mt-4">
             <Col className="text-end">
-              <div className="fw-bold">For Solarpix Energy Pvt. Ltd.</div>
+              <div className="fw-bold">For {company?.name || "Company"}</div>
               <div style={{ marginTop: "50px" }}>Authorized Signatory</div>
             </Col>
           </Row>

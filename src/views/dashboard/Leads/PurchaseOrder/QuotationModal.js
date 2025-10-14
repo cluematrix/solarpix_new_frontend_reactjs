@@ -2,43 +2,76 @@ import React, { useRef, useEffect, useState } from "react";
 import { Modal, Button, Table, Row, Col } from "react-bootstrap";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import logo from "../../../../assets/images/logo/main_logo.jpg"; // Adjust path
-import api from "../../../../api/axios"; // Adjust path
+import api from "../../../../api/axios"; // Axios instance
 
-const QuotationModal = ({ show, handleClose, deal }) => {
+const PurchaseOrderModal = ({ show, handleClose, deal }) => {
   const modalContentRef = useRef(null);
   const [employees, setEmployees] = useState([]);
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
     if (show) {
+      // Fetch active employees
       api
         .get("/api/v1/admin/employee/active")
         .then((res) => setEmployees(res.data.data || []))
         .catch((err) => console.error("Error fetching employees:", err));
+
+      // Fetch company master
+      api
+        .get("/api/v1/admin/companyMaster")
+        .then((res) => {
+          const companyData = res.data?.data?.[0];
+          setCompany(companyData);
+        })
+        .catch((err) => console.error("Error fetching company:", err));
     }
   }, [show]);
 
   if (!deal) return null;
 
-  // Find assigned employee
-  const assignedEmployee = employees.find(
-    (emp) => emp.id === deal.sender_by_id
-  );
+  // Destructure and fallback logic
+  const purchaseOrderNo = deal.purchase_order_no || "N/A";
+  const date = deal.date
+    ? new Date(deal.date).toLocaleDateString("en-GB")
+    : "DD/MM/YYYY";
 
-  // Download Modal Snapshot as PDF
+  const deliveryDate = deal.delivery_date
+    ? new Date(deal.delivery_date).toLocaleDateString("en-GB")
+    : "N/A";
+
+  const client = deal.Client || {};
+  const supplier = deal.supplierManagement || {};
+  const tds = deal.TDS || {};
+  const paymentTerms = deal.paymentTerms?.payment_term || "N/A";
+  const notes = deal.notes_customer || "";
+  const total = Number(deal.total || 0);
+  const subTotal = Number(deal.sub_total || 0);
+  const adjustment = Number(deal.adjustment || 0);
+  const deductionAmount = Number(deal.deductionAmount || 0);
+
+  const items =
+    deal.item_details?.selectedCategories?.flatMap((category) =>
+      category.items.map((item, index) => ({
+        ...item,
+        categoryName: category.name,
+        srNo: index + 1,
+        interTax: category.interTax,
+        intraTax: category.intraTax,
+      }))
+    ) || [];
+
   const handleDownload = () => {
     const input = modalContentRef.current;
     html2canvas(input, { scale: 2, useCORS: true })
       .then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF("p", "mm", "a4");
-
-        const pageWidth = 210; // A4 width mm
-        const pageHeight = 297; // A4 height mm
-        const marginX = 10; // left/right margin
-        const marginY = 10; // top margin
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const marginX = 10;
+        const marginY = 10;
         const usableWidth = pageWidth - marginX * 2;
-
         const imgHeight = (canvas.height * usableWidth) / canvas.width;
         let heightLeft = imgHeight;
         let position = marginY;
@@ -60,7 +93,7 @@ const QuotationModal = ({ show, handleClose, deal }) => {
           heightLeft -= pageHeight;
         }
 
-        pdf.save("quotation.pdf");
+        pdf.save(`purchase-order-${purchaseOrderNo}.pdf`);
       })
       .catch((error) => {
         console.error("Error generating PDF:", error);
@@ -68,13 +101,12 @@ const QuotationModal = ({ show, handleClose, deal }) => {
       });
   };
 
-  // Amount calculations
-  const subtotal =
-    (Number(deal.sol_amt || 0) || 0) + (Number(deal.inv_amt || 0) || 0);
-
-  const total = subtotal;
-  const advance = Number(deal.advance || 0);
-  const balance = total - advance;
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+    }).format(amount);
 
   return (
     <Modal
@@ -85,7 +117,7 @@ const QuotationModal = ({ show, handleClose, deal }) => {
       backdrop="static"
     >
       <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">Quotation</Modal.Title>
+        <Modal.Title className="fw-bold">Purchase Order</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
@@ -98,172 +130,213 @@ const QuotationModal = ({ show, handleClose, deal }) => {
             color: "#333",
           }}
         >
-          {/* Header */}
+          {/* Header with dynamic company info */}
           <Row className="align-items-center border-bottom pb-2 mb-2">
             <Col xs={8}>
-              <h6 className="fw-bold">Solarpix Energy Pvt. Ltd.</h6>
-              <div>Address: 312, Ratan Apt no 3, Ganeshpeth, Nagpur-440018</div>
-              <div>Phone: 9096941011 / 9552383397</div>
-              <div>Email: office.solarpix@gmail.com</div>
-              <div>GSTIN: 27ABCDE1234F1Z5</div>
-              <div>State: Maharashtra</div>
+              {company ? (
+                <>
+                  <h6 className="fw-bold">{company.name}</h6>
+                  <div>
+                    Address: {company.address}, {company.city}, {company.state}{" "}
+                    - {company.pincode}
+                  </div>
+                  <div>
+                    Phone: {company.mobile1}
+                    {company.mobile2 ? ` / ${company.mobile2}` : ""}
+                  </div>
+                  <div>Email: {company.email}</div>
+                  <div>GSTIN: {company.GSTno}</div>
+                  <div>State: {company.state}</div>
+                </>
+              ) : (
+                <div>Loading company info...</div>
+              )}
             </Col>
             <Col xs={4} className="text-end">
-              <img src={logo} alt="Logo" style={{ maxWidth: "80px" }} />
+              {company?.logo && (
+                <img
+                  src={company.logo}
+                  alt="Company Logo"
+                  style={{ maxWidth: "80px" }}
+                  crossOrigin="anonymous"
+                />
+              )}
             </Col>
           </Row>
 
-          {/* Quotation title */}
-          <div className="bg-primary text-white text-center fw-bold py-1 mb-3">
-            Quotation
+          {/* Title */}
+          <div className="bg-primary text-white text-center fw-bold py-2 mb-3">
+            PURCHASE ORDER
           </div>
 
-          {/* Bill To + Invoice Info */}
+          {/* Supplier & PO Info */}
           <Row className="mb-3">
             <Col xs={6}>
-              <h6 className="fw-bold">Bill To:</h6>
+              <h6 className="fw-bold">Supplier Details:</h6>
               <div>
-                <strong>Name:</strong> {deal.lead?.name || "N/A"}
+                <strong>Name:</strong> {supplier.name || "N/A"}
+              </div>
+              <div>
+                <strong>Company:</strong> {supplier.company_name || "N/A"}
               </div>
               <div>
                 <strong>Address:</strong>{" "}
-                {`${deal.lead?.address || "N/A"}, ${
-                  deal.lead?.city || "N/A"
-                }, ${deal.lead?.state || "N/A"} - ${
-                  deal.lead?.pincode || "N/A"
+                {`${supplier.billing_address || ""}, ${
+                  supplier.billing_city || ""
+                }, ${supplier.billing_state || ""} - ${
+                  supplier.billing_pincode || ""
                 }`}
               </div>
               <div>
-                <strong>Contact:</strong> {deal.lead?.contact || "N/A"}
+                <strong>Phone:</strong> {supplier.billing_phone || "N/A"}
               </div>
               <div>
-                <strong>Email:</strong> {deal.lead?.email || "N/A"}
+                <strong>Email:</strong> {supplier.email || "N/A"}
+              </div>
+              <div>
+                <strong>GSTIN:</strong> {supplier.GSTIN || "N/A"}
               </div>
             </Col>
-            <Col xs={6} className="text-end">
-              <div>
-                <strong>Invoice No.:</strong> {deal.quotation_no || "N/A"}
+            <Col xs={6}>
+              <div className="text-end">
+                <h6 className="fw-bold">Purchase Order Details</h6>
+                <div>
+                  <strong>PO No:</strong> {purchaseOrderNo}
+                </div>
+                <div>
+                  <strong>Date:</strong> {date}
+                </div>
+                <div>
+                  <strong>Delivery Date:</strong> {deliveryDate}
+                </div>
+                <div>
+                  <strong>Payment Terms:</strong> {paymentTerms}
+                </div>
+                <div>
+                  <strong>Reference:</strong> {deal.reference || "N/A"}
+                </div>
               </div>
-              <div>
-                <strong>Date:</strong>{" "}
-                {deal.created_at
-                  ? new Date(deal.created_at).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })
-                  : "DD/MM/YYYY"}
-              </div>
+            </Col>
+          </Row>
 
-              {/* <div>
-                <strong>GSTIN No.:</strong> {deal.gstin || "N/A"}
-              </div> */}
-              {/* <div>
-                <strong>State:</strong> {deal.lead?.state || "N/A"}
-              </div> */}
+          {/* Bill To */}
+          <Row className="mb-3">
+            <Col xs={12}>
+              <h6 className="fw-bold">Bill To:</h6>
+              <div>
+                <strong>Name:</strong> {client.name || "N/A"}
+              </div>
+              <div>
+                <strong>Email:</strong> {client.email || "N/A"}
+              </div>
             </Col>
           </Row>
 
           {/* Items Table */}
-          <Table bordered size="sm" className="align-middle text-center">
+          <Table bordered size="sm" className="align-middle text-center mb-3">
             <thead className="table-light">
               <tr>
                 <th>Sr No</th>
-                <th>Items</th>
-                <th>Capacity</th>
+                <th>Category</th>
+                <th>Item Name</th>
                 <th>Qty</th>
-                {/* <th>Unit</th> */}
                 <th>Rate</th>
-                {/* <th>GST</th> */}
                 <th>Amount</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1</td>
-                <td>Solar Panel</td>
-                <td>{deal.sol_cap || "N/A"}</td>
-                <td>{deal.sol_qty || 0}</td>
-                {/* <td>Nos</td> */}
-                <td>{deal.sol_rate || 0}</td>
-                {/* <td>5%</td> */}
-                <td>₹{deal.sol_amt || 0}</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Inverter</td>
-                <td>{deal.inv_cap || "N/A"}</td>
-                <td></td>
-                {/* <td>Nos</td> */}
-                <td>{deal.inv_rate || 0}</td>
-                {/* <td>5%</td> */}
-                <td>₹{deal.inv_amt || 0}</td>
-              </tr>
-              {/* Add more rows if needed */}
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.srNo}</td>
+                  <td>{item.categoryName}</td>
+                  <td>{item.name}</td>
+                  <td>{item.quantity}</td>
+                  <td>{formatCurrency(Number(item.price))}</td>
+                  <td>{formatCurrency(item.total)}</td>
+                </tr>
+              ))}
             </tbody>
           </Table>
 
-          {/* Totals Section */}
+          {/* Taxes (if applicable) */}
+          {items.length > 0 && items[0].interTax && (
+            <div className="mb-2">
+              <small>
+                <strong>Taxes Applied:</strong> Inter-State (
+                {items[0].interTax.name}: {items[0].interTax.inter_per}%),
+                Intra-State ({items[0].intraTax.name}:{" "}
+                {items[0].intraTax.intra_per}%)
+              </small>
+            </div>
+          )}
+
+          {/* Totals */}
           <Row className="justify-content-end">
             <Col xs={6}>
               <Table bordered size="sm">
                 <tbody>
-                  {/* <tr>
+                  <tr>
                     <td>
                       <strong>Sub Total</strong>
                     </td>
-                    <td className="text-end">{subtotal.toFixed(2)}</td>
-                  </tr> */}
-                  {/* <tr>
-                    <td>SGST (2.5%)</td>
-                    <td className="text-end">{sgst.toFixed(2)}</td>
+                    <td className="text-end">{formatCurrency(subTotal)}</td>
                   </tr>
                   <tr>
-                    <td>CGST (2.5%)</td>
-                    <td className="text-end">{cgst.toFixed(2)}</td>
-                  </tr> */}
+                    <td>
+                      <strong>
+                        TDS ({tds.name || "N/A"}: {tds.percentage || "0"}%)
+                      </strong>
+                    </td>
+                    <td className="text-end fw-bold">
+                      {formatCurrency(deductionAmount)}
+                    </td>
+                  </tr>
+                  {adjustment !== 0 && (
+                    <tr>
+                      <td>Adjustment</td>
+                      <td className="text-end">{formatCurrency(adjustment)}</td>
+                    </tr>
+                  )}
                   <tr className="table-light">
                     <td>
-                      <strong>Total</strong>
+                      <strong>Total Amount</strong>
                     </td>
-                    <td className="text-end fw-bold">₹{total.toFixed(2)}</td>
+                    <td className="text-end fw-bold">
+                      {formatCurrency(total)}
+                    </td>
                   </tr>
-                  {/* <tr>
-                    <td>Advance</td>
-                    <td className="text-end">{advance.toFixed(2)}</td>
-                  </tr> */}
-                  {/* <tr>
-                    <td>
-                      <strong>Balance</strong>
-                    </td>
-                    <td className="text-end fw-bold">{balance.toFixed(2)}</td>
-                  </tr> */}
                 </tbody>
               </Table>
             </Col>
           </Row>
 
-          {/* Amount in words */}
-          <div className="mt-2">
-            <strong>Amount in words:</strong> (Rupees {Math.round(total)} only)
-          </div>
-
-          {/* Terms & Conditions */}
+          {/* Notes & Terms */}
+          {notes && (
+            <div className="mt-3">
+              <h6 className="fw-bold">Notes:</h6>
+              <p>{notes}</p>
+            </div>
+          )}
           <div className="mt-3">
             <h6 className="fw-bold">Terms & Conditions</h6>
             <p style={{ fontSize: "13px" }}>
-              1. Prices are inclusive of GST. <br />
-              2. Quotation valid for 30 days from issue date. <br />
-              3. Payment terms as discussed. <br />
-              4. Installation charges extra if applicable.
+              1. Please deliver the goods as per the specified delivery date.
+              <br />
+              2. All items must meet quality standards and specifications.
+              <br />
+              3. Payment will be made as per agreed payment terms.
+              <br />
+              4. TDS will be deducted as applicable.
             </p>
           </div>
 
           {/* Footer */}
           <Row className="mt-4">
             <Col className="text-end">
-              <div className="fw-bold">For Company Name</div>
-              <div style={{ marginTop: "50px" }}>Authorized Signatory</div>
+              <div className="fw-bold">Authorized Signatory</div>
+              <div style={{ marginTop: "50px" }}>
+                {company?.name || "Company"}
+              </div>
             </Col>
           </Row>
         </div>
@@ -271,11 +344,14 @@ const QuotationModal = ({ show, handleClose, deal }) => {
 
       <Modal.Footer>
         <Button variant="primary" onClick={handleDownload}>
-          Download PDF XXX
+          Download PDF
+        </Button>
+        <Button variant="secondary" onClick={handleClose}>
+          Close
         </Button>
       </Modal.Footer>
     </Modal>
   );
 };
 
-export default QuotationModal;
+export default PurchaseOrderModal;
