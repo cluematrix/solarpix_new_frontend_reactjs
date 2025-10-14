@@ -223,6 +223,7 @@ const LeadsList = () => {
       priority: data.priority,
       requirement_lead_id: data.requirement_lead_id || "",
       unit_id: data.unit_id || "",
+      lead_status_id: 6,
     };
 
     try {
