@@ -147,8 +147,8 @@ const QuotationModal = ({ show, handleClose, deal }) => {
                 <img
                   src={company.logo}
                   alt="Company Logo"
-                  style={{ maxWidth: "80px" }}
-                  crossOrigin="anonymous"
+                  style={{ maxWidth: "100px" }}
+                 
                 />
               )}
             </Col>

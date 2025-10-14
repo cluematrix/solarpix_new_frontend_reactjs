@@ -195,6 +195,8 @@ const SalesOrderList = () => {
                       <th>Sr. No.</th>
                       <th>Customer Name</th>
                       <th>Sales Order</th>
+                      <th>Assign To</th>
+
                       {/* <th>Sales Order Date</th> */}
                       <th>Amount</th>
                       {/* <th>Status</th> */}
@@ -216,6 +218,8 @@ const SalesOrderList = () => {
                           </td>
                           <td>{deal.lead?.name || "---"}</td>
                           <td>{deal?.sales_order_no || "---"}</td>
+                          <td>{deal.AssignToEmp?.name || "---"}</td>
+
                           <td>₹{deal?.total || "---"}</td>
                           {/* <td>
                             {deal?.site_visit_date
