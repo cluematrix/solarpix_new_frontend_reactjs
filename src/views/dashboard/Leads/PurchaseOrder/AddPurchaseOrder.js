@@ -832,6 +832,7 @@ const AddPurchaseOrder = () => {
             setSelectedItemsData(finalResponse);
             setShowModal(false);
           }}
+          formik={formik}
         />
       )}
     </>
