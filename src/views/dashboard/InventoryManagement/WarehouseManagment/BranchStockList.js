@@ -46,7 +46,7 @@ const BranchStockList = () => {
           `/api/v1/admin/stockMaterial/pagination?page=1&limit=10`
         );
       }
-
+// console.log("dataXXX",res)
       let data = Array.isArray(res.data.data) ? res.data.data : [];
 
       // Only warehouse items (just in case)
@@ -69,6 +69,8 @@ const BranchStockList = () => {
         `/api/v1/admin/stockMaterial/pagination?page=1&limit=1000`
       );
       const data = Array.isArray(res.data.data) ? res.data.data : [];
+
+      
       const uniqueBranches = [
         ...new Map(
           data

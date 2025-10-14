@@ -33,7 +33,7 @@ import SettingsPhoneIcon from "@mui/icons-material/SettingsPhone";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import { FaBabyCarriage } from "react-icons/fa";
 import { IoBagHandleOutline } from "react-icons/io5";
-
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import {
   Accordion,
   useAccordionButton,
@@ -572,7 +572,7 @@ const VerticalNav = memo((props) => {
             onClick={(activeKey) => setActiveMenu(activeKey)}
           >
             <i className="icon">
-              <FaBabyCarriage fontSize="small" />
+              <ShoppingCartIcon fontSize="small" />
             </i>
             <span className="item-name sidebar-font-size">Sales</span>
             <i className="right-icon">
@@ -594,22 +594,6 @@ const VerticalNav = memo((props) => {
           </CustomToggle>
           <Accordion.Collapse eventKey="sidebar-sales">
             <ul className="sub-nav">
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/customerList" ? "active" : ""
-                  } nav-link`}
-                  to="/customerList"
-                >
-                  <i className="icon">
-                    <PersonAddIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <PersonAddIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Customer</span>
-                </Link>
-              </li>
               <li className="nav-item">
                 <Link
                   className={`${
@@ -635,15 +619,31 @@ const VerticalNav = memo((props) => {
                   to="/sales-order-list"
                 >
                   <i className="icon">
-                    <FaBabyCarriage fontSize="small" />
+                    <ShoppingCartIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon">
                     {" "}
-                    <FaBabyCarriage fontSize="small" />
+                    <ShoppingCartIcon fontSize="small" />
                   </i>
                   <span className="item-name sidebar-font-size">
                     Sales Order
                   </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/customerList" ? "active" : ""
+                  } nav-link`}
+                  to="/customerList"
+                >
+                  <i className="icon">
+                    <PersonAddIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <PersonAddIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Customer</span>
                 </Link>
               </li>
               {/* <li className="nav-item">
@@ -883,7 +883,7 @@ const VerticalNav = memo((props) => {
           bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
           onClick={() => setActive("auth")}
         >
-          <CustomToggle
+          {/* <CustomToggle
             eventKey="sidebar-inventory-management"
             onClick={(activeKey) => setActiveMenu(activeKey)}
           >
@@ -909,7 +909,7 @@ const VerticalNav = memo((props) => {
                 />
               </svg>
             </i>
-          </CustomToggle>
+          </CustomToggle> */}
           <Accordion.Collapse eventKey="sidebar-inventory-management">
             <ul className="sub-nav">
               {/* <li className="nav-item">
@@ -1145,9 +1145,7 @@ const VerticalNav = memo((props) => {
             <i className="icon">
               <MdReceiptLong fontSize="medium" />
             </i>
-            <span className="item-name sidebar-font-size">
-              Warehouse Management
-            </span>
+            <span className="item-name sidebar-font-size">Warehouse</span>
             <i className="right-icon">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

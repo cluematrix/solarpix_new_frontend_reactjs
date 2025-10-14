@@ -153,9 +153,7 @@ const SalesOrderList = () => {
                       <th>Sr. No.</th>
                       <th>Customer Name</th>
                       <th>Sales Order</th>
-                      {/* <th>Sales Order Date</th> */}
                       <th>Amount</th>
-                      {/* <th>Status</th> */}
                       <th>Actions</th>
                     </tr>
                   </thead>

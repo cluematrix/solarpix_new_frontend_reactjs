@@ -327,7 +327,7 @@ const DealList = () => {
                                 setShowQuotationModal(true);
                               }}
                             />
-                            <CreateTwoToneIcon
+                            {/* <CreateTwoToneIcon
                               onClick={() => navigate(`/edit-deal/${deal.id}`)}
                               color="primary"
                               style={{ cursor: "pointer" }}
@@ -339,6 +339,37 @@ const DealList = () => {
                               }}
                               color="error"
                               style={{ cursor: "pointer" }}
+                            /> */}
+
+                            <CreateTwoToneIcon
+                              color="primary"
+                              style={{
+                                cursor: deal.is_disable
+                                  ? "not-allowed"
+                                  : "pointer",
+                                opacity: deal.is_disable ? 0.5 : 1,
+                              }}
+                              onClick={() => {
+                                if (!deal.is_disable) {
+                                  navigate(`/edit-deal/${deal.id}`);
+                                }
+                              }}
+                            />
+
+                            <DeleteRoundedIcon
+                              color="error"
+                              style={{
+                                cursor: deal.is_disable
+                                  ? "not-allowed"
+                                  : "pointer",
+                                opacity: deal.is_disable ? 0.5 : 1,
+                              }}
+                              onClick={() => {
+                                if (!deal.is_disable) {
+                                  setDeleteId(deal.id);
+                                  setShowDeleteModal(true);
+                                }
+                              }}
                             />
                           </td>
                         </tr>

@@ -61,8 +61,7 @@ const NodalPointList = () => {
       // ✅ Match current role + route
       const matchedPermission = data.find(
         (perm) =>
-          String(perm.role_id) === roleId &&
-          perm.display_name === "NodalPoint"
+          String(perm.role_id) === roleId && perm.display_name === "NodalPoint"
       );
 
       if (matchedPermission) {
