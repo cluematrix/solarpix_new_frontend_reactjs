@@ -56,7 +56,7 @@ const AddPurchaseOrderModal = ({
 
         return {
           ...item,
-          quantity: existingItem?.quantity || 1,
+          quantity: existingItem?.quantity || 0,
           total:
             existingItem?.total ||
             parseFloat(item.sales_info_selling_price || 0),

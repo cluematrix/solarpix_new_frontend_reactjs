@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Row, Col, Button, Table, Pagination } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Table,
+  Pagination,
+  Spinner,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -9,18 +17,22 @@ import DeleteModal from "./delete-modal";
 import PurchaseOrderModal from "./QuotationModal";
 
 import api from "../../../../api/axios";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
 
 const PurchaseOrderList = () => {
   const navigate = useNavigate();
   const [purchaseOrderList, setPurchaseOrderList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingBtn, setLoadingBtn] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
   const [showPurchaseOrderModal, setShowPurchaseOrderModal] = useState(false);
@@ -53,16 +65,46 @@ const PurchaseOrderList = () => {
     fetchPurchaseOrders(currentPage);
   }, [currentPage]);
 
-  const handleDeleteConfirm = async () => {
-    try {
-      await api.delete(`/api/v1/admin/purchaseOrder/${deleteId}`);
-      setShowDeleteModal(false);
-      setDeleteId(null);
-      fetchPurchaseOrders(currentPage); // Refresh list after delete
-    } catch (error) {
-      console.error("Error deleting purchase order:", error.response || error);
-    }
+  // const handleDeleteConfirm = async () => {
+  //   try {
+  //     await api.delete(`/api/v1/admin/purchaseOrder/${deleteId}`);
+  //     setShowDeleteModal(false);
+  //     setDeleteId(null);
+  //     fetchPurchaseOrders(currentPage); // Refresh list after delete
+  //   } catch (error) {
+  //     console.error("Error deleting purchase order:", error.response || error);
+  //   }
+  // };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return;
+    setLoadingBtn(true);
+    api
+      .delete(`/api/v1/admin/purchaseOrder/${deleteId}`)
+      .then(() => {
+        successToast("Item deleted successfully");
+        fetchPurchaseOrders(currentPage);
+        setShowDelete(false);
+      })
+      .catch((err) => {
+        console.error("Error deleting stock material:", err);
+        errorToast(
+          err.response?.data?.message || "Failed to delete stock material"
+        );
+      })
+      .finally(() => {
+        setLoadingBtn(false);
+      });
   };
+
+  //  Loader while checking permissions
+  if (loading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -95,13 +137,7 @@ const PurchaseOrderList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan="6" className="text-center">
-                          Loading...
-                        </td>
-                      </tr>
-                    ) : purchaseOrderList.length === 0 ? (
+                    {purchaseOrderList.length === 0 ? (
                       <tr>
                         <td colSpan="6" className="text-center">
                           No Purchase Orders available
@@ -145,8 +181,9 @@ const PurchaseOrderList = () => {
                             />
                             <DeleteRoundedIcon
                               onClick={() => {
+                                setDeleteIndex(index);
                                 setDeleteId(order.id);
-                                setShowDeleteModal(true);
+                                setShowDelete(true);
                               }}
                               color="error"
                               style={{ cursor: "pointer" }}
@@ -186,13 +223,22 @@ const PurchaseOrderList = () => {
         </Col>
       </Row>
 
-      {/* Delete Modal */}
       <DeleteModal
-        show={showDeleteModal}
-        handleClose={() => setShowDeleteModal(false)}
-        onDelete={handleDeleteConfirm}
+        show={showDelete}
+        handleClose={() => {
+          setShowDelete(false);
+          setDeleteIndex(null);
+          setDeleteId(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        modalTitle="Delete Item"
+        modalMessage={
+          deleteIndex !== null && purchaseOrderList[deleteIndex]
+            ? `Are you sure you want to delete the order" ${purchaseOrderList[deleteIndex].purchase_order_no}"?`
+            : ""
+        }
+        loading={loadingBtn}
       />
-
       {/* Purchase Order Modal */}
       <PurchaseOrderModal
         show={showPurchaseOrderModal}

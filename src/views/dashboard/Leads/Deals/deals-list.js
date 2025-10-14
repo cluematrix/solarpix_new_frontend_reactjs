@@ -9,6 +9,7 @@ import {
   Form,
   Modal,
   Pagination,
+  Spinner,
 } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -154,6 +155,15 @@ const DealList = () => {
       console.error("Error fetching deals:", err);
     }
   };
+
+  //  Loader while checking permissions
+  if (loading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <>
