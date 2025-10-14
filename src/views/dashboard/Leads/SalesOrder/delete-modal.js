@@ -1,18 +1,23 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 
-const DeleteModal = ({ show, handleClose, onDelete }) => {
+const DeleteModal = ({
+  show,
+  handleClose,
+  onConfirm,
+  modalTitle,
+  modalMessage,
+  loading,
+}) => {
   return (
-    <Modal show={show} onHide={handleClose} centered backdrop="static">
-      <Modal.Header>
-        <Modal.Title>Confirm Delete</Modal.Title>
+    <Modal centered show={show} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>{modalTitle}</Modal.Title>
       </Modal.Header>
-      <Modal.Body>
-        <p>Are you sure you want to delete this record?</p>
-      </Modal.Body>
+      <Modal.Body>{modalMessage}</Modal.Body>
       <Modal.Footer>
-        <Button variant="danger" onClick={onDelete}>
-          Delete
+        <Button variant="danger" disabled={loading} onClick={onConfirm}>
+          {loading ? "Deleting..." : "Delete"}
         </Button>
       </Modal.Footer>
     </Modal>

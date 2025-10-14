@@ -25,15 +25,16 @@ const PurchaseOrderList = () => {
   const [purchaseOrderList, setPurchaseOrderList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingBtn, setLoadingBtn] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+  // for delete
   const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
   const [showPurchaseOrderModal, setShowPurchaseOrderModal] = useState(false);
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState(null);
@@ -65,24 +66,13 @@ const PurchaseOrderList = () => {
     fetchPurchaseOrders(currentPage);
   }, [currentPage]);
 
-  // const handleDeleteConfirm = async () => {
-  //   try {
-  //     await api.delete(`/api/v1/admin/purchaseOrder/${deleteId}`);
-  //     setShowDeleteModal(false);
-  //     setDeleteId(null);
-  //     fetchPurchaseOrders(currentPage); // Refresh list after delete
-  //   } catch (error) {
-  //     console.error("Error deleting purchase order:", error.response || error);
-  //   }
-  // };
-
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     setLoadingBtn(true);
     api
       .delete(`/api/v1/admin/purchaseOrder/${deleteId}`)
       .then(() => {
-        successToast("Item deleted successfully");
+        successToast("Order deleted successfully");
         fetchPurchaseOrders(currentPage);
         setShowDelete(false);
       })

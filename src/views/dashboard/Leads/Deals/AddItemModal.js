@@ -41,7 +41,7 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
 
         return {
           ...item,
-          quantity: existingItem?.quantity || 1,
+          quantity: existingItem?.quantity || 0,
           total:
             existingItem?.total ||
             parseFloat(item.sales_info_selling_price || 0),
@@ -88,10 +88,15 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
     setAllItems((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          const newQty =
-            type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
-          const total = newQty * parseFloat(item.sales_info_selling_price || 0);
-          return { ...item, quantity: newQty, total };
+          let newQty =
+            type === "inc" ? item.quantity + 1 : Math.max(0, item.quantity - 1);
+
+          return {
+            ...item,
+            quantity: newQty,
+            selected: newQty > 0,
+            total: newQty * parseFloat(item.sales_info_selling_price || 0),
+          };
         }
         return item;
       })
@@ -117,66 +122,36 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
   const toggleItemSelect = (id) => {
     setAllItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, selected: !item.selected } : item
+        item.id === id
+          ? {
+              ...item,
+              selected: !item.selected,
+              quantity: !item.selected ? 1 : 0,
+              total: !item.selected
+                ? parseFloat(item.sales_info_selling_price || 0)
+                : 0,
+            }
+          : item
       )
     );
   };
 
-  // Save button logic
-  // const handleSave = () => {
-  //   const selectedCategories = intCategory.filter((cat) => cat.selected);
-
-  //   const finalResponse = selectedCategories.map((cat) => {
-  //     const categoryItems = allItems
-  //       .filter((item) => {
-  //         const itemCatId =
-  //           item.stockName?.inv_cat_id || item.stockName?.InventoryCat?.id;
-  //         return itemCatId === cat.id && item.selected;
-  //       })
-  //       .map((item) => ({
-  //         id: item.id,
-  //         name: item.material,
-  //         price: item.sales_info_selling_price,
-  //         quantity: item.quantity,
-  //         total: item.total,
-  //       }));
-
-  //     const totalQuantity = categoryItems.reduce(
-  //       (sum, i) => sum + Number(i.quantity),
-  //       0
-  //     );
-  //     const grandTotal = categoryItems.reduce((sum, i) => sum + i.total, 0);
-
-  //     return {
-  //       id: cat.id,
-  //       name: cat.category,
-  //       items: categoryItems,
-  //       intraTax: cat.intraTax || null,
-  //       interTax: cat.interTax || null,
-  //       totalQuantity,
-  //       grandTotal,
-  //     };
-  //   });
-
-  //   // Overall totals
-  //   const overallTotalQty = finalResponse.reduce(
-  //     (sum, c) => sum + c.totalQuantity,
-  //     0
-  //   );
-  //   const overallGrandTotal = finalResponse.reduce(
-  //     (sum, c) => sum + c.grandTotal,
-  //     0
-  //   );
-
-  //   onSave({
-  //     selectedCategories: finalResponse,
-  //     overallTotalQuantity: overallTotalQty,
-  //     overallGrandTotal,
-  //   });
-  //   handleClose();
-  // };
-
-  // Save button logic
+  // Manual quantity typing also auto-selects
+  const handleManualQtyChange = (id, value) => {
+    const newQty = Number(value);
+    setAllItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: newQty,
+              selected: newQty > 0,
+              total: newQty * parseFloat(item.sales_info_selling_price || 0),
+            }
+          : item
+      )
+    );
+  };
 
   const handleSave = () => {
     const selectedCategories = intCategory
@@ -354,9 +329,22 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
                                     >
                                       -
                                     </Button>
-                                    <span className="px-2">
-                                      {item.quantity}
-                                    </span>
+                                    <Form.Control
+                                      type="number"
+                                      value={item.quantity}
+                                      min={0}
+                                      onChange={(e) =>
+                                        handleManualQtyChange(
+                                          item.id,
+                                          e.target.value
+                                        )
+                                      }
+                                      style={{
+                                        width: "60px",
+                                        textAlign: "center",
+                                        margin: "0 5px",
+                                      }}
+                                    />
                                     <Button
                                       variant="outline-secondary"
                                       size="sm"

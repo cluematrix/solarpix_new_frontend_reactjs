@@ -43,7 +43,6 @@ const AddSalesOrder = () => {
     expected_shipment_date: "",
     companyBank_id: "",
     notes_customer: "",
-    sales_order_no: "",
     reference: "",
     payment_terms_id: "",
   };
@@ -98,10 +97,10 @@ const AddSalesOrder = () => {
         if (id) {
           await api.put(`/api/v1/admin/salesOrder/${id}`, payload);
           navigate("/sales-order-list");
-          successToast("Sales Orders updated successfully");
+          successToast("Sales orders updated successfully");
         } else {
           await api.post("/api/v1/admin/salesOrder", payload);
-          successToast("Sales Orders created successfully");
+          successToast("Sales orders created successfully");
           console.log("payload", payload);
           navigate("/sales-order-list");
         }
@@ -244,16 +243,6 @@ const AddSalesOrder = () => {
     }));
   }, [selectedItemsData]);
 
-  // Handle deduction option dynamically
-  // useEffect(() => {
-  //   if (subTotals.deductionOption === "commission") {
-  //     setSubTotals((prev) => ({
-  //       ...prev,
-  //       deductionAmount: parseFloat((prev.subTotal * 0.02).toFixed(2)),
-  //     }));
-  //   }
-  // }, [subTotals.deductionOption, subTotals.subTotal]);
-
   // Whenever selectedItemsData changes, recalc subtotal including CGST & SGST
   useEffect(() => {
     if (!selectedItemsData) return;
@@ -272,49 +261,6 @@ const AddSalesOrder = () => {
           : prev.deductionAmount,
     }));
   }, [selectedItemsData]);
-
-  // create sales orders number
-  const getFinancialYear = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    return month >= 4
-      ? `${String(year).slice(-2)}-${String(year + 1).slice(-2)}`
-      : `${String(year - 1).slice(-2)}-${String(year).slice(-2)}`;
-  };
-
-  useEffect(() => {
-    const initQuotation = async () => {
-      try {
-        const fy = getFinancialYear();
-        const res = await api.get("/api/v1/admin/salesOrder");
-        const deals = res.data || [];
-        const fyDeals = deals.filter(
-          (d) => d.sales_order_no && d.sales_order_no.includes(`QT/${fy}/`)
-        );
-
-        if (fyDeals.length > 0) {
-          const lastNo = Math.max(
-            ...fyDeals.map((d) =>
-              parseInt(d.sales_order_no.split("/").pop(), 10)
-            )
-          );
-          const newNo = String(lastNo + 1).padStart(2, "0");
-          setFieldValue("sales_order_no", `QT/${fy}/${newNo}`);
-        } else {
-          setFieldValue("sales_order_no", `QT/${fy}/01`);
-        }
-      } catch (err) {
-        console.error("Failed to set sales orders number:", err);
-      }
-    };
-
-    if (!id) {
-      initQuotation();
-    } else if (id) {
-      setFieldValue("sales_order_no", values.sales_order_no);
-    }
-  }, [id]);
 
   //  Loader while checking permissions
   if (loading) {
@@ -350,9 +296,6 @@ const AddSalesOrder = () => {
     });
   };
 
-  console.log("metaData.tdsData", metaData.tdsData);
-  console.log("selectedItemsData", selectedItemsData);
-  console.log("values", values);
   return (
     <>
       <Card>

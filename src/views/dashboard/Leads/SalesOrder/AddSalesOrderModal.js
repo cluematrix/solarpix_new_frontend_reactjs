@@ -41,10 +41,10 @@ const AddSalesOrderModal = ({ show, handleClose, onSave, existingData }) => {
 
         return {
           ...item,
-          quantity: existingItem?.quantity || 1,
+          quantity: existingItem?.quantity || 0, // Default 0
           total:
             existingItem?.total ||
-            parseFloat(item.sales_info_selling_price || 0),
+            parseFloat(item.sales_info_selling_price || 0) * 0,
           selected: !!existingItem,
           sales_info_selling_price:
             existingItem?.price || item.sales_info_selling_price,
@@ -88,10 +88,15 @@ const AddSalesOrderModal = ({ show, handleClose, onSave, existingData }) => {
     setAllItems((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          const newQty =
-            type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
-          const total = newQty * parseFloat(item.sales_info_selling_price || 0);
-          return { ...item, quantity: newQty, total };
+          let newQty =
+            type === "inc" ? item.quantity + 1 : Math.max(0, item.quantity - 1);
+
+          return {
+            ...item,
+            quantity: newQty,
+            selected: newQty > 0,
+            total: newQty * parseFloat(item.sales_info_selling_price || 0),
+          };
         }
         return item;
       })
@@ -117,7 +122,33 @@ const AddSalesOrderModal = ({ show, handleClose, onSave, existingData }) => {
   const toggleItemSelect = (id) => {
     setAllItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, selected: !item.selected } : item
+        item.id === id
+          ? {
+              ...item,
+              selected: !item.selected,
+              quantity: !item.selected ? 1 : 0,
+              total: !item.selected
+                ? parseFloat(item.sales_info_selling_price || 0)
+                : 0,
+            }
+          : item
+      )
+    );
+  };
+
+  // Manual quantity typing also auto-selects
+  const handleManualQtyChange = (id, value) => {
+    const newQty = Number(value);
+    setAllItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: newQty,
+              selected: newQty > 0,
+              total: newQty * parseFloat(item.sales_info_selling_price || 0),
+            }
+          : item
       )
     );
   };
@@ -233,107 +264,110 @@ const AddSalesOrderModal = ({ show, handleClose, onSave, existingData }) => {
 
           {/* RIGHT: Items per category */}
           <Col md={8}>
-            {loadingItems ? (
-              <></>
-            ) : (
-              // <div className="loader-div">
-              //   {/* <Spinner animation="border" className="spinner" /> */}
-              //   <p>
-              //     Please select at least one category to display related items.
-              //   </p>
-              // </div>
-              intCategory
-                .filter((cat) => cat.selected)
-                .map((cat) => {
-                  const categoryItems = getItemsForCategory(cat.id);
-                  const selectedItems = categoryItems.filter((i) => i.selected);
-                  const totalQuantity = selectedItems.reduce(
-                    (sum, i) => sum + i.quantity,
-                    0
-                  );
-                  const grandTotal = selectedItems.reduce(
-                    (sum, i) => sum + i.total,
-                    0
-                  );
+            {intCategory
+              .filter((cat) => cat.selected)
+              .map((cat) => {
+                const categoryItems = getItemsForCategory(cat.id);
+                const selectedItems = categoryItems.filter((i) => i.selected);
+                const totalQuantity = selectedItems.reduce(
+                  (sum, i) => sum + i.quantity,
+                  0
+                );
+                const grandTotal = selectedItems.reduce(
+                  (sum, i) => sum + i.total,
+                  0
+                );
 
-                  return (
-                    <div key={cat.id} className="mb-5">
-                      <h5 className="mb-3 text-primary">{cat.category}</h5>
-                      <div className="table-responsive">
-                        <Table bordered hover>
-                          <thead className="table-light">
-                            <tr>
-                              <th>Select</th>
-                              <th>Item Name</th>
-                              <th>Price (₹)</th>
-                              <th>Qty</th>
-                              <th>Total (₹)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {categoryItems.map((item) => (
-                              <tr key={item.id}>
-                                <td>
-                                  <Form.Check
-                                    type="checkbox"
-                                    checked={item.selected}
-                                    onChange={() => toggleItemSelect(item.id)}
-                                  />
-                                </td>
-                                <td>{item.material}</td>
-                                <td>
+                return (
+                  <div key={cat.id} className="mb-5">
+                    <h5 className="mb-3 text-primary">{cat.category}</h5>
+                    <div className="table-responsive">
+                      <Table bordered hover>
+                        <thead className="table-light">
+                          <tr>
+                            <th>Select</th>
+                            <th>Item Name</th>
+                            <th>Price (₹)</th>
+                            <th>Qty</th>
+                            <th>Total (₹)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categoryItems.map((item) => (
+                            <tr key={item.id}>
+                              <td>
+                                <Form.Check
+                                  type="checkbox"
+                                  checked={item.selected}
+                                  onChange={() => toggleItemSelect(item.id)}
+                                />
+                              </td>
+                              <td>{item.material}</td>
+                              <td>
+                                <Form.Control
+                                  type="number"
+                                  value={item.sales_info_selling_price}
+                                  onChange={(e) =>
+                                    handlePriceChange(item.id, e.target.value)
+                                  }
+                                  style={{ width: "100px" }}
+                                />
+                              </td>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    onClick={() =>
+                                      updateQuantity(item.id, "dec")
+                                    }
+                                  >
+                                    -
+                                  </Button>
                                   <Form.Control
                                     type="number"
-                                    value={item.sales_info_selling_price}
+                                    value={item.quantity}
+                                    min={0}
                                     onChange={(e) =>
-                                      handlePriceChange(item.id, e.target.value)
+                                      handleManualQtyChange(
+                                        item.id,
+                                        e.target.value
+                                      )
                                     }
-                                    style={{ width: "100px" }}
+                                    style={{
+                                      width: "60px",
+                                      textAlign: "center",
+                                      margin: "0 5px",
+                                    }}
                                   />
-                                </td>
-                                <td>
-                                  <div className="d-flex align-items-center">
-                                    <Button
-                                      variant="outline-secondary"
-                                      size="sm"
-                                      onClick={() =>
-                                        updateQuantity(item.id, "dec")
-                                      }
-                                    >
-                                      -
-                                    </Button>
-                                    <span className="px-2">
-                                      {item.quantity}
-                                    </span>
-                                    <Button
-                                      variant="outline-secondary"
-                                      size="sm"
-                                      onClick={() =>
-                                        updateQuantity(item.id, "inc")
-                                      }
-                                    >
-                                      +
-                                    </Button>
-                                  </div>
-                                </td>
-                                <td>{item.total.toFixed(2)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </div>
-                      {selectedItems.length > 0 && (
-                        <div className="text-end mt-2">
-                          <strong>
-                            Total Quantity: {totalQuantity} | Grand Total: ₹
-                            {grandTotal.toFixed(2)}
-                          </strong>
-                        </div>
-                      )}
+                                  <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    onClick={() =>
+                                      updateQuantity(item.id, "inc")
+                                    }
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                              </td>
+                              <td>{item.total.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
                     </div>
-                  );
-                })
-            )}
+                    {selectedItems.length > 0 && (
+                      <div className="text-end mt-2">
+                        <strong>
+                          Total Quantity: {totalQuantity} | Grand Total: ₹
+                          {grandTotal.toFixed(2)}
+                        </strong>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
           </Col>
           <div className="text-end mt-3">
             <Button variant="primary" onClick={handleSave}>

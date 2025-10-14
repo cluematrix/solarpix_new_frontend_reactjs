@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Col, Modal, Row, Spinner, Table, Button, Form } from "react-bootstrap";
+import { Col, Modal, Row, Table, Button, Form } from "react-bootstrap";
 import api from "../../../../api/axios";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import { successToast } from "../../../../components/Toast/successToast";
@@ -28,7 +28,6 @@ const AddPurchaseOrderModal = ({
     try {
       setLoadingCat(true);
       const res = await api.get("/api/v1/admin/inventoryCategory/active");
-      // Mark selected based on existingData
       const data = (res.data || []).map((cat) => ({
         ...cat,
         selected:
@@ -49,18 +48,19 @@ const AddPurchaseOrderModal = ({
       setLoadingItems(true);
       const res = await api.get("/api/v1/admin/stockMaterial/active");
       const dataWithExtras = res.data.map((item) => {
-        // Check if item exists in existingData
         const existingItem = existingData?.selectedCategories
           ?.flatMap((c) => c.items)
           .find((i) => i.id === item.id);
 
         return {
           ...item,
-          quantity: existingItem?.quantity || 0,
+          quantity: existingItem?.quantity || 0, // Default 0
           total:
             existingItem?.total ||
-            parseFloat(item.sales_info_selling_price || 0),
+            parseFloat(item.sales_info_selling_price || 0) * 0,
           selected: !!existingItem,
+          serialAdded: existingItem?.serialNumbers?.length > 0 || false,
+          serialNumbers: existingItem?.serialNumbers || [],
           sales_info_selling_price:
             existingItem?.price || item.sales_info_selling_price,
         };
@@ -98,39 +98,47 @@ const AddPurchaseOrderModal = ({
     });
   };
 
-  // Quantity update
-  // const updateQuantity = (id, type) => {
-  //   setAllItems((prev) =>
-  //     prev.map((item) => {
-  //       if (item.id === id) {
-  //         const newQty =
-  //           type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
-  //         const total = newQty * parseFloat(item.sales_info_selling_price || 0);
-  //         return { ...item, quantity: newQty, total };
-  //       }
-  //       return item;
-  //     })
-  //   );
-  // };
+  // Quantity update (auto-select + total 0 logic)
   const updateQuantity = (id, type) => {
     setAllItems((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          const newQty =
-            type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
-          const total = newQty * parseFloat(item.sales_info_selling_price || 0);
+          let newQty =
+            type === "inc" ? item.quantity + 1 : Math.max(0, item.quantity - 1);
+
           return {
             ...item,
             quantity: newQty,
-            total,
-            serialAdded: false,
-            serialNumbers: [],
+            selected: newQty > 0,
+            total: newQty * parseFloat(item.sales_info_selling_price || 0),
+            serialAdded: newQty === 0 ? false : item.serialAdded,
+            serialNumbers: newQty === 0 ? [] : item.serialNumbers,
           };
         }
         return item;
       })
     );
   };
+
+  // Manual quantity typing also auto-selects
+  const handleManualQtyChange = (id, value) => {
+    const newQty = Number(value);
+    setAllItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: newQty,
+              selected: newQty > 0,
+              total: newQty * parseFloat(item.sales_info_selling_price || 0),
+              serialAdded: newQty === 0 ? false : item.serialAdded,
+              serialNumbers: newQty === 0 ? [] : item.serialNumbers,
+            }
+          : item
+      )
+    );
+  };
+
   // Price edit
   const handlePriceChange = (id, value) => {
     setAllItems((prev) =>
@@ -146,15 +154,7 @@ const AddPurchaseOrderModal = ({
     );
   };
 
-  // Toggle item checkbox
-  // const toggleItemSelect = (id) => {
-  //   setAllItems((prev) =>
-  //     prev.map((item) =>
-  //       item.id === id ? { ...item, selected: !item.selected } : item
-  //     )
-  //   );
-  // };
-
+  // Toggle item checkbox manually
   const toggleItemSelect = (id) => {
     setAllItems((prev) =>
       prev.map((item) =>
@@ -162,6 +162,10 @@ const AddPurchaseOrderModal = ({
           ? {
               ...item,
               selected: !item.selected,
+              quantity: !item.selected ? 1 : 0,
+              total: !item.selected
+                ? parseFloat(item.sales_info_selling_price || 0)
+                : 0,
               serialAdded: false,
               serialNumbers: [],
             }
@@ -208,7 +212,6 @@ const AddPurchaseOrderModal = ({
       await api.post("/api/v1/admin/stockManagement", payload);
       successToast(`Serials added for ${item.material}`);
 
-      // Update item in state
       setAllItems((prev) =>
         prev.map((i) =>
           i.id === item.id
@@ -224,12 +227,12 @@ const AddPurchaseOrderModal = ({
     }
   };
 
-  // Check if all selected items have serials added
-  const allSerialsAdded = allItems
-    .filter((i) => i.selected)
-    .every((i) => i.serialAdded);
+  // Only enable Save if at least one item is selected and all have serials
+  const selectedItems = allItems.filter((i) => i.selected);
+  const allSerialsAdded =
+    selectedItems.length > 0 && selectedItems.every((i) => i.serialAdded);
 
-  // Save button logic
+  // Save
   const handleSave = () => {
     const selectedCategories = intCategory
       .filter((cat) => cat.selected)
@@ -265,7 +268,8 @@ const AddPurchaseOrderModal = ({
           intraTax: cat.intraTax || null,
           interTax: cat.interTax || null,
         };
-      });
+      })
+      .filter((cat) => cat.items.length > 0); // only include cats with items
 
     onSave({
       selectedCategories,
@@ -298,10 +302,7 @@ const AddPurchaseOrderModal = ({
             {/* LEFT: Categories */}
             <Col md={4}>
               {loadingCat ? (
-                <div className="loader-div">
-                  {/* <Spinner animation="border" className="spinner" /> */}
-                  <p>Loading...</p>
-                </div>
+                <p>Loading...</p>
               ) : (
                 <div className="table-responsive">
                   <Table hover bordered>
@@ -342,15 +343,7 @@ const AddPurchaseOrderModal = ({
 
             {/* RIGHT: Items per category */}
             <Col md={8}>
-              {loadingItems ? (
-                <></>
-              ) : (
-                // <div className="loader-div">
-                //   {/* <Spinner animation="border" className="spinner" /> */}
-                //   <p>
-                //     Please select at least one category to display related items.
-                //   </p>
-                // </div>
+              {!loadingItems &&
                 intCategory
                   .filter((cat) => cat.selected)
                   .map((cat) => {
@@ -417,9 +410,22 @@ const AddPurchaseOrderModal = ({
                                       >
                                         -
                                       </Button>
-                                      <span className="px-2">
-                                        {item.quantity}
-                                      </span>
+                                      <Form.Control
+                                        type="number"
+                                        value={item.quantity}
+                                        min={0}
+                                        onChange={(e) =>
+                                          handleManualQtyChange(
+                                            item.id,
+                                            e.target.value
+                                          )
+                                        }
+                                        style={{
+                                          width: "60px",
+                                          textAlign: "center",
+                                          margin: "0 5px",
+                                        }}
+                                      />
                                       <Button
                                         variant="outline-secondary"
                                         size="sm"
@@ -447,20 +453,13 @@ const AddPurchaseOrderModal = ({
                                       >
                                         {item.serialAdded
                                           ? "Added"
-                                          : "Add Serials"}
+                                          : "+ Add Serials"}
                                       </Button>
                                     ) : (
                                       <Button
-                                        variant={
-                                          item.serialAdded
-                                            ? "success"
-                                            : "outline-primary"
-                                        }
-                                        disabled={true}
-                                        style={{ cursor: "not-allowed" }}
-                                        title="Please select all required fill to enter serials"
+                                        variant="outline-primary"
+                                        disabled
                                         size="sm"
-                                        onClick={() => openSerialModal(item)}
                                       >
                                         + Add Serials
                                       </Button>
@@ -481,9 +480,9 @@ const AddPurchaseOrderModal = ({
                         )}
                       </div>
                     );
-                  })
-              )}
+                  })}
             </Col>
+
             <div className="text-end mt-3">
               <Button
                 variant="primary"
