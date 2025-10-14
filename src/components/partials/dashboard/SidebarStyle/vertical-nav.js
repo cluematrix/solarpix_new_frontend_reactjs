@@ -726,6 +726,24 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
+                    location.pathname === "/purchase-order" ? "active" : ""
+                  } nav-link`}
+                  to="/purchase-order"
+                >
+                  <i className="icon">
+                    <IoBagHandleOutline fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <IoBagHandleOutline fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Purchase Order
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
                     location.pathname === "/supplier-management-list"
                       ? "active"
                       : ""

@@ -1,45 +1,63 @@
+// created by sufyan on 11/10/25
 import React, { useState, useEffect } from "react";
-import { Form, Button, Row, Col, Card } from "react-bootstrap";
-import { useParams, useNavigate } from "react-router-dom";
+import {
+  Form,
+  Button,
+  Row,
+  Col,
+  Card,
+  Table,
+  Spinner,
+  FormControl,
+} from "react-bootstrap";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../../api/axios";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
+import { useFormik } from "formik";
+import CustomSelect from "../../../../components/Form/CustomSelect";
+import CustomInput from "../../../../components/Form/CustomInput";
+import AddItemModal from "./AddItemModal";
 
 const UpdateQuotationNew = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [dealStages, setDealStages] = useState([]);
-  const [leads, setLeads] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [rates, setRates] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    deal_name: "",
-    deal_value: "",
-    deal_stage_id: "",
-    lead_id: "",
-    description: "",
-    site_visit_date: "",
-    status: "",
-    capacity: "",
-    attachment: null,
-    negotiable: "",
-    sol_cap: "",
-    sol_qty: "",
-    sol_amt: "",
-    sol_seller_id: "",
-    inv_cap: "",
-    inv_amt: "",
-    inv_seller_id: "",
-    final_amount: "",
-    sol_rate: "",
-    inv_rate: "",
-    sender_by_id: "",
-    quotation_no: "",
+
+  const [metaData, setMetaData] = useState({
+    leadData: [],
+    employeeData: [],
+    bankData: [],
+    tdsData: [],
+    tcsData: [],
+    dealStages: [],
   });
 
-  // ------------------------ Utility Functions ------------------------
+  const [selectedItemsData, setSelectedItemsData] = useState(null); // modal data
+
+  const [subTotals, setSubTotals] = useState({
+    subTotal: 0,
+    taxType: "TDS",
+    deductionOption: "",
+    deductionAmount: 0,
+    adjustment: 0,
+  });
+
+  const initialValues = {
+    sender_by_id: "",
+    lead_id: "",
+    Qt_date: "",
+    expiry_date: "",
+    companyBank_id: "",
+    notes_customer: "",
+    quotation_no: "",
+    deal_stage_id: "",
+  };
+
+  // ------------------------ Financial Year helper (used by generateQuotationNo) ------------------------
   const getFinancialYear = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -49,12 +67,7 @@ const UpdateQuotationNew = () => {
       : `${String(year - 1).slice(-2)}-${String(year).slice(-2)}`;
   };
 
-  const getRate = (name) => {
-    const rateObj = rates.find((r) => r.name === name);
-    return rateObj ? rateObj.price : 0;
-  };
-
-  // ------------------------ Quotation No Generator ------------------------
+  // ------------------------ Quotation No Generator (from your UpdateQuotationNew) ------------------------
   const generateQuotationNo = async (lead_id) => {
     try {
       const fy = getFinancialYear();
@@ -80,7 +93,7 @@ const UpdateQuotationNew = () => {
         }
       }
 
-      // No quotation for this lead → normal numbering
+      // No quotation for this lead → normal numbering across FY
       if (fyDeals.length > 0) {
         const lastNo = Math.max(
           ...fyDeals.map((d) => parseInt(d.quotation_no.split("/").pop(), 10))
@@ -96,452 +109,622 @@ const UpdateQuotationNew = () => {
     }
   };
 
-  // ------------------------ Fetch Data ------------------------
+  // ------------------------ Formik ------------------------
+  const formik = useFormik({
+    initialValues,
+    enableReinitialize: true,
+    onSubmit: async (values) => {
+      if (!selectedItemsData)
+        return errorToast("Please add at least one item before saving.");
+
+      if (!values.lead_id || !values.sender_by_id) {
+        return errorToast("Lead and Assign To are required.");
+      }
+
+      setSubmitting(true);
+
+      try {
+        // Generate quotation number using the custom generator
+        const quotationNo = await generateQuotationNo(values.lead_id);
+
+        // If editing existing quotation: disable existing record first (PUT)
+        if (id) {
+          await api.put(`/api/v1/admin/deal/${id}`, { is_disable: true });
+        }
+
+        // Build payload (mirrors AddDealsQt structure with fields + item_details & totals)
+        const isTDS = subTotals.taxType === "TDS";
+        const isTCS = subTotals.taxType === "TCS";
+
+        const payload = {
+          ...values,
+          item_details: selectedItemsData,
+          sub_total: parseFloat(subTotals.subTotal || 0).toFixed(2),
+          deductionAmount: parseFloat(subTotals.deductionAmount || 0).toFixed(
+            2
+          ),
+          adjustment: parseFloat(subTotals.adjustment || 0),
+          total: (
+            subTotals.subTotal -
+            subTotals.deductionAmount +
+            subTotals.adjustment
+          ).toFixed(2),
+          type: subTotals.taxType || null,
+          TDS_id: isTDS ? subTotals.deductionId || null : null,
+          TCS_id: isTCS ? subTotals.deductionId || null : null,
+          lead_id: Number(values.lead_id) || "",
+          leaQt_dated_id: values.Qt_date || "",
+          sender_by_id: Number(values.sender_by_id) || "",
+          expiry_date: values.expiry_date || "",
+          companyBank_id: values.companyBank_id || "",
+          notes_customer: values.notes_customer || "",
+          deal_stage_id: 3, // changed it after first negotiation
+          quotation_no: quotationNo,
+          is_disable: false,
+        };
+
+        // If you need to send multipart when there's file/attachment, adapt here.
+        // For now we send JSON as existing AddDealsQt did.
+        await api.post("/api/v1/admin/deal", payload);
+
+        successToast("Quotation saved successfully");
+        navigate("/deals-list");
+      } catch (err) {
+        console.error("Save error:", err.response || err.message);
+        errorToast(err.response?.data?.message || err.message || "Save failed");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
+  const {
+    values,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    errors,
+    touched,
+    isSubmitting,
+    setFieldValue,
+  } = formik;
+
+  // ------------------------ Fetch dropdowns and (if editing) deal by id ------------------------
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [supplierRes, rateRes, leadRes, stageRes, empRes, dealRes] =
+        setLoading(true);
+        const [leadRes, empRes, bankRes, tdsRes, tcsRes, dealStagesRes] =
           await Promise.all([
-            api.get("/api/v1/admin/supplierManagement"),
-            api.get("/api/v1/admin/rate/active"),
-            api.get("/api/v1/admin/lead"),
-            api.get("/api/v1/admin/dealStages/active"),
+            api.get("/api/v1/admin/lead/active"),
             api.get("/api/v1/admin/employee/active"),
-            api.get(`/api/v1/admin/deal/${id}`),
+            api.get("/api/v1/admin/companyBank/active"),
+            api.get("/api/v1/admin/TDS/active"),
+            api.get("/api/v1/admin/TCS/active"),
+            api.get("/api/v1/admin/dealStages/active"),
           ]);
 
-        setSuppliers(supplierRes.data || []);
-        setRates(rateRes.data || []);
-        setLeads(leadRes.data || []);
-        setDealStages(stageRes.data || []);
-        setEmployees(Array.isArray(empRes.data.data) ? empRes.data.data : []);
-
-        const deal = dealRes.data;
-        setFormData({
-          ...deal,
-          site_visit_date: deal.site_visit_date
-            ? new Date(deal.site_visit_date).toISOString().slice(0, 16)
-            : "",
-          sol_rate: deal.sol_rate || "",
-          inv_rate: deal.inv_rate || "",
-          sender_by_id: deal.sender_by_id || "",
-          quotation_no: deal.quotation_no || "",
+        setMetaData({
+          leadData: leadRes?.data || [],
+          employeeData: Array.isArray(empRes?.data?.data)
+            ? empRes.data.data
+            : [],
+          bankData: Array.isArray(bankRes?.data?.data) ? bankRes.data.data : [],
+          tdsData: Array.isArray(tdsRes?.data?.data) ? tdsRes.data.data : [],
+          tcsData: Array.isArray(tcsRes?.data?.data) ? tcsRes.data.data : [],
+          dealStages: Array.isArray(dealStagesRes?.data)
+            ? dealStagesRes.data
+            : [],
         });
       } catch (err) {
-        console.error("Error loading deal data:", err);
-        alert("Failed to load deal details");
-        navigate("/deals-list");
+        console.error("Failed to fetch metadata:", err);
+        errorToast("Failed to load dropdown data");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [id, navigate]);
+  }, []);
 
-  // ------------------------ Default Rates ------------------------
+  // ------------------------ If id present: fetch deal data & prefill ------------------------
   useEffect(() => {
-    if (rates.length) {
-      setFormData((prev) => ({
+    if (!id) return;
+
+    const fetchDealById = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get(`/api/v1/admin/deal/${id}`);
+        const deal = data?.data || data;
+
+        // Prefill form fields (Formik)
+        setFieldValue("lead_id", deal.lead_id || "");
+        setFieldValue("sender_by_id", deal.sender_by_id || "");
+        setFieldValue("Qt_date", deal.Qt_date?.split("T")[0] || "");
+        setFieldValue("expiry_date", deal.expiry_date?.split("T")[0] || "");
+        setFieldValue("companyBank_id", deal.companyBank_id || "");
+        setFieldValue("notes_customer", deal.notes_customer || "");
+        setFieldValue("quotation_no", deal.quotation_no || "");
+        setFieldValue("deal_stage_id", deal.deal_stage_id || "");
+
+        // Prefill item details
+        if (deal.item_details) {
+          setSelectedItemsData(deal.item_details);
+        }
+
+        // Prefill subtotal and tax data as in AddDealsQt
+        const isTDS = !!deal.TDS_id;
+        const isTCS = !!deal.TCS_id;
+        const taxType = isTDS ? "TDS" : isTCS ? "TCS" : "";
+        const deductionId = isTDS ? deal.TDS_id : isTCS ? deal.TCS_id : null;
+
+        const deductionAmount = parseFloat(deal.deductionAmount || 0);
+        const subTotal = parseFloat(deal.sub_total || 0);
+        const adjustment = parseFloat(deal.adjustment || 0);
+        const deductionPercentage =
+          deal.percentage ||
+          (subTotal > 0 ? ((deductionAmount / subTotal) * 100).toFixed(2) : 0);
+
+        setSubTotals({
+          subTotal: subTotal,
+          taxType: taxType || "TDS",
+          deductionId: deductionId,
+          deductionOption: deductionPercentage,
+          deductionName: deal.deductionName || "",
+          deductionAmount: deductionAmount,
+          adjustment: adjustment,
+        });
+      } catch (err) {
+        console.error("Failed to fetch deal data:", err);
+        errorToast("Failed to load deal details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDealById();
+  }, [id, setFieldValue]);
+
+  // ------------------------ Recalculate subtotal when items change ------------------------
+  useEffect(() => {
+    if (!selectedItemsData) return;
+
+    let total = selectedItemsData.selectedCategories.reduce(
+      (acc, cat) => acc + (cat.grandTotal || 0),
+      0
+    );
+
+    setSubTotals((prev) => ({
+      ...prev,
+      subTotal: total,
+      deductionAmount:
+        prev.deductionOption === "commission"
+          ? parseFloat((total * 0.02).toFixed(2))
+          : prev.deductionAmount,
+    }));
+  }, [selectedItemsData]);
+
+  // ------------------------ Deduction option effect ------------------------
+  useEffect(() => {
+    if (subTotals.deductionOption === "commission") {
+      setSubTotals((prev) => ({
         ...prev,
-        sol_rate: prev.sol_rate || getRate("SOLAR"),
-        inv_rate: prev.inv_rate || getRate("INVERTOR"),
+        deductionAmount: parseFloat((prev.subTotal * 0.02).toFixed(2)),
       }));
     }
-  }, [rates]);
+  }, [subTotals.deductionOption, subTotals.subTotal]);
 
-  // ------------------------ Auto Update Solar Capacity ------------------------
-  useEffect(() => {
-    if (formData.lead_id) {
-      const selectedLead = leads.find(
-        (lead) => lead.id === Number(formData.lead_id)
-      );
-      if (selectedLead && selectedLead.capacity) {
-        setFormData((prev) => ({ ...prev, sol_cap: selectedLead.capacity }));
-      }
-    }
-  }, [formData.lead_id, leads]);
+  // ------------------------ Loader ------------------------
+  if (loading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
 
-  // ------------------------ Auto Calculate Amounts ------------------------
-  useEffect(() => {
-    const solAmt =
-      (Number(formData.sol_cap) || 0) *
-      (Number(formData.sol_qty) || 0) *
-      (Number(formData.sol_rate) || 0);
-
-    const invAmt =
-      (Number(formData.inv_cap) || 0) * (Number(formData.inv_rate) || 0);
-
-    setFormData((prev) => ({
-      ...prev,
-      sol_amt: solAmt,
-      inv_amt: invAmt,
-      final_amt: solAmt + invAmt,
-    }));
-  }, [
-    formData.sol_cap,
-    formData.sol_qty,
-    formData.sol_rate,
-    formData.inv_cap,
-
-    formData.inv_rate,
-  ]);
-
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "attachment") {
-      setFormData((prev) => ({ ...prev, attachment: files[0] }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  useEffect(() => {
-    const solAmt = Number(formData.sol_amt) || 0;
-    const invAmt = Number(formData.inv_amt) || 0;
-
-    setFormData((prev) => ({
-      ...prev,
-      final_amount: solAmt + invAmt,
-    }));
-  }, [formData.sol_amt, formData.inv_amt]);
-
-  // ------------------------ Handle Save ------------------------
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      if (!formData.lead_id || !formData.sender_by_id) {
-        alert("Please fill required fields");
-        return;
-      }
-
-      // Generate quotation number
-      const quotationNo = await generateQuotationNo(formData.lead_id);
-
-      // ------------------ DISABLE EXISTING QUOTATION ------------------
-      if (id) {
-        await api.put(`/api/v1/admin/deal/${id}`, { is_disable: true });
-      }
-
-      // ------------------ CREATE NEW QUOTATION ------------------
-      const payload = {
-        deal_name: formData.deal_name,
-        lead_id: Number(formData.lead_id),
-        deal_stage_id: 3,
-        is_disable: false,
-        is_final: 0,
-        status: formData.status || "Active",
-        site_visit_date: formData.site_visit_date,
-        description: formData.description || "",
-        sol_cap: Number(formData.sol_cap) || 0,
-        sol_qty: Number(formData.sol_qty) || 0,
-        sol_amt: Number(formData.sol_amt) || 0,
-        sol_seller_id: Number(formData.sol_seller_id) || null,
-        inv_cap: Number(formData.inv_cap) || 0,
-        inv_amt: Number(formData.inv_amt) || 0,
-        inv_seller_id: Number(formData.inv_seller_id) || null,
-        final_amount: Number(formData.final_amount) || 0,
-        sol_rate: Number(formData.sol_rate) || 0,
-        inv_rate: Number(formData.inv_rate) || 0,
-        sender_by_id: Number(formData.sender_by_id),
-        quotation_no: quotationNo,
-        attachment: formData.attachment || null,
-      };
-
-      const formPayload = new FormData();
-      Object.keys(payload).forEach((key) => {
-        if (payload[key] !== null && payload[key] !== undefined) {
-          formPayload.append(key, payload[key]);
-        }
-      });
-
-      await api.post("/api/v1/admin/deal", formPayload, {
-        headers: { "Content-Type": "application/json" },
-      });
-
-      // alert("Quotation saved successfully!");
-      navigate("/deals-list");
-    } catch (error) {
-      console.error("Error saving quotation:", error.response || error.message);
-      setSubmitting(false); // stop loader
-    }
-  };
-
-  if (loading) return <p>Loading...</p>;
-
-  // ------------------------ Render Form ------------------------
+  // ------------------------ Render ------------------------
   return (
-    <Card className="p-4 shadow-sm">
-      <h4 className="mb-3">Update New Quotation</h4>
-      <Form onSubmit={handleSubmit}>
-        {/* Deal Info */}
-        <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Quotation No</Form.Label>
-              <Form.Control
-                type="text"
-                name="quotation_no"
-                value={formData.quotation_no}
-                readOnly
-              />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Lead *</Form.Label>
-              <Form.Select
-                name="lead_id"
-                value={formData.lead_id}
-                onChange={handleChange}
-                required
+    <>
+      <Card>
+        <Card.Header>
+          <h5 className="mb-0">Update Quotation</h5>
+        </Card.Header>
+        <hr />
+        <Card.Body className="pt-0">
+          <Form onSubmit={handleSubmit}>
+            <Row className="mb-3">
+              <Col md={4}>
+                <CustomInput
+                  label="Quote No"
+                  name="quotation_no"
+                  value={values.quotation_no}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="--"
+                  touched={touched.quotation_no}
+                  errors={errors.quotation_no}
+                  readOnly={true}
+                  disabled={true} // user requested disabled
+                />
+              </Col>
+
+              <Col md={4}>
+                <CustomSelect
+                  label="Customer"
+                  name="lead_id"
+                  value={values.lead_id}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={metaData.leadData}
+                  placeholder="--"
+                  error={errors.lead_id}
+                  touched={touched.lead_id}
+                  required
+                  lableName="name"
+                  lableKey="id"
+                />
+              </Col>
+
+              <Col md={4}>
+                <CustomSelect
+                  label="Assign To"
+                  name="sender_by_id"
+                  value={values.sender_by_id}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={metaData.employeeData}
+                  placeholder="--"
+                  error={errors.sender_by_id}
+                  touched={touched.sender_by_id}
+                  required
+                  lableName="name"
+                  lableKey="id"
+                />
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col md={4}>
+                <CustomInput
+                  type="date"
+                  label="Quote Date"
+                  name="Qt_date"
+                  value={values.Qt_date}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Quote Date"
+                  touched={touched.Qt_date}
+                  errors={errors.Qt_date}
+                  required
+                  // min={new Date().toISOString().split("T")[0]}
+                />
+              </Col>
+
+              <Col md={4}>
+                <CustomInput
+                  type="date"
+                  label="Expiry Date"
+                  name="expiry_date"
+                  value={values.expiry_date}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Quote Expiry Date"
+                  touched={touched.expiry_date}
+                  errors={errors.expiry_date}
+                  // min={new Date().toISOString().split("T")[0]}
+                />
+              </Col>
+
+              <Col md={4}>
+                <CustomSelect
+                  label="Bank"
+                  name="companyBank_id"
+                  value={values.companyBank_id}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={metaData.bankData}
+                  placeholder="--"
+                  error={errors.companyBank_id}
+                  touched={touched.companyBank_id}
+                  required
+                  lableName="bank_name"
+                  lableKey="id"
+                />
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={12}>
+                <CustomInput
+                  as="textarea"
+                  label="Notes"
+                  name="notes_customer"
+                  value={values.notes_customer}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Notes"
+                  touched={touched.notes_customer}
+                  errors={errors.notes_customer}
+                  row={2}
+                />
+              </Col>
+            </Row>
+
+            {/* Items Table */}
+            <div className="table-responsive">
+              <Table hover responsive className="table">
+                <thead>
+                  <tr className="table-gray">
+                    <th>Item Category</th>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!selectedItemsData ? (
+                    <tr>
+                      <td colSpan="4" className="text-center">
+                        No Item Available
+                      </td>
+                    </tr>
+                  ) : (
+                    selectedItemsData.selectedCategories.map((cat) => (
+                      <tr key={cat.id}>
+                        <td>
+                          <strong>{cat.name}</strong>
+                        </td>
+                        <td>
+                          <ul style={{ paddingLeft: "18px", margin: 0 }}>
+                            {cat.items.map((item) => (
+                              <li key={item.id}>
+                                {item.name} — Qty: {item.quantity} — Price: ₹
+                                {parseFloat(item.price).toFixed(2)} — Total: ₹
+                                {parseFloat(item.total).toFixed(2)}
+                              </li>
+                            ))}
+                          </ul>
+                        </td>
+                        <td>
+                          <strong>{cat.totalQuantity}</strong>
+                        </td>
+                        <td>
+                          <strong>₹{cat.grandTotal.toFixed(2)}</strong>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+            </div>
+
+            <Row>
+              <div className="text-start">
+                <Button variant="primary" onClick={() => setShowModal(true)}>
+                  + Item
+                </Button>
+              </div>
+            </Row>
+
+            {/* Subtotal Card */}
+            {selectedItemsData && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "flex-end",
+                }}
               >
-                <option value="">Select Lead</option>
-                {leads.map((lead) => (
-                  <option key={lead.id} value={lead.id}>
-                    {lead.name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Stage *</Form.Label>
-              <Form.Select
-                name="deal_stage_id"
-                value={formData.deal_stage_id}
-                onChange={handleChange}
-                required
-                disabled
+                <Card
+                  className="p-3 my-3 shadow-lg"
+                  style={{
+                    backgroundColor: "#f6f6f6",
+                    width: "430px",
+                  }}
+                >
+                  <Row className="mb-2">
+                    <Col md={6}>
+                      <strong style={{ fontSize: "13px" }}>
+                        Sub Total (Tax Inclusive)
+                      </strong>
+                    </Col>
+                    <Col md={6} className="text-end">
+                      ₹{subTotals.subTotal.toFixed(2)}
+                    </Col>
+                  </Row>
+
+                  {/* --- Tax Type Radios --- */}
+                  <Row className="mb-2 align-items-center">
+                    <Col md={4} className="d-flex">
+                      <Form.Check
+                        type="radio"
+                        id="TDS"
+                        label="TDS"
+                        name="taxType"
+                        value="TDS"
+                        checked={subTotals.taxType === "TDS"}
+                        onChange={(e) => {
+                          const selectedType = e.target.value;
+                          setSubTotals((prev) => ({
+                            ...prev,
+                            taxType: selectedType,
+                            deductionOption: "", // reset dropdown
+                            deductionId: null,
+                            deductionName: "",
+                            deductionAmount: 0,
+                          }));
+                        }}
+                        style={{ marginRight: "10px" }}
+                      />
+                      <Form.Check
+                        type="radio"
+                        id="TCS"
+                        label="TCS"
+                        name="taxType"
+                        value="TCS"
+                        checked={subTotals.taxType === "TCS"}
+                        onChange={(e) => {
+                          const selectedType = e.target.value;
+                          setSubTotals((prev) => ({
+                            ...prev,
+                            taxType: selectedType,
+                            deductionOption: "",
+                            deductionId: null,
+                            deductionName: "",
+                            deductionAmount: 0,
+                          }));
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                  <Row className="mb-2 align-items-center">
+                    {/* --- Dropdown --- */}
+                    <Col md={6} className="mt-1">
+                      <Form.Select
+                        value={subTotals.deductionId || ""}
+                        onChange={(e) => {
+                          const selectedId = parseInt(e.target.value);
+                          let selectedItem = null;
+
+                          if (subTotals.taxType === "TDS") {
+                            selectedItem = metaData.tdsData.find(
+                              (x) => x.id === selectedId
+                            );
+                          } else if (subTotals.taxType === "TCS") {
+                            selectedItem = metaData.tcsData.find(
+                              (x) => x.id === selectedId
+                            );
+                          }
+
+                          if (selectedItem) {
+                            const percentage = parseFloat(
+                              selectedItem.percentage || 0
+                            );
+                            const deduction =
+                              (subTotals.subTotal * percentage) / 100;
+
+                            setSubTotals((prev) => ({
+                              ...prev,
+                              deductionId: selectedItem.id,
+                              deductionOption: percentage, // store percentage for calculations
+                              deductionName: selectedItem.name,
+                              deductionAmount: deduction,
+                            }));
+                          }
+                        }}
+                        disabled={!subTotals.taxType}
+                        size="sm"
+                      >
+                        <option value="">
+                          -- Select {subTotals.taxType || "Type"} --
+                        </option>
+
+                        {subTotals.taxType === "TDS" &&
+                          metaData.tdsData?.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.name} [{item.percentage}%]
+                            </option>
+                          ))}
+
+                        {subTotals.taxType === "TCS" &&
+                          metaData.tcsData?.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.name} [{item.percentage}%]
+                            </option>
+                          ))}
+                      </Form.Select>
+
+                      {subTotals.deductionName && (
+                        <small
+                          className="text-muted"
+                          style={{ fontSize: "12px" }}
+                        >
+                          {subTotals.deductionName} ({subTotals.deductionOption}
+                          %)
+                        </small>
+                      )}
+                    </Col>
+
+                    {/* --- Deduction Display --- */}
+                    <Col md={6} className="text-end">
+                      - ₹{subTotals?.deductionAmount?.toFixed(2)}
+                    </Col>
+                  </Row>
+
+                  <Row className="mb-2 align-items-center">
+                    <Col md={4}>
+                      <p style={{ fontSize: "15px" }}>Adjustment</p>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Control
+                        type="number"
+                        value={subTotals.adjustment}
+                        onChange={(e) =>
+                          setSubTotals((prev) => ({
+                            ...prev,
+                            adjustment: parseFloat(e.target.value) || 0,
+                          }))
+                        }
+                        size="sm"
+                      />
+                    </Col>
+                    <Col md={4} className="text-end">
+                      ₹{subTotals.adjustment.toFixed(2)}
+                    </Col>
+                  </Row>
+
+                  <hr />
+
+                  <Row>
+                    <Col md={6}>
+                      <strong>Total (₹)</strong>
+                    </Col>
+                    <Col md={6} className="text-end">
+                      <strong>
+                        ₹
+                        {(
+                          subTotals.subTotal -
+                          subTotals.deductionAmount +
+                          subTotals.adjustment
+                        ).toFixed(2)}
+                      </strong>
+                    </Col>
+                  </Row>
+                </Card>
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div className="text-end mt-2">
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={isSubmitting || submitting}
               >
-                <option value="">Select Stage</option>
-                {dealStages.map((stage) => (
-                  <option key={stage.id} value={stage.id}>
-                    {stage.deal_stages}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Assign To *</Form.Label>
-              <Form.Select
-                name="sender_by_id"
-                value={formData.sender_by_id}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Employee</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-        </Row>
+                {isSubmitting || submitting
+                  ? "Saving..."
+                  : id
+                  ? "Save"
+                  : "Save"}
+              </Button>
+            </div>
+          </Form>
+        </Card.Body>
+      </Card>
 
-        {/* Assign + Status + Visit */}
-        <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Site Visit Date & Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                name="site_visit_date"
-                value={formData.site_visit_date}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Solar Details */}
-        <h6 className="mt-3">Solar Panel Details</h6>
-        <p className="small">(Default Rate: ₹{getRate("SOLAR")})</p>
-        <Row className="mb-3">
-          {/* <Col md={4}>
-            <Form.Group>
-              <Form.Label>Rate</Form.Label>
-              <Form.Control
-                type="number"
-                name="sol_rate"
-                value={formData.sol_rate}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    sol_rate: Number(e.target.value),
-                  }))
-                }
-              />
-            </Form.Group>
-          </Col> */}
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Capacity</Form.Label>
-              <Form.Control
-                type="number"
-                name="sol_cap"
-                value={formData.sol_cap}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Quantity</Form.Label>
-              <Form.Control
-                type="number"
-                name="sol_qty"
-                value={formData.sol_qty}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Amount</Form.Label>
-              <Form.Control
-                type="number"
-                name="sol_amt"
-                value={formData.sol_amt}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-        <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Seller</Form.Label>
-              <Form.Select
-                name="sol_seller_id"
-                value={formData.sol_seller_id}
-                onChange={handleChange}
-              >
-                <option value="">Select Seller</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Inverter Details */}
-        <h6 className="mt-3">Inverter Details</h6>
-        <p className="small">(Default Rate: ₹{getRate("INVERTOR")})</p>
-        <Row className="mb-3">
-          {/* <Col md={4}>
-            <Form.Group>
-              <Form.Label>Rate</Form.Label>
-              <Form.Control
-                type="number"
-                name="inv_rate"
-                value={formData.inv_rate}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    inv_rate: Number(e.target.value),
-                  }))
-                }
-              />
-            </Form.Group>
-          </Col> */}
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Capacity</Form.Label>
-              <Form.Control
-                type="number"
-                name="inv_cap"
-                value={formData.inv_cap}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Amount</Form.Label>
-              <Form.Control
-                type="number"
-                name="inv_amt"
-                value={formData.inv_amt}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Seller</Form.Label>
-              <Form.Select
-                name="inv_seller_id"
-                value={formData.inv_seller_id}
-                onChange={handleChange}
-              >
-                <option value="">Select Seller</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Final Amount + Attachment + Description */}
-        <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label>Final Amount</Form.Label>
-              <Form.Control
-                type="number"
-                name="final_amount"
-                value={formData.final_amount}
-                readOnly
-              />
-            </Form.Group>
-          </Col>
-          {/* <Col md={4}>
-            <Form.Group>
-              <Form.Label>Attachment (PDF only)</Form.Label>
-              <Form.Control
-                type="file"
-                name="attachment"
-                accept="application/pdf"
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col> */}
-
-          <Col md={8}>
-            <Form.Group>
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Save */}
-        <div className="text-end">
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Saving..." : "Save"}
-          </Button>
-        </div>
-      </Form>
-    </Card>
+      {showModal && (
+        <AddItemModal
+          show={showModal}
+          handleClose={() => setShowModal(false)}
+          existingData={selectedItemsData}
+          onSave={(finalResponse) => {
+            setSelectedItemsData(finalResponse);
+            setShowModal(false);
+          }}
+        />
+      )}
+    </>
   );
 };
 

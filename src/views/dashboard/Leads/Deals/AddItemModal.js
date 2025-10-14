@@ -123,54 +123,110 @@ const AddItemModal = ({ show, handleClose, onSave, existingData }) => {
   };
 
   // Save button logic
+  // const handleSave = () => {
+  //   const selectedCategories = intCategory.filter((cat) => cat.selected);
+
+  //   const finalResponse = selectedCategories.map((cat) => {
+  //     const categoryItems = allItems
+  //       .filter((item) => {
+  //         const itemCatId =
+  //           item.stockName?.inv_cat_id || item.stockName?.InventoryCat?.id;
+  //         return itemCatId === cat.id && item.selected;
+  //       })
+  //       .map((item) => ({
+  //         id: item.id,
+  //         name: item.material,
+  //         price: item.sales_info_selling_price,
+  //         quantity: item.quantity,
+  //         total: item.total,
+  //       }));
+
+  //     const totalQuantity = categoryItems.reduce(
+  //       (sum, i) => sum + Number(i.quantity),
+  //       0
+  //     );
+  //     const grandTotal = categoryItems.reduce((sum, i) => sum + i.total, 0);
+
+  //     return {
+  //       id: cat.id,
+  //       name: cat.category,
+  //       items: categoryItems,
+  //       intraTax: cat.intraTax || null,
+  //       interTax: cat.interTax || null,
+  //       totalQuantity,
+  //       grandTotal,
+  //     };
+  //   });
+
+  //   // Overall totals
+  //   const overallTotalQty = finalResponse.reduce(
+  //     (sum, c) => sum + c.totalQuantity,
+  //     0
+  //   );
+  //   const overallGrandTotal = finalResponse.reduce(
+  //     (sum, c) => sum + c.grandTotal,
+  //     0
+  //   );
+
+  //   onSave({
+  //     selectedCategories: finalResponse,
+  //     overallTotalQuantity: overallTotalQty,
+  //     overallGrandTotal,
+  //   });
+  //   handleClose();
+  // };
+
+  // Save button logic
+
   const handleSave = () => {
-    const selectedCategories = intCategory.filter((cat) => cat.selected);
+    const selectedCategories = intCategory
+      .filter((cat) => cat.selected)
+      .map((cat) => {
+        const categoryItems = allItems
+          .filter((item) => {
+            const itemCatId =
+              item.stockName?.inv_cat_id || item.stockName?.InventoryCat?.id;
+            return itemCatId === cat.id && item.selected;
+          })
+          .map((item) => ({
+            id: item.id,
+            name: item.material,
+            price: item.sales_info_selling_price,
+            quantity: item.quantity,
+            total: item.total,
+          }));
 
-    const finalResponse = selectedCategories.map((cat) => {
-      const categoryItems = allItems
-        .filter((item) => {
-          const itemCatId =
-            item.stockName?.inv_cat_id || item.stockName?.InventoryCat?.id;
-          return itemCatId === cat.id && item.selected;
-        })
-        .map((item) => ({
-          id: item.id,
-          name: item.material,
-          price: item.sales_info_selling_price,
-          quantity: item.quantity,
-          total: item.total,
-        }));
+        const totalQuantity = categoryItems.reduce(
+          (sum, i) => sum + Number(i.quantity),
+          0
+        );
+        const grandTotal = categoryItems.reduce((sum, i) => sum + i.total, 0);
 
-      const totalQuantity = categoryItems.reduce(
-        (sum, i) => sum + Number(i.quantity),
-        0
-      );
-      const grandTotal = categoryItems.reduce((sum, i) => sum + i.total, 0);
-
-      return {
-        id: cat.id,
-        name: cat.category,
-        items: categoryItems,
-        totalQuantity,
-        grandTotal,
-      };
-    });
-
-    // Overall totals
-    const overallTotalQty = finalResponse.reduce(
-      (sum, c) => sum + c.totalQuantity,
-      0
-    );
-    const overallGrandTotal = finalResponse.reduce(
-      (sum, c) => sum + c.grandTotal,
-      0
-    );
+        // Include tax info as-is, do not calculate here
+        return {
+          id: cat.id,
+          name: cat.category,
+          items: categoryItems,
+          totalQuantity,
+          grandTotal,
+          taxPreference: cat.TaxPreference || null,
+          intraTax: cat.intraTax || null,
+          interTax: cat.interTax || null,
+        };
+      });
 
     onSave({
-      selectedCategories: finalResponse,
-      overallTotalQuantity: overallTotalQty,
-      overallGrandTotal,
+      selectedCategories,
+      overallTotalQuantity: selectedCategories.reduce(
+        (sum, c) => sum + c.totalQuantity,
+        0
+      ),
+      overallGrandTotal: selectedCategories.reduce(
+        (sum, c) => sum + c.grandTotal,
+        0
+      ),
     });
+
     handleClose();
   };
 
