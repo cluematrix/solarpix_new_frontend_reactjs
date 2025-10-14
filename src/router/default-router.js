@@ -119,6 +119,8 @@ import StockManagementHisTable from "../views/dashboard/InventoryManagement/Stoc
 import AddDealsQt from "../views/dashboard/Leads/Deals/AddDealsQt";
 import SalesOrderList from "../views/dashboard/Leads/SalesOrder/SalesOrderList";
 import AddSalesOrder from "../views/dashboard/Leads/SalesOrder/AddSalesOrder";
+import PurchaseOrderList from "../views/dashboard/Leads/PurchaseOrder/PurchaseOrderList";
+import AddPurchaseOrder from "../views/dashboard/Leads/PurchaseOrder/AddPurchaseOrder";
 
 // employee profile 01 Sep
 
@@ -492,8 +494,23 @@ export const DefaultRouter = [
       },
 
       {
-        path: "/edit-deal/:id",
+        path: "/edit-sales/:id",
         element: <AddSalesOrder />,
+      },
+
+      // purchase order
+      {
+        path: "/purchase-order-list",
+        element: <PurchaseOrderList />,
+      },
+      {
+        path: "/add-purchase-orders",
+        element: <AddPurchaseOrder />,
+      },
+
+      {
+        path: "/edit-purchase/:id",
+        element: <AddPurchaseOrder />,
       },
 
       // Widget

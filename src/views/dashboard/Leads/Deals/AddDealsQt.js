@@ -883,16 +883,6 @@ const AddDealsQt = () => {
     fetchDealById();
   }, [id]);
 
-  // Recalculate subtotal when items change
-  // useEffect(() => {
-  //   if (!selectedItemsData) return;
-  //   const total = selectedItemsData.selectedCategories.reduce(
-  //     (acc, cat) => acc.finalAmount || acc + cat.grandTotal,
-  //     0
-  //   );
-  //   setSubTotals((prev) => ({ ...prev, subTotal: total }));
-  // }, [selectedItemsData]);
-
   // Whenever selectedItemsData changes, recalc subtotal including CGST & SGST
   useEffect(() => {
     if (!selectedItemsData) return;
