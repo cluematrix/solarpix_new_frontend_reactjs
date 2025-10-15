@@ -215,12 +215,12 @@ const CustomerList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Customers</h5>
-              {/* <Button
+              <Button
                 className="btn-primary me-1"
                 onClick={() => navigate("/add-customer")}
               >
                 + Add Customer
-              </Button> */}
+              </Button>
             </Card.Header>
 
             <Card.Body className="px-0 pt-3">

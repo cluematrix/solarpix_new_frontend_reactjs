@@ -124,7 +124,7 @@ const SalesOrderList = () => {
               <h5 className="card-title fw-lighter mb-0">Sales Orders</h5>
 
               {/* Filter Dropdown */}
-              <Form.Select
+              {/* <Form.Select
                 size="sm"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
@@ -134,7 +134,7 @@ const SalesOrderList = () => {
                 <option value="final">Final</option>
                 <option value="lost">Lost</option>
                 <option value="proposal sent">Proposal sent</option>
-              </Form.Select>
+              </Form.Select> */}
 
               {/* Add Deal Button */}
               <Button

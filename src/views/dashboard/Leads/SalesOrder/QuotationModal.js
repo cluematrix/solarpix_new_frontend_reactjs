@@ -148,7 +148,6 @@ const QuotationModal = ({ show, handleClose, deal }) => {
                   src={company.logo}
                   alt="Company Logo"
                   style={{ maxWidth: "100px" }}
-                 
                 />
               )}
             </Col>

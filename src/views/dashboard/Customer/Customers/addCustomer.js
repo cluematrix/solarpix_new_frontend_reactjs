@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Form, Button, Row, Col, Card, Spinner } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Row,
+  Col,
+  Card,
+  Spinner,
+  FormCheck,
+} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import api from "../../../../api/axios";
 import * as Yup from "yup";
@@ -20,42 +28,49 @@ const AddCustomer = () => {
 
   console.log("dealData?.id", dealData?.id);
   const initialValues = {
-    // client_id: "",
     lead_id: dealData?.lead_id || leadData?.id || "",
     salutation: leadData?.salutation || "",
     name: leadData?.name || dealData?.deal_name || "",
     email: leadData?.email || "",
     password: "",
     contact: leadData?.contact || "",
-    address: leadData?.address || "",
+    billing_address: leadData?.billing_address || "",
+    billing_city: leadData?.billing_city || "",
+    billing_state: leadData?.billing_state || "",
+    billing_pincode: leadData?.billing_pincode || "",
+    shipping_address: leadData?.shipping_address || "",
+    shipping_city: leadData?.shipping_city || "",
+    shipping_state: leadData?.shipping_state || "",
+    shipping_pincode: leadData?.shipping_pincode || "",
     gender: leadData?.gender || "",
-    city: leadData?.city || "",
-    state: leadData?.state || "",
-    pincode: leadData?.pincode || "",
     photo: leadData?.photo || null,
     client_category_id: leadData?.client_category_id || "",
-    doc_type: leadData?.doc_type || "",
-    doc_no: leadData?.doc_no || "",
-    doc_upload: leadData?.doc_upload || "", // aadhaar card
-    extra_doc: leadData?.extra_doc || "", // pancard card
-    electric_bill: leadData?.electric_bill || "", // electric_bill card
-    extra_file: leadData?.extra_file || "", // noc/sale deed card
     description: leadData?.description || "",
     kyc_status: leadData?.kyc_status || "Pending",
     deal_id: dealData?.id || "",
+    dynamic_fields: leadData?.dynamic_fields || {},
   };
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
-  const [customerList, setCustomerList] = useState([]); // store all customers
-  const [dealList, setDealList] = useState([]); // store all customers
+  const [customerList, setCustomerList] = useState([]);
+  const [dealList, setDealList] = useState([]);
+  const [dynamicFields, setDynamicFields] = useState([]);
+  const [copyBillingToShipping, setCopyBillingToShipping] = useState(false);
 
   const validationSchema = Yup.object().shape({
-    // client_id: Yup.string().required("Customer ID is required"),
     salutation: Yup.string().required("Salutation is required"),
     name: Yup.string().required("Name is required"),
     gender: Yup.string().required("Gender is required"),
-    address: Yup.string().required("Address is required"),
+    billing_address: Yup.string().required("Billing Address is required"),
+    billing_city: Yup.string().required("Billing City is required"),
+    billing_state: Yup.string().required("Billing State is required"),
+    billing_pincode: Yup.string().required("Billing Pincode is required"),
+    shipping_address: Yup.string().required("Shipping Address is required"),
+    shipping_city: Yup.string().required("Shipping City is required"),
+    shipping_state: Yup.string().required("Shipping State is required"),
+    shipping_pincode: Yup.string().required("Shipping Pincode is required"),
     contact: Yup.string()
       .required("Mobile number is required")
       .matches(/^[0-9]{10}$/, "Enter a valid 10-digit mobile number"),
@@ -65,9 +80,6 @@ const AddCustomer = () => {
     password: Yup.string()
       .required("Password is required")
       .min(6, "Password must be at least 6 characters long"),
-    city: Yup.string().required("City is required"),
-    state: Yup.string().required("State is required"),
-    pincode: Yup.string().required("Pincode is required"),
     client_category_id: Yup.string().required("Customer Category is required"),
     photo: Yup.mixed()
       .nullable()
@@ -81,38 +93,6 @@ const AddCustomer = () => {
           );
         }
       ),
-    // doc_type: Yup.string().required("Document Type is required"),
-    // doc_no: Yup.string().required("Document number is required"),
-    doc_upload: Yup.mixed()
-      .nullable()
-      .test("fileType", "Only Pdf files are allowed", (value) => {
-        if (!value) return true;
-        return ["application/pdf"].includes(value.type);
-      })
-      .required("Aadhaar card is required"),
-
-    extra_doc: Yup.mixed()
-      .nullable()
-      .test("fileType", "Only Pdf files are allowed", (value) => {
-        if (!value) return true;
-        return ["application/pdf"].includes(value.type);
-      })
-      .required("Pan card is required"),
-
-    electric_bill: Yup.mixed()
-      .nullable()
-      .test("fileType", "Only Pdf files are allowed", (value) => {
-        if (!value) return true;
-        return ["application/pdf"].includes(value.type);
-      })
-      .required("Electricity bill is required"),
-
-    extra_file: Yup.mixed()
-      .nullable()
-      .test("fileType", "Only Pdf files are allowed", (value) => {
-        if (!value) return true;
-        return ["application/pdf"].includes(value.type);
-      }),
   });
 
   const onSubmit = async (values, { resetForm }) => {
@@ -120,11 +100,51 @@ const AddCustomer = () => {
       const formData = new FormData();
       Object.keys(values).forEach((key) => {
         if (values[key] !== "" && values[key] !== null) {
-          formData.append(key, values[key]);
+          if (key === "photo" && values[key] instanceof File) {
+            formData.append(key, values[key]);
+          } else if (
+            key === "dynamic_fields" &&
+            typeof values[key] === "object"
+          ) {
+            const textFields = {};
+            Object.keys(values.dynamic_fields).forEach((fieldName) => {
+              const field = dynamicFields.find(
+                (f) => f.field_name === fieldName
+              );
+              if (field) {
+                if (
+                  field.data_type === "text" ||
+                  field.data_type === "number"
+                ) {
+                  if (values.dynamic_fields[fieldName]) {
+                    textFields[fieldName] = values.dynamic_fields[fieldName];
+                  }
+                } else if (
+                  (field.data_type === "image" || field.data_type === "pdf") &&
+                  values.dynamic_fields[fieldName] instanceof File
+                ) {
+                  formData.append(fieldName, values.dynamic_fields[fieldName]);
+                }
+              }
+            });
+            if (Object.keys(textFields).length > 0) {
+              formData.append("dynamic_fields", JSON.stringify(textFields));
+            }
+          } else {
+            formData.append(key, values[key]);
+          }
         }
       });
 
-      const res = await api.post("/api/v1/admin/client", formData);
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+
+      const res = await api.post("/api/v1/admin/client", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       console.log(res);
       successToast("Customer added successfully");
       resetForm();
@@ -151,15 +171,14 @@ const AddCustomer = () => {
     isSubmitting,
   } = formik;
 
-  // Fetch categories and customer list
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const [catRes, custRes, dealRes] = await Promise.all([
           api.get("/api/v1/admin/clientCategory/active"),
-          api.get("/api/v1/admin/client"), // assuming this returns all customers
-          api.get("/api/v1/admin/deal"), // assuming this returns all customers
+          api.get("/api/v1/admin/client"),
+          api.get("/api/v1/admin/deal"),
         ]);
 
         setCategories(catRes.data);
@@ -176,29 +195,31 @@ const AddCustomer = () => {
     fetchData();
   }, []);
 
-  // ✅ Auto-generate next Client ID
-  // useEffect(() => {
-  //   if (customerList && customerList.length > 0) {
-  //     // Extract numeric parts from all client_id values
-  //     const nums = customerList.map((c) => {
-  //       const num = parseInt(c.client_id?.replace("CUSTO", ""), 10);
-  //       return isNaN(num) ? 0 : num;
-  //     });
-  //     console.log("list of ", customerList);
-  //     // Find maximum number
-  //     const maxNum = Math.max(...nums);
+  useEffect(() => {
+    const fetchDynamicFields = async () => {
+      try {
+        const res = await api.get("/api/v1/admin/clientField");
+        setDynamicFields(res.data.data || []);
+      } catch (err) {
+        errorToast("Failed to load dynamic document fields");
+      }
+    };
+    fetchDynamicFields();
+  }, []);
 
-  //     // Generate next ID
-  //     const nextId = "CUSTO" + String(maxNum + 1).padStart(3, "0");
+  const handleDynamicChange = (fieldName, value) => {
+    setFieldValue(`dynamic_fields.${fieldName}`, value);
+  };
 
-  //     setFieldValue("client_id", nextId);
-
-  //     console.log("Last max client_id number:", maxNum, " → Next:", nextId);
-  //   } else {
-  //     // First customer
-  //     setFieldValue("client_id", "CUSTO001");
-  //   }
-  // }, [customerList, setFieldValue]);
+  const handleCopyBillingToShipping = (e) => {
+    setCopyBillingToShipping(e.target.checked);
+    if (e.target.checked) {
+      setFieldValue("shipping_address", values.billing_address);
+      setFieldValue("shipping_city", values.billing_city);
+      setFieldValue("shipping_state", values.billing_state);
+      setFieldValue("shipping_pincode", values.billing_pincode);
+    }
+  };
 
   if (loading) {
     return (
@@ -221,22 +242,7 @@ const AddCustomer = () => {
       <hr />
       <Card.Body className="pt-0">
         <Form onSubmit={handleSubmit}>
-          {/* Row 1 {client_id, salutation, name} */}
           <Row>
-            {/* <Col md={4}>
-              <CustomInput
-                label="Customer ID"
-                name="client_id"
-                value={values.client_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Customer ID"
-                touched={touched.client_id}
-                errors={errors.client_id}
-                required
-                disabled
-              />
-            </Col> */}
             <Col md={4}>
               <CustomSelect
                 label="Salutation"
@@ -266,10 +272,6 @@ const AddCustomer = () => {
                 required
               />
             </Col>
-          </Row>
-
-          {/* Row 2 {contact, email, password} */}
-          <Row className="mt-3">
             <Col md={4}>
               <CustomInput
                 label="Mobile Number"
@@ -283,6 +285,9 @@ const AddCustomer = () => {
                 required
               />
             </Col>
+          </Row>
+
+          <Row className="mt-3">
             <Col md={4}>
               <CustomInput
                 label="Email"
@@ -310,10 +315,6 @@ const AddCustomer = () => {
                 required
               />
             </Col>
-          </Row>
-
-          {/* Row 3 {gender, address} */}
-          <Row className="mt-3">
             <Col md={4}>
               <CustomRadioGroup
                 label="Gender"
@@ -327,81 +328,9 @@ const AddCustomer = () => {
                 required
               />
             </Col>
-            <Col md={8}>
-              <CustomInput
-                label="Address"
-                name="address"
-                as="textarea"
-                value={values.address}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Address"
-                touched={touched.address}
-                errors={errors.address}
-                required
-                row={2}
-              />
-            </Col>
           </Row>
 
-          {/* Row 4 {city, state, pincode} */}
-          <Row className="mt-3">
-            <Col md={4}>
-              <CustomInput
-                label="City"
-                name="city"
-                value={values.city}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter City"
-                touched={touched.city}
-                errors={errors.city}
-                required
-              />
-            </Col>
-            <Col md={4}>
-              <CustomInput
-                label="State"
-                name="state"
-                value={values.state}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter State"
-                touched={touched.state}
-                errors={errors.state}
-                required
-              />
-            </Col>
-            <Col md={4}>
-              <CustomInput
-                label="Pin Code"
-                name="pincode"
-                value={values.pincode}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Pin Code"
-                touched={touched.pincode}
-                errors={errors.pincode}
-                required
-              />
-            </Col>
-          </Row>
-
-          {/* Row 5 {photo, category} */}
           <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomFileInput
-                label="Profile Picture"
-                name="photo"
-                accept="image/*"
-                onChange={(e) =>
-                  setFieldValue("photo", e.currentTarget.files[0])
-                }
-                onBlur={handleBlur}
-                touched={touched.photo}
-                error={errors.photo}
-              />
-            </Col>
             <Col md={4}>
               <CustomSelect
                 label="Client Category"
@@ -418,95 +347,134 @@ const AddCustomer = () => {
                 lableName="category"
               />
             </Col>
-            {!values.deal_id && (
-              <Col md={4}>
-                <CustomSelect
-                  label="Deal"
-                  name="deal_id"
-                  value={values.deal_id}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  options={dealList}
-                  placeholder="--"
-                  error={errors.deal_id}
-                  touched={touched.deal_id}
-                  required
-                  valueName="id"
-                  lableName="name"
-                />
-              </Col>
-            )}
           </Row>
 
-          <hr />
-          <Card.Header className="p-0 pb-2">
-            <h5 className="mb-0">Document Details</h5>
-          </Card.Header>
-
-          {/* Row 5 {doc_upload(aadhaar), extra_doc(pan)} */}
-          <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomFileInput
-                label="Aadhaar Card (pdf)"
-                name="doc_upload"
-                // accept="application/pdf"
-                onChange={(e) =>
-                  setFieldValue("doc_upload", e.currentTarget.files[0])
-                }
+          <Row className="mt-3">
+            {/* Billing Address - Left */}
+            <Col md={6}>
+              <CustomInput
+                label="Billing Address"
+                name="billing_address"
+                as="textarea"
+                value={values.billing_address}
+                onChange={handleChange}
                 onBlur={handleBlur}
-                touched={touched.doc_upload}
-                error={errors.doc_upload}
+                placeholder="Enter Billing Address"
+                touched={touched.billing_address}
+                errors={errors.billing_address}
                 required
+                row={2}
+              />
+
+              <CustomInput
+                label="Billing City"
+                name="billing_city"
+                value={values.billing_city}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Billing City"
+                touched={touched.billing_city}
+                errors={errors.billing_city}
+                required
+                className="mt-3"
+              />
+
+              <CustomInput
+                label="Billing State"
+                name="billing_state"
+                value={values.billing_state}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Billing State"
+                touched={touched.billing_state}
+                errors={errors.billing_state}
+                required
+                className="mt-3"
+              />
+
+              <CustomInput
+                label="Billing Pin Code"
+                name="billing_pincode"
+                value={values.billing_pincode}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Billing Pin Code"
+                touched={touched.billing_pincode}
+                errors={errors.billing_pincode}
+                required
+                className="mt-3"
               />
             </Col>
 
-            <Col md={4}>
-              <CustomFileInput
-                label="Pan Card (pdf)"
-                name="extra_doc"
-                // accept="application/pdf"
-                onChange={(e) =>
-                  setFieldValue("extra_doc", e.currentTarget.files[0])
-                }
+            {/* Shipping Address - Right */}
+            <Col md={6}>
+              <FormCheck
+                type="checkbox"
+                label="Same as Billing Address"
+                checked={copyBillingToShipping}
+                onChange={handleCopyBillingToShipping}
+                className="mb-3"
+              />
+
+              <CustomInput
+                label="Shipping Address"
+                name="shipping_address"
+                as="textarea"
+                value={values.shipping_address}
+                onChange={handleChange}
                 onBlur={handleBlur}
-                touched={touched.extra_doc}
-                error={errors.extra_doc}
+                placeholder="Enter Shipping Address"
+                touched={touched.shipping_address}
+                errors={errors.shipping_address}
                 required
+                row={2}
+                disabled={copyBillingToShipping}
+              />
+
+              <CustomInput
+                label="Shipping City"
+                name="shipping_city"
+                value={values.shipping_city}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Shipping City"
+                touched={touched.shipping_city}
+                errors={errors.shipping_city}
+                required
+                disabled={copyBillingToShipping}
+                className="mt-3"
+              />
+
+              <CustomInput
+                label="Shipping State"
+                name="shipping_state"
+                value={values.shipping_state}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Shipping State"
+                touched={touched.shipping_state}
+                errors={errors.shipping_state}
+                required
+                disabled={copyBillingToShipping}
+                className="mt-3"
+              />
+
+              <CustomInput
+                label="Shipping Pin Code"
+                name="shipping_pincode"
+                value={values.shipping_pincode}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Shipping Pin Code"
+                touched={touched.shipping_pincode}
+                errors={errors.shipping_pincode}
+                required
+                disabled={copyBillingToShipping}
+                className="mt-3"
               />
             </Col>
           </Row>
 
-          {/* electric_bill, extra_file */}
-          <Row className="mt-3 mb-4">
-            <Col md={4}>
-              <CustomFileInput
-                label="Electricity Bill (pdf)"
-                name="electric_bill"
-                // accept="application/pdf"
-                onChange={(e) =>
-                  setFieldValue("electric_bill", e.currentTarget.files[0])
-                }
-                onBlur={handleBlur}
-                touched={touched.electric_bill}
-                error={errors.electric_bill}
-                required
-              />
-            </Col>
-
-            <Col md={4}>
-              <CustomFileInput
-                label="NOC / Sale Deed (pdf)"
-                name="extra_file"
-                // accept="application/pdf"
-                onChange={(e) =>
-                  setFieldValue("extra_file", e.currentTarget.files[0])
-                }
-                onBlur={handleBlur}
-                touched={touched.extra_file}
-                error={errors.extra_file}
-              />
-            </Col>
-          </Row>
           <Row className="mt-3 mb-4">
             <Col md={12}>
               <CustomInput
@@ -522,7 +490,72 @@ const AddCustomer = () => {
               />
             </Col>
           </Row>
-          {/* Save */}
+
+          <hr />
+          <Card.Header className="p-0 pb-2">
+            <h5 className="mb-0">Dynamic Fields</h5>
+          </Card.Header>
+
+          <Row className="mt-3 mb-4">
+            {dynamicFields.length > 0 ? (
+              dynamicFields.map((field) => (
+                <Col md={4} key={field.id} className="mb-3">
+                  {field.data_type === "text" && (
+                    <CustomInput
+                      label={field.label}
+                      name={`dynamic_fields.${field.field_name}`}
+                      value={values.dynamic_fields?.[field.field_name] || ""}
+                      onChange={(e) =>
+                        handleDynamicChange(field.field_name, e.target.value)
+                      }
+                      placeholder={`Enter ${field.label}`}
+                    />
+                  )}
+
+                  {field.data_type === "number" && (
+                    <CustomInput
+                      type="number"
+                      label={field.label}
+                      name={`dynamic_fields.${field.field_name}`}
+                      value={values.dynamic_fields?.[field.field_name] || ""}
+                      onChange={(e) =>
+                        handleDynamicChange(field.field_name, e.target.value)
+                      }
+                      placeholder={`Enter ${field.label}`}
+                    />
+                  )}
+
+                  {(field.data_type === "pdf" ||
+                    field.data_type === "image") && (
+                    <CustomFileInput
+                      label={`${field.label} (${
+                        field.data_type === "pdf" ? "PDF" : "Image"
+                      })`}
+                      name={`dynamic_fields.${field.field_name}`}
+                      accept={
+                        field.data_type === "pdf"
+                          ? "application/pdf"
+                          : "image/*"
+                      }
+                      onChange={(e) =>
+                        handleDynamicChange(
+                          field.field_name,
+                          e.currentTarget.files[0]
+                        )
+                      }
+                    />
+                  )}
+                </Col>
+              ))
+            ) : (
+              <Col>
+                <p className="text-muted">
+                  No dynamic document fields configured.
+                </p>
+              </Col>
+            )}
+          </Row>
+
           <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
