@@ -1,6 +1,5 @@
 // old code not using this
 
-
 import React, { useState, useEffect } from "react";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -264,23 +263,6 @@ const AddDeals = ({ editData }) => {
               </Form.Select>
             </Form.Group>
           </Col>
-
-          {/* <Col md={4}>
-            <Form.Group>
-              <Form.Label>Status *</Form.Label>
-              <Form.Select
-                name="deal_stage_id"
-                value={formData.deal_stage_id}
-                disabled
-              >
-                {dealStages.map((stage) => (
-                  <option key={stage.id} value={stage.id}>
-                    {stage.deal_stages}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col> */}
 
           <Col md={4}>
             <Form.Group>

@@ -19,6 +19,7 @@ const AddCustomer = () => {
   const leadData = location.state?.leadData || null;
 
   console.log("dealData?.id", dealData?.id);
+  console.log("leadDataCustomer", leadData);
   const initialValues = {
     // client_id: "",
     lead_id: dealData?.lead_id || leadData?.id || "",
@@ -176,30 +177,6 @@ const AddCustomer = () => {
     fetchData();
   }, []);
 
-  // ✅ Auto-generate next Client ID
-  // useEffect(() => {
-  //   if (customerList && customerList.length > 0) {
-  //     // Extract numeric parts from all client_id values
-  //     const nums = customerList.map((c) => {
-  //       const num = parseInt(c.client_id?.replace("CUSTO", ""), 10);
-  //       return isNaN(num) ? 0 : num;
-  //     });
-  //     console.log("list of ", customerList);
-  //     // Find maximum number
-  //     const maxNum = Math.max(...nums);
-
-  //     // Generate next ID
-  //     const nextId = "CUSTO" + String(maxNum + 1).padStart(3, "0");
-
-  //     setFieldValue("client_id", nextId);
-
-  //     console.log("Last max client_id number:", maxNum, " → Next:", nextId);
-  //   } else {
-  //     // First customer
-  //     setFieldValue("client_id", "CUSTO001");
-  //   }
-  // }, [customerList, setFieldValue]);
-
   if (loading) {
     return (
       <div className="loader-div">
@@ -223,20 +200,6 @@ const AddCustomer = () => {
         <Form onSubmit={handleSubmit}>
           {/* Row 1 {client_id, salutation, name} */}
           <Row>
-            {/* <Col md={4}>
-              <CustomInput
-                label="Customer ID"
-                name="client_id"
-                value={values.client_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Customer ID"
-                touched={touched.client_id}
-                errors={errors.client_id}
-                required
-                disabled
-              />
-            </Col> */}
             <Col md={4}>
               <CustomSelect
                 label="Salutation"

@@ -164,7 +164,7 @@ const AddSalesOrder = () => {
         const { data } = await api.get(`/api/v1/admin/salesOrder/${id}`);
         const salesOrder = data?.data || data;
 
-        // ✅ Prefill form fields
+        // Prefill form fields
         setFieldValue("lead_id", salesOrder.lead_id || "");
         setFieldValue("assign_to_emp_id", salesOrder.assign_to_emp_id || "");
         setFieldValue(
@@ -181,12 +181,12 @@ const AddSalesOrder = () => {
         setFieldValue("reference", salesOrder.reference || "");
         setFieldValue("payment_terms_id", salesOrder.payment_terms_id || "");
 
-        // ✅ Prefill item details
+        // Prefill item details
         if (salesOrder.item_details) {
           setSelectedItemsData(salesOrder.item_details);
         }
 
-        // ✅ Prefill subtotal and tax data
+        // Prefill subtotal and tax data
         const isTDS = !!salesOrder.TDS_id;
         const isTCS = !!salesOrder.TCS_id;
         const taxType = isTDS ? "TDS" : isTCS ? "TCS" : "";
@@ -196,7 +196,7 @@ const AddSalesOrder = () => {
           ? salesOrder.TCS_id
           : null;
 
-        // ✅ Recalculate deduction based on response
+        // Recalculate deduction based on response
         const deductionAmount = parseFloat(salesOrder.deductionAmount || 0);
         const subTotal = parseFloat(salesOrder.sub_total || 0);
         const adjustment = parseFloat(salesOrder.adjustment || 0);

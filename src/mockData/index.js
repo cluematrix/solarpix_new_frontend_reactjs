@@ -129,3 +129,9 @@ export const personType = [
   { id: "1", name: "Warehouse" },
   { id: "2", name: "Customer" },
 ];
+
+// Default text for new quotations
+export const defaultNotes = `Subsidy - ₹78,000/-
+Solar Panel Warranty = 12 Years Product, 13 Years Performance
+Solar On-Grid Inverter Warranty = 7-10 Years
+Service = 5 Years CMC`;

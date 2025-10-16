@@ -45,6 +45,7 @@ const DealList = () => {
   const [quotationDeal, setQuotationDeal] = useState(null);
 
   const [showQuotationConfirm, setShowQuotationConfirm] = useState(false);
+  const [showNegModal, setShowNegModal] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [pendingStageId, setPendingStageId] = useState(null);
 
@@ -231,16 +232,14 @@ const DealList = () => {
                           <td>
                             <Form.Select
                               size="sm"
-                              className="w-50"
+                              className="w-100"
                               value={deal.deal_stage_id || ""}
                               style={{
-                                cursor: deal.is_disable
-                                  ? "not-allowed"
-                                  : "pointer",
                                 cursor:
                                   deal.is_disable ||
-                                  deal.dealStage?.deal_stages === "Won" ||
-                                  deal.dealStage?.deal_stages === "Lost"
+                                  ["Won", "Lost"].includes(
+                                    deal.dealStage?.deal_stages
+                                  )
                                     ? "not-allowed"
                                     : "pointer",
                                 backgroundColor: "transparent",
@@ -248,8 +247,9 @@ const DealList = () => {
                               }}
                               disabled={
                                 deal.is_disable ||
-                                deal.dealStage?.deal_stages === "Won" ||
-                                deal.dealStage?.deal_stages === "Lost"
+                                ["Won", "Lost"].includes(
+                                  deal.dealStage?.deal_stages
+                                )
                               }
                               onChange={async (e) => {
                                 const newStageId = e.target.value;
@@ -259,33 +259,20 @@ const DealList = () => {
                                   (s) => s.id == newStageId
                                 )?.deal_stages;
 
+                                if (stageName === "Negotiation") {
+                                  setSelectedDeal(deal);
+                                  setPendingStageId(newStageId);
+                                  setShowNegModal(true);
+                                }
                                 if (stageName === "Won") {
                                   setSelectedDeal(deal);
                                   setPendingStageId(newStageId);
                                   setShowQuotationConfirm(true);
-                                } else {
-                                  try {
-                                    await api.put(
-                                      `/api/v1/admin/deal/${deal.id}`,
-                                      {
-                                        ...deal,
-                                        deal_stage_id: newStageId,
-                                      }
-                                    );
-                                    setDealList((prev) =>
-                                      prev.map((d) =>
-                                        d.id === deal.id
-                                          ? { ...d, deal_stage_id: newStageId }
-                                          : d
-                                      )
-                                    );
-                                  } catch (err) {
-                                    console.error("Error updating stage:", err);
-                                  }
                                 }
                               }}
                             >
                               <option value="">Select Stage</option>
+
                               {dealStages.map((stage) => {
                                 const isDisabled =
                                   stage.id < deal.deal_stage_id &&
@@ -293,13 +280,13 @@ const DealList = () => {
                                     deal.dealStage?.deal_stages
                                   );
 
-                                const stageIcon = {
+                                const stageIcons = {
                                   1: "🟢", // Qualified
                                   2: "🟠", // Proposal Sent
                                   3: "🔵", // Negotiation
                                   4: "🟢", // Won
                                   5: "🔴", // Lost
-                                }[stage.id];
+                                };
 
                                 return (
                                   <option
@@ -312,7 +299,8 @@ const DealList = () => {
                                         : "pointer",
                                     }}
                                   >
-                                    {stageIcon} {stage.deal_stages}
+                                    {stageIcons[stage.id] || "⚪"}{" "}
+                                    {stage.deal_stages}
                                   </option>
                                 );
                               })}
@@ -327,35 +315,6 @@ const DealList = () => {
                                 setShowQuotationModal(true);
                               }}
                             />
-                            {/* <CreateTwoToneIcon
-                              onClick={() => navigate(`/edit-deal/${deal.id}`)}
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                            <DeleteRoundedIcon
-                              onClick={() => {
-                                setDeleteId(deal.id);
-                                setShowDeleteModal(true);
-                              }}
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                            /> */}
-
-                            <CreateTwoToneIcon
-                              color="primary"
-                              style={{
-                                cursor: deal.is_disable
-                                  ? "not-allowed"
-                                  : "pointer",
-                                opacity: deal.is_disable ? 0.5 : 1,
-                              }}
-                              onClick={() => {
-                                if (!deal.is_disable) {
-                                  navigate(`/edit-deal/${deal.id}`);
-                                }
-                              }}
-                            />
-
                             <DeleteRoundedIcon
                               color="error"
                               style={{
@@ -406,7 +365,44 @@ const DealList = () => {
         </Col>
       </Row>
 
-      {/* Quotation Confirmation Modal */}
+      {/* For Negotiation Quotation Confirmation Modal */}
+      <Modal
+        show={showNegModal}
+        onHide={() => setShowNegModal(false)}
+        centered
+        backdrop="static"
+        size="md"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Quotation Confirmation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            Do you want to negotiate the quotation and update it with a new one?
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="success"
+            onClick={() => {
+              navigate(`/UpdateQuotationNew/${selectedDeal.id}`);
+            }}
+          >
+            Yes
+          </Button>
+
+          <Button
+            variant="danger"
+            onClick={() => {
+              setShowNegModal(false);
+            }}
+          >
+            No
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* for won Quotation Confirmation Modal */}
       <Modal
         show={showQuotationConfirm}
         onHide={() => setShowQuotationConfirm(false)}
@@ -417,51 +413,28 @@ const DealList = () => {
           <Modal.Title>Quotation Confirmation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>
-            Do you want to send the current quotation or update with a new one?
-          </p>
+          <p>Use the current quotation or update it before closing the deal?</p>
         </Modal.Body>
         <Modal.Footer>
           <Button
             variant="success"
-            onClick={async () => {
-              try {
-                await api.put(`/api/v1/admin/deal/${selectedDeal.id}`, {
-                  ...selectedDeal,
-                  deal_stage_id: 4,
-                  isFinal: 1,
-                });
-
-                await fetchDeals();
-                setDealList((prev) =>
-                  prev.map((d) =>
-                    d.id === selectedDeal.id
-                      ? { ...d, deal_stage_id: 4, isFinal: 1 }
-                      : d
-                  )
-                );
-
-                navigate("/add-customer", {
-                  state: { leadData: selectedDeal.lead, deal: selectedDeal },
-                });
-              } catch (err) {
-                console.error("Error sending quotation:", err);
-              } finally {
-                setShowQuotationConfirm(false);
-              }
+            onClick={() => {
+              navigate("/add-customer", { state: { dealData: selectedDeal } });
             }}
           >
-            Send Current
+            Use Current
           </Button>
 
           <Button
             variant="primary"
             onClick={() => {
               setShowQuotationConfirm(false);
-              navigate(`/UpdateQuotationNew/${selectedDeal.id}`);
+              navigate(`/UpdateQuotationNew/${selectedDeal.id}`, {
+                state: { isCustomer: true, dealData: selectedDeal },
+              });
             }}
           >
-            Update New
+            Final Quotation
           </Button>
         </Modal.Footer>
       </Modal>

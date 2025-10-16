@@ -1,16 +1,7 @@
 // created by sufyan on 11/10/25
 import React, { useState, useEffect } from "react";
-import {
-  Form,
-  Button,
-  Row,
-  Col,
-  Card,
-  Table,
-  Spinner,
-  FormControl,
-} from "react-bootstrap";
-import { useNavigate, useParams } from "react-router-dom";
+import { Form, Button, Row, Col, Card, Table, Spinner } from "react-bootstrap";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
@@ -22,6 +13,10 @@ import AddItemModal from "./AddItemModal";
 const UpdateQuotationNew = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // get navigation state
+  const location = useLocation();
+  const { isCustomer, dealData } = location.state;
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -130,6 +125,9 @@ const UpdateQuotationNew = () => {
         // If editing existing quotation: disable existing record first (PUT)
         if (id) {
           await api.put(`/api/v1/admin/deal/${id}`, { is_disable: true });
+          if (isCustomer) {
+            navigate("/add-customer", { state: { leadData: dealData } });
+          }
         }
 
         // Build payload (mirrors AddDealsQt structure with fields + item_details & totals)
@@ -188,6 +186,31 @@ const UpdateQuotationNew = () => {
     isSubmitting,
     setFieldValue,
   } = formik;
+
+  // Handle tax change per category
+  const handleTaxChange = (catId, selectedTax, type) => {
+    setSelectedItemsData((prev) => {
+      const newCats = prev.selectedCategories.map((cat) => {
+        if (cat.id === catId) {
+          const taxRate =
+            type === "intra" ? selectedTax.intra_per : selectedTax.inter_per;
+          const totalTax = (cat.grandTotal * taxRate) / 100;
+          const cgst = totalTax / 2;
+          const sgst = totalTax / 2;
+
+          return {
+            ...cat,
+            selectedTax,
+            cgst,
+            sgst,
+            finalAmount: cat.grandTotal + cgst + sgst,
+          };
+        }
+        return cat;
+      });
+      return { ...prev, selectedCategories: newCats };
+    });
+  };
 
   // ------------------------ Fetch dropdowns and (if editing) deal by id ------------------------
   useEffect(() => {
@@ -328,7 +351,7 @@ const UpdateQuotationNew = () => {
     <>
       <Card>
         <Card.Header>
-          <h5 className="mb-0">Update Quotation</h5>
+          <h5 className="mb-0">Finalize Quotation</h5>
         </Card.Header>
         <hr />
         <Card.Body className="pt-0">
@@ -345,10 +368,9 @@ const UpdateQuotationNew = () => {
                   touched={touched.quotation_no}
                   errors={errors.quotation_no}
                   readOnly={true}
-                  disabled={true} // user requested disabled
+                  disabled={true}
                 />
               </Col>
-
               <Col md={4}>
                 <CustomSelect
                   label="Customer"
@@ -365,7 +387,6 @@ const UpdateQuotationNew = () => {
                   lableKey="id"
                 />
               </Col>
-
               <Col md={4}>
                 <CustomSelect
                   label="Assign To"
@@ -397,10 +418,9 @@ const UpdateQuotationNew = () => {
                   touched={touched.Qt_date}
                   errors={errors.Qt_date}
                   required
-                  // min={new Date().toISOString().split("T")[0]}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </Col>
-
               <Col md={4}>
                 <CustomInput
                   type="date"
@@ -412,10 +432,9 @@ const UpdateQuotationNew = () => {
                   placeholder="Enter Quote Expiry Date"
                   touched={touched.expiry_date}
                   errors={errors.expiry_date}
-                  // min={new Date().toISOString().split("T")[0]}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </Col>
-
               <Col md={4}>
                 <CustomSelect
                   label="Bank"
@@ -434,72 +453,104 @@ const UpdateQuotationNew = () => {
               </Col>
             </Row>
 
-            <Row className="mb-4">
-              <Col md={12}>
-                <CustomInput
-                  as="textarea"
-                  label="Notes"
-                  name="notes_customer"
-                  value={values.notes_customer}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="Enter Notes"
-                  touched={touched.notes_customer}
-                  errors={errors.notes_customer}
-                  row={2}
-                />
-              </Col>
-            </Row>
-
             {/* Items Table */}
-            <div className="table-responsive">
-              <Table hover responsive className="table">
+            <div className="table-responsive mt-5">
+              <Table hover responsive>
                 <thead>
                   <tr className="table-gray">
                     <th>Item Category</th>
                     <th>Description</th>
                     <th>Quantity</th>
                     <th>Amount</th>
+                    <th>Tax</th>
+                    <th>CGST</th>
+                    <th>SGST</th>
+                    <th>Final Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {!selectedItemsData ? (
                     <tr>
-                      <td colSpan="4" className="text-center">
+                      <td colSpan="8" className="text-center">
                         No Item Available
                       </td>
                     </tr>
                   ) : (
-                    selectedItemsData.selectedCategories.map((cat) => (
-                      <tr key={cat.id}>
-                        <td>
-                          <strong>{cat.name}</strong>
-                        </td>
-                        <td>
-                          <ul style={{ paddingLeft: "18px", margin: 0 }}>
-                            {cat.items.map((item) => (
-                              <li key={item.id}>
-                                {item.name} — Qty: {item.quantity} — Price: ₹
-                                {parseFloat(item.price).toFixed(2)} — Total: ₹
-                                {parseFloat(item.total).toFixed(2)}
-                              </li>
-                            ))}
-                          </ul>
-                        </td>
-                        <td>
-                          <strong>{cat.totalQuantity}</strong>
-                        </td>
-                        <td>
-                          <strong>₹{cat.grandTotal.toFixed(2)}</strong>
-                        </td>
-                      </tr>
-                    ))
+                    selectedItemsData.selectedCategories.map((cat) => {
+                      console.log("cat", cat);
+                      return (
+                        <tr key={cat.id}>
+                          <td>
+                            <strong>{cat.name}</strong>
+                          </td>
+                          <td>
+                            <ul style={{ paddingLeft: "18px", margin: 0 }}>
+                              {cat.items.map((item) => (
+                                <li key={item.id}>
+                                  {item.name} <br />
+                                  Qty: {item.quantity} <br /> Price: ₹
+                                  {parseFloat(item.price).toFixed(2)} <br />
+                                  Total: ₹{parseFloat(item.total).toFixed(2)}
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                          <td>{cat.totalQuantity}</td>
+                          <td>₹{cat.grandTotal.toFixed(2)}</td>
+                          <td>
+                            <Form.Select
+                              size="sm"
+                              value={cat.selectedTax?.id || ""}
+                              onChange={(e) => {
+                                const selectedId = parseInt(e.target.value);
+                                if (
+                                  cat.intraTax &&
+                                  cat.intraTax.id === selectedId
+                                ) {
+                                  handleTaxChange(
+                                    cat.id,
+                                    cat.intraTax,
+                                    "intra"
+                                  );
+                                } else if (
+                                  cat.interTax &&
+                                  cat.interTax.id === selectedId
+                                ) {
+                                  handleTaxChange(
+                                    cat.id,
+                                    cat.interTax,
+                                    "inter"
+                                  );
+                                }
+                              }}
+                            >
+                              <option value="">-- Select Tax --</option>
+                              {cat.intraTax && (
+                                <option value={cat.intraTax.id}>
+                                  Intra Tax - {cat.intraTax.name} -{" "}
+                                  {cat.intraTax.intra_per}%
+                                </option>
+                              )}
+                              {cat.interTax && (
+                                <option value={cat.interTax.id}>
+                                  Inter Tax - {cat.interTax.name} -{" "}
+                                  {cat.interTax.inter_per}%
+                                </option>
+                              )}
+                            </Form.Select>
+                          </td>
+                          <td>₹{cat.cgst.toFixed(2)}</td>
+                          <td>₹{cat.sgst.toFixed(2)}</td>
+                          <td>₹{cat.finalAmount.toFixed(2)}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </Table>
             </div>
 
-            <Row>
+            <Row className="mt-3">
               <div className="text-start">
                 <Button variant="primary" onClick={() => setShowModal(true)}>
                   + Item
@@ -507,6 +558,7 @@ const UpdateQuotationNew = () => {
               </div>
             </Row>
 
+            {/* Subtotal & Deduction Card */}
             {/* Subtotal Card */}
             {selectedItemsData && (
               <div
@@ -695,18 +747,26 @@ const UpdateQuotationNew = () => {
               </div>
             )}
 
-            {/* Save Button */}
-            <div className="text-end mt-2">
-              <Button
-                variant="primary"
-                type="submit"
-                disabled={isSubmitting || submitting}
-              >
-                {isSubmitting || submitting
-                  ? "Saving..."
-                  : id
-                  ? "Save"
-                  : "Save"}
+            <Row className="mt-4">
+              <Col md={12}>
+                <CustomInput
+                  as="textarea"
+                  label="Notes"
+                  name="notes_customer"
+                  value={values.notes_customer}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Notes"
+                  touched={touched.notes_customer}
+                  errors={errors.notes_customer}
+                  row={4}
+                />
+              </Col>
+            </Row>
+
+            <div className="text-end mt-3">
+              <Button type="submit" variant="primary" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : id ? "Update" : "Save"}
               </Button>
             </div>
           </Form>

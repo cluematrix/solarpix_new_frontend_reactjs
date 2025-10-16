@@ -58,17 +58,12 @@ const AddPurchaseOrder = () => {
         return errorToast("Please add at least one item.");
 
       try {
-        // Determine which ID to send
         const isTDS = subTotals.taxType === "TDS";
         const isTCS = subTotals.taxType === "TCS";
 
         const payload = {
           ...values,
-
-          // 🔹 item details JSON
           item_details: selectedItemsData,
-
-          // 🔹 subtotal, adjustment, and total calculations
           sub_total: parseFloat(subTotals.subTotal || 0).toFixed(2),
           deductionAmount: parseFloat(subTotals.deductionAmount || 0).toFixed(
             2
@@ -80,7 +75,6 @@ const AddPurchaseOrder = () => {
             subTotals.adjustment
           ).toFixed(2),
 
-          // 🔹 Tax type details
           type: subTotals.taxType || null,
           TDS_id: isTDS ? subTotals.deductionId || null : null,
           TCS_id: isTCS ? subTotals.deductionId || null : null,
@@ -96,26 +90,53 @@ const AddPurchaseOrder = () => {
           branch_id: values.branch_id || "",
         };
 
-        // Send only one of them (client_id or branch_id)
-        // Send only one of them (client_id or branch_id)
-        if (values.client_id) {
-          delete payload.branch_id;
-        } else if (values.branch_id) {
-          delete payload.client_id;
-        }
+        // Send only one of them
+        if (values.client_id) delete payload.branch_id;
+        else if (values.branch_id) delete payload.client_id;
 
         console.log("📤 Final Payload Sent:", payload);
 
+        let purchaseOrderRes;
         if (id) {
-          await api.put(`/api/v1/admin/purchaseOrder/${id}`, payload);
-          successToast("Purchase Orders updated successfully");
-          navigate("/purchase-order-list");
+          purchaseOrderRes = await api.put(
+            `/api/v1/admin/purchaseOrder/${id}`,
+            payload
+          );
+          successToast("Purchase Order updated successfully");
         } else {
-          await api.post("/api/v1/admin/purchaseOrder", payload);
-          successToast("Purchase Orders created successfully");
-          console.log("payload", payload);
-          navigate("/purchase-order-list");
+          purchaseOrderRes = await api.post(
+            "/api/v1/admin/purchaseOrder",
+            payload
+          );
+          successToast("Purchase Order created successfully");
         }
+
+        console.log("purchaseOrderRes", purchaseOrderRes);
+        // Step 2: Create Stock Transactions
+        if (purchaseOrderRes?.data?.id || purchaseOrderRes?.data?.data?.id) {
+          const purchaseOrderId =
+            purchaseOrderRes.data.id || purchaseOrderRes.data.data.id;
+          console.log("purchaseOrderResUnder", purchaseOrderRes);
+          const stockPayload = {
+            branch_id: values.branch_id,
+            reference_type: "PurchaseOrder",
+            reference_id: purchaseOrderId,
+            item_details: selectedItemsData,
+          };
+
+          try {
+            await api.post(
+              "/api/v1/admin/stockTransaction/multiple",
+              stockPayload
+            );
+            console.log(" Stock transaction recorded successfully");
+          } catch (stockErr) {
+            console.error("⚠️ Error creating stock transaction:", stockErr);
+            errorToast("Purchase saved, but stock transaction failed!");
+          }
+        }
+
+        navigate("/purchase-order-list");
       } catch (err) {
         console.error(err);
         errorToast(err.response?.data?.message || err.message);
