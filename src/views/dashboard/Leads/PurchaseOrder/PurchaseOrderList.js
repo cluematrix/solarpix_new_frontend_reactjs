@@ -109,7 +109,7 @@ const PurchaseOrderList = () => {
                 className="btn-primary w-auto"
                 onClick={() => navigate("/add-purchase-orders")}
               >
-                + Generate Purchase Order
+                + Generate
               </Button>
             </Card.Header>
 

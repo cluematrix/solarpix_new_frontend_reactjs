@@ -439,9 +439,10 @@ const AddPurchaseOrderModal = ({
                                   </td>
                                   <td>{item.total.toFixed(2)}</td>
                                   <td>
-                                    {item.selected &&
-                                    formik.values.branch_id &&
-                                    formik.values.supplier_id ? (
+                                    {(item.selected &&
+                                      formik.values.branch_id) ||
+                                    (formik.values.client_id &&
+                                      formik.values.supplier_id) ? (
                                       <Button
                                         variant={
                                           item.serialAdded

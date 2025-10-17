@@ -1,19 +1,10 @@
+// modify by sufyan on 16/10/2025
+
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Badge,
-  Form,
-  Pagination,
-  Spinner,
-  Table,
-} from "react-bootstrap";
+import { Card, Row, Col, Pagination, Spinner, Table } from "react-bootstrap";
 import { ToastContainer, toast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AddEditModal from "../Shift/add-edit-modal";
 import DeleteModal from "../Shift/delete-modal";
 import api from "../../../../api/axios";
@@ -31,13 +22,13 @@ const ShiftList = () => {
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // 🔑 Pagination states
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Fetch Permission
+  // Fetch Permission
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -52,13 +43,6 @@ const ShiftList = () => {
       const roleId = String(sessionStorage.getItem("roleId"));
       console.log(roleId, "roleId from sessionStorage");
       console.log(pathname, "current pathname");
-
-      // ✅ Match current role + route
-      // const matchedPermission = data.find(
-      //   (perm) =>
-      //     String(perm.role_id) === roleId &&
-      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
-      // );
 
       const matchedPermission = data.find(
         (perm) =>
@@ -89,7 +73,7 @@ const ShiftList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Shifts
+  // Fetch Shifts
   const fetchShifts = () => {
     api
       .get("/api/v1/admin/shift")
@@ -113,7 +97,7 @@ const ShiftList = () => {
     fetchShifts();
   }, []);
 
-  // ➕ Add / ✏️ Update Shift
+  // Add / Update Shift
   const handleAddOrUpdateShift = (data) => {
     if (!data.shift_name.trim()) {
       toast.warning("Shift name is required");
@@ -177,7 +161,7 @@ const ShiftList = () => {
       });
   };
 
-  // ✏️ Edit
+  //  Edit
   const handleEdit = (index) => {
     const shift = shiftList[index];
     setEditIndex(index);
@@ -185,7 +169,7 @@ const ShiftList = () => {
     setShowAddEdit(true);
   };
 
-  // ❌ Delete
+  //  Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
@@ -236,7 +220,7 @@ const ShiftList = () => {
     );
   }
 
-  // 📌 Pagination logic
+  //  Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = shiftList.slice(indexOfFirstItem, indexOfLastItem);
@@ -252,11 +236,6 @@ const ShiftList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Office Time</h5>
-              {/* {permissions.add && (
-                <Button onClick={() => setShowAddEdit(true)}>
-                  + New
-                </Button>
-              )} */}
             </Card.Header>
             <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
@@ -264,10 +243,8 @@ const ShiftList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Shift Name</th>
                       <th>Start Time</th>
                       <th>End Time</th>
-                      {/* <th>Status</th> */}
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -282,26 +259,9 @@ const ShiftList = () => {
                       currentItems.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{indexOfFirstItem + idx + 1}</td>
-                          <td>{item.shift_name}</td>
                           <td>{formatTime12Hour(item.start_time)}</td>
                           <td>{formatTime12Hour(item.end_time)}</td>
-                          {/* <td>
-                            {item.is_active === 1 ? (
-                              <Badge bg="success">Active</Badge>
-                            ) : (
-                              <Badge bg="danger">Inactive</Badge>
-                            )}
-                          </td> */}
                           <td className="d-flex align-items-center">
-                            {/* <Form.Check
-                              type="switch"
-                              id={`status-switch-${item.id}`}
-                              checked={item.is_active === 1}
-                              onChange={() =>
-                                handleToggleStatus(item.id, item.is_active)
-                              }
-                              className="me-3"
-                            /> */}
                             {permissions.edit && (
                               <CreateTwoToneIcon
                                 className="me-2"
@@ -309,17 +269,6 @@ const ShiftList = () => {
                                   handleEdit(indexOfFirstItem + idx)
                                 }
                                 color="primary"
-                                style={{ cursor: "pointer" }}
-                              />
-                            )}
-                            {permissions.del && (
-                              <DeleteRoundedIcon
-                                onClick={() => {
-                                  setDeleteIndex(indexOfFirstItem + idx);
-                                  setDeleteId(item.id || item._id);
-                                  setShowDelete(true);
-                                }}
-                                color="error"
                                 style={{ cursor: "pointer" }}
                               />
                             )}
@@ -331,7 +280,7 @@ const ShiftList = () => {
                 </Table>
               </div>
 
-              {/* 📌 Pagination Controls */}
+              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center">
                   <Pagination.Prev

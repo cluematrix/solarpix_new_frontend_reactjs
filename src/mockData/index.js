@@ -111,13 +111,8 @@ export const requiredTypes = [
 ];
 
 export const typeOfData = [
-  { id: "1", name: "text" },
-  { id: "2", name: "number" },
-  { id: "3", name: "decimal" },
   { id: "4", name: "image" },
   { id: "5", name: "pdf" },
-  { id: "6", name: "date" },
-  { id: "7", name: "checkbox" },
 ];
 
 export const accountTypes = [

@@ -158,7 +158,7 @@ const RolePermissionList = () => {
         <Col md={4}>
           <Form.Group>
             <Form.Label>
-              <b>Select Role</b>
+              <label>Select Role</label>
             </Form.Label>
             {loadingRoles ? (
               <div className="d-flex align-items-center">
@@ -167,7 +167,7 @@ const RolePermissionList = () => {
               </div>
             ) : (
               <Form.Select value={selectedRole} onChange={handleSelectRole}>
-                <option value="">-- Select Role --</option>
+                <option value="">--</option>
                 {roles
                   .filter((role) => role.id !== 1)
                   .map((role) => (

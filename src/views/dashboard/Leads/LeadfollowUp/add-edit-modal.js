@@ -65,7 +65,7 @@ const AddEditModal = ({
     >
       <Modal.Header closeButton>
         <Modal.Title>
-          {editData ? "Edit Follow-up" : "Add Follow-up"}
+          {editData ? "Edit Follow Up" : "Add Follow Up"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -104,7 +104,7 @@ const AddEditModal = ({
             </Form.Group>
           )}
 
-          {/* Follow-up Message */}
+          {/* Follow Up Message */}
           <Form.Group className="mb-3">
             <Form.Label>
               Message <span className="text-danger">*</span>
@@ -119,11 +119,11 @@ const AddEditModal = ({
             />
           </Form.Group>
 
-          {/* Follow-up Date */}
-          {/* Follow-up DateTime */}
+          {/* Follow Up Date */}
+          {/* Follow Up DateTime */}
           <Form.Group className="mb-3">
             <Form.Label>
-              Follow-up Date & Time <span className="text-danger">*</span>
+              Follow Up Date & Time <span className="text-danger">*</span>
             </Form.Label>
             <Form.Control
               type="datetime-local"

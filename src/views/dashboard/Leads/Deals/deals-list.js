@@ -11,7 +11,6 @@ import {
   Pagination,
   Spinner,
 } from "react-bootstrap";
-import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
@@ -50,25 +49,6 @@ const DealList = () => {
   const [pendingStageId, setPendingStageId] = useState(null);
 
   const [filter, setFilter] = useState("all"); // Default to "all"
-
-  const getStageColor = (stageName) => {
-    switch (stageName) {
-      case "New":
-        return "#e3f2fd";
-      case "Qualified":
-        return "#fff9c4";
-      case "Proposal Sent":
-        return "#ffe0b2";
-      case "Negotiation":
-        return "#d1c4e9";
-      case "Won":
-        return "#c8e6c9";
-      case "Lost":
-        return "#ffcdd2";
-      default:
-        return "#f0f0f0";
-    }
-  };
 
   // Fetch data from API whenever filter changes
   useEffect(() => {
@@ -147,16 +127,6 @@ const DealList = () => {
     }
   };
 
-  const fetchDeals = async () => {
-    try {
-      const res = await api.get("/api/v1/admin/deal");
-      const deals = res.data?.data || res.data || [];
-      setDealList(deals);
-    } catch (err) {
-      console.error("Error fetching deals:", err);
-    }
-  };
-
   //  Loader while checking permissions
   if (loading) {
     return (
@@ -194,7 +164,7 @@ const DealList = () => {
                 className="btn-primary w-auto"
                 onClick={() => navigate("/AddDeals")}
               >
-                + Generate Quotation
+                + Generate
               </Button>
             </Card.Header>
 
@@ -385,7 +355,9 @@ const DealList = () => {
           <Button
             variant="success"
             onClick={() => {
-              navigate(`/UpdateQuotationNew/${selectedDeal.id}`);
+              navigate(`/UpdateQuotationNew/${selectedDeal.id}`, {
+                state: { isCustomerNeg: true, isCustomer: false },
+              });
             }}
           >
             Yes
@@ -419,7 +391,9 @@ const DealList = () => {
           <Button
             variant="success"
             onClick={() => {
-              navigate("/add-customer", { state: { dealData: selectedDeal } });
+              navigate("/add-customer", {
+                state: { leadId: selectedDeal.lead.id },
+              });
             }}
           >
             Use Current
@@ -430,7 +404,11 @@ const DealList = () => {
             onClick={() => {
               setShowQuotationConfirm(false);
               navigate(`/UpdateQuotationNew/${selectedDeal.id}`, {
-                state: { isCustomer: true, dealData: selectedDeal },
+                state: {
+                  isCustomer: true,
+                  isCustomerNeg: false,
+                  leadId: selectedDeal.lead.id,
+                },
               });
             }}
           >

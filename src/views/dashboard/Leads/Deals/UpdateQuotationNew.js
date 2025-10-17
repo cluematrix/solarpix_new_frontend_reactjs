@@ -16,7 +16,12 @@ const UpdateQuotationNew = () => {
 
   // get navigation state
   const location = useLocation();
-  const { isCustomer, dealData } = location.state;
+  const isCustomer = location.state.isCustomer;
+  const leadId = location.state;
+  const isCustomerNeg = location.state.isCustomerNeg;
+
+  console.log("isCustomer", isCustomer);
+  console.log("isCustomerNeg", isCustomerNeg);
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -122,14 +127,22 @@ const UpdateQuotationNew = () => {
         // Generate quotation number using the custom generator
         const quotationNo = await generateQuotationNo(values.lead_id);
 
-        // If editing existing quotation: disable existing record first (PUT)
+        // If editing existing quotation
         if (id) {
-          await api.put(`/api/v1/admin/deal/${id}`, { is_disable: true });
+          // Step 1: Disable old deal
+          await api.put(`/api/v1/admin/deal/${id}`, {
+            is_disable: true,
+            ...(isCustomer && { deal_stage_id: 4 }, //add deal_stage_id=4 (Won) if isCustomer true
+            isCustomerNeg && { deal_stage_id: 3 }), //add deal_stage_id=3 (Negotiation) if isCustomerNeg true
+          });
+
+          // Step 2: If customer flow, stop here and go to customer page
           if (isCustomer) {
-            navigate("/add-customer", { state: { leadData: dealData } });
+            successToast("Quotation finalized and deal marked as Won");
+            navigate("/add-customer", { state: { leadId: leadId } });
+            return; // prevent creating new deal
           }
         }
-
         // Build payload (mirrors AddDealsQt structure with fields + item_details & totals)
         const isTDS = subTotals.taxType === "TDS";
         const isTCS = subTotals.taxType === "TCS";
@@ -385,6 +398,8 @@ const UpdateQuotationNew = () => {
                   required
                   lableName="name"
                   lableKey="id"
+                  disabled={isCustomer || isCustomerNeg}
+                  readOnly={isCustomer}
                 />
               </Col>
               <Col md={4}>
@@ -433,6 +448,7 @@ const UpdateQuotationNew = () => {
                   touched={touched.expiry_date}
                   errors={errors.expiry_date}
                   min={new Date().toISOString().split("T")[0]}
+                  required
                 />
               </Col>
               <Col md={4}>

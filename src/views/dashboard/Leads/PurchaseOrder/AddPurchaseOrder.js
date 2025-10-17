@@ -11,7 +11,7 @@ import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import AddPurchaseOrderModal from "./AddPurchaseOrderModal";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
-import { personType } from "../../../../mockData";
+import { defaultNotes, personType } from "../../../../mockData";
 
 const AddPurchaseOrder = () => {
   const { id } = useParams();
@@ -39,9 +39,9 @@ const AddPurchaseOrder = () => {
   });
 
   const initialValues = {
-    date: "",
+    date: new Date().toISOString().split("T")[0],
     delivery_date: "",
-    notes_customer: "",
+    notes_customer: defaultNotes,
     reference: "",
     payment_terms_id: "",
     type: "Warehouse",
@@ -117,12 +117,19 @@ const AddPurchaseOrder = () => {
           const purchaseOrderId =
             purchaseOrderRes.data.id || purchaseOrderRes.data.data.id;
           console.log("purchaseOrderResUnder", purchaseOrderRes);
+
+          // for stock transaction
           const stockPayload = {
             branch_id: values.branch_id,
+            client_id: values.client_id,
             reference_type: "PurchaseOrder",
             reference_id: purchaseOrderId,
             item_details: selectedItemsData,
           };
+
+          // Send only one of them
+          if (values.client_id) delete stockPayload.branch_id;
+          else if (values.branch_id) delete stockPayload.client_id;
 
           try {
             await api.post(
@@ -131,7 +138,7 @@ const AddPurchaseOrder = () => {
             );
             console.log(" Stock transaction recorded successfully");
           } catch (stockErr) {
-            console.error("⚠️ Error creating stock transaction:", stockErr);
+            console.error("Error creating stock transaction:", stockErr);
             errorToast("Purchase saved, but stock transaction failed!");
           }
         }
@@ -215,12 +222,12 @@ const AddPurchaseOrder = () => {
         );
         setFieldValue("branch_id", purchaseOrder.branch_id || "");
 
-        // ✅ Prefill item details
+        // Prefill item details
         if (purchaseOrder.item_details) {
           setSelectedItemsData(purchaseOrder.item_details);
         }
 
-        // ✅ Prefill subtotal and tax data
+        // Prefill subtotal and tax data
         const isTDS = !!purchaseOrder.TDS_id;
         const isTCS = !!purchaseOrder.TCS_id;
         const taxType = isTDS ? "TDS" : isTCS ? "TCS" : "";
@@ -230,7 +237,7 @@ const AddPurchaseOrder = () => {
           ? purchaseOrder.TCS_id
           : null;
 
-        // ✅ Recalculate deduction based on response
+        // Recalculate deduction based on response
         const deductionAmount = parseFloat(purchaseOrder.deductionAmount || 0);
         const subTotal = parseFloat(purchaseOrder.sub_total || 0);
         const adjustment = parseFloat(purchaseOrder.adjustment || 0);
@@ -276,16 +283,6 @@ const AddPurchaseOrder = () => {
           : prev.deductionAmount,
     }));
   }, [selectedItemsData]);
-
-  // Handle deduction option dynamically
-  // useEffect(() => {
-  //   if (subTotals.deductionOption === "commission") {
-  //     setSubTotals((prev) => ({
-  //       ...prev,
-  //       deductionAmount: parseFloat((prev.subTotal * 0.02).toFixed(2)),
-  //     }));
-  //   }
-  // }, [subTotals.deductionOption, subTotals.subTotal]);
 
   // Whenever selectedItemsData changes, recalc subtotal including CGST & SGST
   useEffect(() => {
@@ -394,7 +391,7 @@ const AddPurchaseOrder = () => {
         <Card.Body className="pt-0">
           <Form onSubmit={handleSubmit}>
             <Row className="mb-3 ">
-              <Col md={6}>
+              <Col md={4}>
                 <CustomSelect
                   label="Supplier Name"
                   name="supplier_id"
@@ -409,29 +406,29 @@ const AddPurchaseOrder = () => {
                   lableKey="id"
                 />
               </Col>
-            </Row>
-
-            <Row className="mb-3 ">
-              <CustomRadioGroup
-                label="Type"
-                name="type"
-                options={personType}
-                value={values.type}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                touched={touched.type}
-                error={errors.type}
-                required
-              />
-            </Row>
-            <Row className="mb-3">
-              {values.type === "Customer" ? (
-                <Col md={6}>
+              <Col md={4}>
+                <CustomRadioGroup
+                  label="Type"
+                  name="type"
+                  options={personType}
+                  value={values.type}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  touched={touched.type}
+                  error={errors.type}
+                  required
+                />
+              </Col>
+              <Col md={4}>
+                {values.type === "Customer" ? (
                   <CustomSelect
                     label="Customer"
                     name="client_id"
                     value={values.client_id}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setFieldValue("branch_id", "");
+                    }}
                     onBlur={handleBlur}
                     options={metaData.clientData}
                     placeholder="--"
@@ -441,14 +438,15 @@ const AddPurchaseOrder = () => {
                     lableName="name"
                     lableKey="id"
                   />
-                </Col>
-              ) : (
-                <Col md={6}>
+                ) : (
                   <CustomSelect
                     label="Warehouse"
                     name="branch_id"
                     value={values.branch_id}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setFieldValue("client_id", "");
+                    }}
                     onBlur={handleBlur}
                     options={metaData.branchData}
                     placeholder="--"
@@ -458,9 +456,10 @@ const AddPurchaseOrder = () => {
                     lableName="branch_name"
                     lableKey="id"
                   />
-                </Col>
-              )}
+                )}
+              </Col>
             </Row>
+
             <Row className="mb-3">
               <Col md={4}>
                 <CustomInput
@@ -490,9 +489,6 @@ const AddPurchaseOrder = () => {
                   lableKey="id"
                 />
               </Col>
-            </Row>
-
-            <Row className="mb-3">
               <Col md={4}>
                 <CustomInput
                   type="date"
@@ -508,6 +504,9 @@ const AddPurchaseOrder = () => {
                   min={new Date().toISOString().split("T")[0]}
                 />
               </Col>
+            </Row>
+
+            <Row className="mb-3">
               <Col md={4}>
                 <CustomInput
                   type="date"
@@ -520,23 +519,6 @@ const AddPurchaseOrder = () => {
                   touched={touched.delivery_date}
                   errors={errors.delivery_date}
                   min={new Date().toISOString().split("T")[0]}
-                />
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={12}>
-                <CustomInput
-                  as="textarea"
-                  label="Notes"
-                  name="notes_customer"
-                  value={values.notes_customer}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="Enter Notes"
-                  touched={touched.notes_customer}
-                  errors={errors.notes_customer}
-                  row={2}
                 />
               </Col>
             </Row>
@@ -833,6 +815,23 @@ const AddPurchaseOrder = () => {
                 </Card>
               </div>
             )}
+
+            <Row className="mt-4">
+              <Col md={12}>
+                <CustomInput
+                  as="textarea"
+                  label="Notes"
+                  name="notes_customer"
+                  value={values.notes_customer}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Notes"
+                  touched={touched.notes_customer}
+                  errors={errors.notes_customer}
+                  row={4}
+                />
+              </Col>
+            </Row>
 
             {/* Save Button */}
             <div className="text-end mt-2">

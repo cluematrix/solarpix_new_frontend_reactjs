@@ -9,7 +9,7 @@ import {
   Spinner,
   Table,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -22,7 +22,6 @@ const EmployeeType = () => {
   const [userlist, setUserlist] = useState([]);
   const [empType, setEmpType] = useState("");
   const [editId, setEditId] = useState(null);
-
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
@@ -36,6 +35,7 @@ const EmployeeType = () => {
   const [permissions, setPermissions] = useState(null);
 
   const [loading, setLoading] = useState(true);
+  const [loadingBtn, setLoadingBtn] = useState(false);
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
@@ -83,7 +83,7 @@ const EmployeeType = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Employee Types
+  // Fetch Employee Types
   const fetchEmployeeTypes = () => {
     api
       .get("/api/v1/admin/employmentType")
@@ -102,7 +102,7 @@ const EmployeeType = () => {
     fetchEmployeeTypes();
   }, []);
 
-  // ✅ Toggle Active/Inactive
+  // Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
     const newStatus = currentStatus ? 0 : 1;
     setUserlist((prev) =>
@@ -126,7 +126,7 @@ const EmployeeType = () => {
       });
   };
 
-  // ✅ Add or Update
+  // Add or Update
   const handleAddOrUpdate = () => {
     if (!empType.trim()) {
       toast.warning("Employee type is required");
@@ -134,6 +134,7 @@ const EmployeeType = () => {
     }
 
     if (editId) {
+      setLoadingBtn(true);
       api
         .put(`/api/v1/admin/employmentType/${editId}`, { emp_type: empType })
         .then(() => {
@@ -146,8 +147,12 @@ const EmployeeType = () => {
           toast.error(
             err.response?.data?.message || "Failed to update employee type"
           );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     } else {
+      setLoadingBtn(true);
       api
         .post("/api/v1/admin/employmentType", { emp_type: empType })
         .then(() => {
@@ -160,6 +165,9 @@ const EmployeeType = () => {
           toast.error(
             err.response?.data?.message || "Failed to add employee type"
           );
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     }
   };
@@ -171,9 +179,10 @@ const EmployeeType = () => {
     setShowAddEdit(true);
   };
 
-  // ✅ Delete
+  // Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
+    setLoadingBtn(true);
     api
       .delete(`/api/v1/admin/employmentType/${deleteId}`)
       .then(() => {
@@ -186,6 +195,9 @@ const EmployeeType = () => {
         toast.error(
           err.response?.data?.message || "Failed to delete employee type"
         );
+      })
+      .finally(() => {
+        setLoadingBtn(false);
       });
   };
 
@@ -229,13 +241,13 @@ const EmployeeType = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Type</h5>
+              <h5 className="card-title fw-lighter">Employee Type</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
                   onClick={() => setShowAddEdit(true)}
                 >
-                  + Add Type
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -274,12 +286,11 @@ const EmployeeType = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
+                              style={{ cursor: "pointer" }}
                             />
 
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
                                 onClick={() => handleEdit(indexOfFirst + idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
@@ -353,6 +364,7 @@ const EmployeeType = () => {
         onSave={handleAddOrUpdate}
         modalTitle={editId ? "Update Employee Type" : "Add New Employee Type"}
         buttonLabel={editId ? "Update" : "Save"}
+        loadingBtn={loadingBtn}
       />
 
       {/* Delete Confirmation Modal */}
@@ -370,10 +382,15 @@ const EmployeeType = () => {
             ? `Are you sure you want to delete "${userlist[deleteIndex].emp_type}"?`
             : ""
         }
+        loadingBtn={loadingBtn}
       />
 
       {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        transition={Slide}
+      />
     </>
   );
 };

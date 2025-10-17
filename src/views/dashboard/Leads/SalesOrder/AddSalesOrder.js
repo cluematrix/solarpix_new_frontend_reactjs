@@ -10,6 +10,7 @@ import { useFormik } from "formik";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import AddSalesOrderModal from "./AddSalesOrderModal";
+import { defaultNotes } from "../../../../mockData";
 
 const AddSalesOrder = () => {
   const { id } = useParams();
@@ -39,10 +40,10 @@ const AddSalesOrder = () => {
   const initialValues = {
     assign_to_emp_id: "",
     lead_id: "",
-    sales_order_date: "",
+    sales_order_date: new Date().toISOString().split("T")[0],
     expected_shipment_date: "",
     companyBank_id: "",
-    notes_customer: "",
+    notes_customer: defaultNotes,
     reference: "",
     payment_terms_id: "",
   };
@@ -730,7 +731,7 @@ const AddSalesOrder = () => {
             )}
 
             {/* Save Button */}
-            <div className="text-end mt-2">
+            <div className="text-end mt-3">
               <Button variant="primary" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Saving..." : id ? "Update" : "Save"}
               </Button>

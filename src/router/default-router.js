@@ -101,8 +101,6 @@ import BrandList from "../views/dashboard/InventoryManagement/BrandMaster/BrandL
 import StockManagementList from "../views/dashboard/InventoryManagement/StockManagement/StockManagementlList";
 import SourceTrackList from "../views/dashboard/Leads/SourceTracking/SourceTrackList";
 import RateList from "../views/dashboard/Leads/Rates/RateList";
-import AddDeals from "../views/dashboard/Leads/Deals/AddDeals";
-import EditDeal from "../views/dashboard/Leads/Deals/EditDeal";
 import UpdateQuotationNew from "../views/dashboard/Leads/Deals/UpdateQuotationNew";
 import AddProject from "../views/dashboard/work/Project/addProject";
 import WarehouseList from "../views/dashboard/InventoryManagement/Warehouse/WarehouseList";
@@ -113,7 +111,6 @@ import InventoryTypeList from "../views/dashboard/InventoryManagement/InventoryT
 import AddSupplier from "../views/dashboard/InventoryManagement/SupplierManagement/AddSupplier";
 import SerialNumberTable from "../views/dashboard/InventoryManagement/StockMaterial/SerialNumberTable";
 import BranchStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/BranchStockList";
-import CustomerManagementList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerManagmentList";
 import StockNameList from "../views/dashboard/InventoryManagement/StockName/StockNameList";
 import StockManagementHisTable from "../views/dashboard/InventoryManagement/StockMaterial/StockManagementHisTable";
 import AddDealsQt from "../views/dashboard/Leads/Deals/AddDealsQt";
@@ -122,6 +119,7 @@ import AddSalesOrder from "../views/dashboard/Leads/SalesOrder/AddSalesOrder";
 import PurchaseOrderList from "../views/dashboard/Leads/PurchaseOrder/PurchaseOrderList";
 import AddPurchaseOrder from "../views/dashboard/Leads/PurchaseOrder/AddPurchaseOrder";
 import BranchStockHisList from "../views/dashboard/InventoryManagement/WarehouseManagment/BranchStockHisList";
+import CustomerStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockList";
 
 // employee profile 01 Sep
 
@@ -306,8 +304,8 @@ export const DefaultRouter = [
       },
 
       {
-        path: "CustomerManagementList",
-        element: <CustomerManagementList />,
+        path: "customer-management-list",
+        element: <CustomerStockList />,
       },
       {
         path: "supplier-management-list",

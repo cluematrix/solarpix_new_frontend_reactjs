@@ -9,6 +9,7 @@ const AddEditModal = ({
   onSave,
   modalTitle,
   buttonLabel,
+  loadingBtn,
 }) => {
   return (
     <Modal centered show={show} onHide={handleClose} backdrop="static">
@@ -21,7 +22,7 @@ const AddEditModal = ({
             <Form.Label>Employee Type</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter employee type"
+              placeholder="Enter Employee Type"
               value={empType}
               onChange={(e) => setEmpType(e.target.value)}
             />
@@ -29,8 +30,8 @@ const AddEditModal = ({
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={onSave}>
-          {buttonLabel}
+        <Button disabled={loadingBtn} variant="primary" onClick={onSave}>
+          {loadingBtn ? "Loading..." : buttonLabel}
         </Button>
       </Modal.Footer>
     </Modal>

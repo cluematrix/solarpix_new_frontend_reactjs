@@ -263,7 +263,7 @@ const LeadFollowupList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title fw-lighter">Lead Follow-ups</h5>
+              <h5 className="card-title fw-lighter">Follow Ups</h5>
               <Button
                 className="btn-primary"
                 onClick={() => {
@@ -271,7 +271,7 @@ const LeadFollowupList = () => {
                   setShowAddEdit(true);
                 }}
               >
-                + Add Follow-up
+                + New
               </Button>
             </Card.Header>
 
@@ -289,8 +289,8 @@ const LeadFollowupList = () => {
                           <th>Sr. No.</th>
                           <th>Lead Name</th>
                           <th>Message</th>
-                          <th>FollowUp Date</th>
-                          <th>FollowUp Time</th> {/* <-- added */}
+                          <th>Date</th>
+                          <th>Time</th> {/* <-- added */}
                           <th>Outcome</th>
                           <th>Action</th>
                         </tr>
@@ -300,7 +300,7 @@ const LeadFollowupList = () => {
                         {currentItems.length === 0 ? (
                           <tr>
                             <td colSpan="7" className="text-center">
-                              No follow-ups available
+                              No Follow Ups available
                             </td>
                           </tr>
                         ) : (
@@ -341,12 +341,10 @@ const LeadFollowupList = () => {
                                   <VisibilityIcon
                                     color="info"
                                     size="sm"
-                                    className="me-2"
                                     onClick={() => openViewModal(item)}
                                     style={{ cursor: "pointer" }}
                                   />
                                   <CreateTwoToneIcon
-                                    className="me-2"
                                     onClick={() => handleEdit(idx)}
                                     color="primary"
                                     style={{ cursor: "pointer" }}
@@ -354,7 +352,6 @@ const LeadFollowupList = () => {
                                   <EditNoteIcon
                                     variant="info"
                                     size="sm"
-                                    className="me-2"
                                     onClick={() => openOutcomeModal(item)}
                                     style={{ cursor: "pointer" }}
                                   />
@@ -439,10 +436,10 @@ const LeadFollowupList = () => {
           setDeleteIndex(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Follow-up"
+        modalTitle="Delete Follow Up"
         modalMessage={
           deleteIndex !== null
-            ? `Are you sure you want to delete follow-up "${followups[deleteIndex].message}"?`
+            ? `Are you sure you want to delete Follow Up "${followups[deleteIndex].message}"?`
             : ""
         }
       />
@@ -462,7 +459,7 @@ const LeadFollowupList = () => {
         backdrop="static"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Follow-up Outcome</Modal.Title>
+          <Modal.Title>Outcome</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Group className="mb-3">

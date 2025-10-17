@@ -381,6 +381,7 @@ const AddDealsQt = () => {
                   touched={touched.expiry_date}
                   errors={errors.expiry_date}
                   min={new Date().toISOString().split("T")[0]}
+                  required
                 />
               </Col>
               <Col md={4}>
