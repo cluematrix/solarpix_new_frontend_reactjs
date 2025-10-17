@@ -13,6 +13,7 @@ const DesignationList = () => {
   const [userlist, setUserlist] = useState([]);
   const [roleName, setRoleName] = useState("");
   const [editId, setEditId] = useState(null);
+  const [departmentId, setDepartmentId] = useState("");
 
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -21,6 +22,7 @@ const DesignationList = () => {
 
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,26 +32,20 @@ const DesignationList = () => {
   const currentData = userlist.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(userlist.length / rowsPerPage);
 
-  const [loading, setLoading] = useState(true);
-
-  // 🔑 PERMISSION CHECK
+  // 🔑 Fetch Permission
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
 
       let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
+      if (Array.isArray(res.data)) data = res.data;
+      else if (Array.isArray(res.data.data)) data = res.data.data;
 
       const roleId = String(sessionStorage.getItem("roleId"));
-
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
-          perm.display_name === "Designation List" // 👈 must match your DB
+          perm.display_name === "Designation List"
       );
 
       if (matchedPermission) {
@@ -75,7 +71,7 @@ const DesignationList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // Fetch designations
+  // 🔹 Fetch Designations
   const fetchDesignations = () => {
     api
       .get("/api/v1/admin/designation")
@@ -98,7 +94,7 @@ const DesignationList = () => {
     fetchDesignations();
   }, []);
 
-  // Toggle Active/Inactive with optimistic update
+  // 🔹 Toggle Active/Inactive
   const handleToggleActive = (id, currentStatus) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
 
@@ -124,16 +120,26 @@ const DesignationList = () => {
       });
   };
 
-  // Add or Update Designation
+  // 🔹 Add or Update Designation
   const handleAddOrUpdateRole = () => {
     if (!roleName.trim()) {
       toast.warning("Designation name is required");
       return;
     }
 
+    if (!departmentId) {
+      toast.warning("Please select a department");
+      return;
+    }
+
+    const payload = {
+      name: roleName,
+      department_id: departmentId,
+    };
+
     if (editId) {
       api
-        .put(`/api/v1/admin/designation/${editId}`, { name: roleName })
+        .put(`/api/v1/admin/designation/${editId}`, payload)
         .then(() => {
           toast.success("Designation updated successfully");
           fetchDesignations();
@@ -147,7 +153,7 @@ const DesignationList = () => {
         });
     } else {
       api
-        .post("/api/v1/admin/designation", { name: roleName })
+        .post("/api/v1/admin/designation", payload)
         .then(() => {
           toast.success("Designation added successfully");
           fetchDesignations();
@@ -162,13 +168,16 @@ const DesignationList = () => {
     }
   };
 
+  // 🔹 Edit
   const handleEdit = (index) => {
     const item = userlist[index];
     setRoleName(item.name);
     setEditId(item.id || item._id);
+    setDepartmentId(item.department_id || "");
     setShowAddEdit(true);
   };
 
+  // 🔹 Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
@@ -186,10 +195,12 @@ const DesignationList = () => {
       });
   };
 
+  // 🔹 Reset
   const resetForm = () => {
     setShowAddEdit(false);
     setRoleName("");
     setEditId(null);
+    setDepartmentId("");
   };
 
   if (loading) {
@@ -237,7 +248,8 @@ const DesignationList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Name</th>
+                      <th>Department</th>
+                      <th>Designation</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -245,7 +257,7 @@ const DesignationList = () => {
                   <tbody>
                     {userlist.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="text-center">
+                        <td colSpan="5" className="text-center">
                           No Designation available
                         </td>
                       </tr>
@@ -253,6 +265,7 @@ const DesignationList = () => {
                       currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
+                          <td>{item.departments.name || "—"}</td>
                           <td>{item.name}</td>
                           <td>{item.isActive ? "Active" : "Inactive"}</td>
                           <td className="d-flex align-items-center">
@@ -339,9 +352,11 @@ const DesignationList = () => {
         onSave={handleAddOrUpdateRole}
         modalTitle={editId ? "Update Designation" : "Add New Designation"}
         buttonLabel={editId ? "Update" : "Save"}
+        departmentId={departmentId}
+        setDepartmentId={setDepartmentId}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
         handleClose={() => {
