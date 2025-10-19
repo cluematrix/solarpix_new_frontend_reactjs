@@ -30,6 +30,8 @@ const AddPurchaseOrder = () => {
 
   const [selectedItemsData, setSelectedItemsData] = useState(null); // modal data
 
+  console.log("selectedItemsData", selectedItemsData);
+
   const [subTotals, setSubTotals] = useState({
     subTotal: 0,
     taxType: "TDS",
@@ -109,6 +111,15 @@ const AddPurchaseOrder = () => {
             payload
           );
           successToast("Purchase Order created successfully");
+        }
+
+        // create SR No
+        if (purchaseOrderRes) {
+          const payload = {
+            selectedCategories: selectedItemsData.selectedCategories,
+            branch_id: values.branch_id,
+          };
+          await api.post("/api/v1/admin/stockMaterialSrNo/createSrNo", payload);
         }
 
         console.log("purchaseOrderRes", purchaseOrderRes);

@@ -25,6 +25,7 @@ const AddSalesOrder = () => {
     tdsData: [],
     tcsData: [],
     paymentTermData: [],
+    clientData: [],
   });
 
   const [selectedItemsData, setSelectedItemsData] = useState(null); // modal data
@@ -104,7 +105,7 @@ const AddSalesOrder = () => {
           successToast("Sales orders created successfully");
 
           // create the customer if not exist
-          if (values.lead_id) {
+          if (!filteredClient) {
             navigate("/add-customer", {
               state: { leadId: values.lead_id },
             });
@@ -135,15 +136,23 @@ const AddSalesOrder = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [leadRes, empRes, bankRes, tdsRes, tcsRes, paymentRes] =
-          await Promise.all([
-            api.get("/api/v1/admin/lead/active"),
-            api.get("/api/v1/admin/employee/active"),
-            api.get("/api/v1/admin/companyBank/active"),
-            api.get("/api/v1/admin/TDS/active"),
-            api.get("/api/v1/admin/TCS/active"),
-            api.get("/api/v1/admin/paymentTerm/active"),
-          ]);
+        const [
+          leadRes,
+          empRes,
+          bankRes,
+          tdsRes,
+          tcsRes,
+          paymentRes,
+          clientRes,
+        ] = await Promise.all([
+          api.get("/api/v1/admin/lead/active"),
+          api.get("/api/v1/admin/employee/active"),
+          api.get("/api/v1/admin/companyBank/active"),
+          api.get("/api/v1/admin/TDS/active"),
+          api.get("/api/v1/admin/TCS/active"),
+          api.get("/api/v1/admin/paymentTerm/active"),
+          api.get("/api/v1/admin/client"),
+        ]);
 
         setMetaData({
           leadData: leadRes?.data || [],
@@ -152,6 +161,8 @@ const AddSalesOrder = () => {
           tdsData: tdsRes?.data?.data || [],
           tcsData: tcsRes?.data?.data || [],
           paymentTermData: paymentRes?.data || [],
+          clientData:
+            clientRes?.data?.data?.filter((item) => item.isActive) || [],
         });
       } catch (err) {
         console.error(err);
@@ -304,6 +315,12 @@ const AddSalesOrder = () => {
     });
   };
 
+  const filteredClient = metaData.clientData.find(
+    (item) => item.lead_id === Number(values.lead_id)
+  );
+
+  console.log("clientData", metaData.clientData);
+  console.log("filteredClient", filteredClient);
   return (
     <>
       <Card>
@@ -359,6 +376,34 @@ const AddSalesOrder = () => {
                 />
               </Col>
             </Row>
+
+            {/* filteredClient address */}
+            {/* <Row>
+              <Col md={4}>
+                <h6>Billing Address</h6>
+                <strong>
+                  {filteredClient?.salutation}. {filteredClient?.name}
+                </strong>
+                <p>{filteredClient?.billing_address}</p>
+                <p>
+                  {filteredClient?.billing_city} -{" "}
+                  {filteredClient.billing_pincode}
+                </p>
+                <p>{filteredClient?.billing_state}</p>
+              </Col>
+              <Col md={4}>
+                <h6>Shipping Address</h6>
+                <strong>
+                  {filteredClient?.salutation}. {filteredClient?.name}
+                </strong>
+                <p>{filteredClient?.shipping_address}</p>
+                <p>
+                  {filteredClient?.shipping_city} -{" "}
+                  {filteredClient.shipping_pincode}
+                </p>
+                <p>{filteredClient?.shipping_state}</p>
+              </Col>
+            </Row> */}
 
             <Row className="mb-3">
               <Col md={4}>
@@ -423,23 +468,6 @@ const AddSalesOrder = () => {
                   required
                   lableName="bank_name"
                   lableKey="id"
-                />
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={12}>
-                <CustomInput
-                  as="textarea"
-                  label="Notes"
-                  name="notes_customer"
-                  value={values.notes_customer}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="Enter Notes"
-                  touched={touched.notes_customer}
-                  errors={errors.notes_customer}
-                  row={2}
                 />
               </Col>
             </Row>
@@ -736,6 +764,23 @@ const AddSalesOrder = () => {
                 </Card>
               </div>
             )}
+
+            <Row className="mt-4">
+              <Col md={12}>
+                <CustomInput
+                  as="textarea"
+                  label="Notes"
+                  name="notes_customer"
+                  value={values.notes_customer}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter Notes"
+                  touched={touched.notes_customer}
+                  errors={errors.notes_customer}
+                  row={4}
+                />
+              </Col>
+            </Row>
 
             {/* Save Button */}
             <div className="text-end mt-3">

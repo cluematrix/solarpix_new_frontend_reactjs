@@ -175,12 +175,17 @@ const AddPurchaseOrderModal = ({
   };
 
   // Open serial modal
+  // Open serial modal
   const openSerialModal = (item) => {
     const serials = Array.from(
       { length: item.quantity },
       (_, i) => item.serialNumbers[i] || ""
     );
-    setSerialModal({ show: true, item, serials });
+    setSerialModal({
+      show: true,
+      item,
+      serials,
+    });
   };
 
   // Handle serial change
@@ -190,41 +195,6 @@ const AddPurchaseOrderModal = ({
       updated[index] = value;
       return { ...prev, serials: updated };
     });
-  };
-
-  // Save serials & hit API
-  const saveSerials = async () => {
-    const { item, serials } = serialModal;
-    if (serials.some((s) => !s.trim()))
-      return errorToast("Please fill all serial numbers");
-
-    try {
-      const payload = {
-        Credit: item.quantity,
-        remark: "Stock purchase",
-        stock_material_id: item.id,
-        stock_particular_id: 3,
-        supplier_management_id: formik.values.supplier_id,
-        brand_id: formik.values?.branch_id || null,
-        serialNumbers: serials,
-      };
-
-      await api.post("/api/v1/admin/stockManagement", payload);
-      successToast(`Serials added for ${item.material}`);
-
-      setAllItems((prev) =>
-        prev.map((i) =>
-          i.id === item.id
-            ? { ...i, serialNumbers: serials, serialAdded: true }
-            : i
-        )
-      );
-
-      setSerialModal({ show: false, item: null, serials: [] });
-    } catch (err) {
-      setSerialModal({ show: false, item: null, serials: [] });
-      errorToast(err.response?.data?.message || "Error saving serials");
-    }
   };
 
   // Only enable Save if at least one item is selected and all have serials
@@ -293,6 +263,7 @@ const AddPurchaseOrderModal = ({
         centered
         backdrop="static"
         size="xl"
+        style={{ zIndex: "9991" }}
       >
         <Modal.Header closeButton>
           <Modal.Title>Add Item</Modal.Title>
@@ -452,9 +423,7 @@ const AddPurchaseOrderModal = ({
                                         size="sm"
                                         onClick={() => openSerialModal(item)}
                                       >
-                                        {item.serialAdded
-                                          ? "Added"
-                                          : "+ Add Serials"}
+                                        {item.serialAdded ? "View" : "+ Serial"}
                                       </Button>
                                     ) : (
                                       <Button
@@ -462,7 +431,7 @@ const AddPurchaseOrderModal = ({
                                         disabled
                                         size="sm"
                                       >
-                                        + Add Serials
+                                        + Serials
                                       </Button>
                                     )}
                                   </td>
@@ -503,10 +472,12 @@ const AddPurchaseOrderModal = ({
         onHide={() => setSerialModal({ show: false, item: null, serials: [] })}
         centered
         backdrop="static"
+        style={{ zIndex: "9999" }}
       >
         <Modal.Header closeButton>
           <Modal.Title>
-            Add Serials for {serialModal.item?.material || ""}
+            {serialModal.item?.serialAdded ? "Edit" : "Add"} Serials for{" "}
+            {serialModal.item?.material || ""}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -522,13 +493,31 @@ const AddPurchaseOrderModal = ({
                   />
                 </Form.Group>
               ))}
+
               <div className="text-end mt-3">
                 <Button
                   variant="primary"
-                  onClick={saveSerials}
                   disabled={serialModal.serials.some((s) => !s.trim())}
+                  onClick={() => {
+                    // ✅ Save serials permanently to that item
+                    setAllItems((prev) =>
+                      prev.map((item) =>
+                        item.id === serialModal.item.id
+                          ? {
+                              ...item,
+                              serialNumbers: serialModal.serials,
+                              serialAdded: true,
+                            }
+                          : item
+                      )
+                    );
+
+                    // Close serial modal
+                    setSerialModal({ show: false, item: null, serials: [] });
+                    successToast("Serial numbers saved successfully!");
+                  }}
                 >
-                  Save Serials
+                  Save
                 </Button>
               </div>
             </div>

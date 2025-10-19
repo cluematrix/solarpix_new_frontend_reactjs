@@ -123,19 +123,6 @@ const SalesOrderList = () => {
             <Card.Header className="d-flex flex-wrap justify-content-between align-items-center gap-2">
               <h5 className="card-title fw-lighter mb-0">Sales Orders</h5>
 
-              {/* Filter Dropdown */}
-              {/* <Form.Select
-                size="sm"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-auto ms-auto"
-              >
-                <option value="all">All</option>
-                <option value="final">Final</option>
-                <option value="lost">Lost</option>
-                <option value="proposal sent">Proposal sent</option>
-              </Form.Select> */}
-
               {/* Add Deal Button */}
               <Button
                 className="btn-primary w-auto"
@@ -152,7 +139,8 @@ const SalesOrderList = () => {
                     <tr className="table-gray">
                       <th>Sr. No.</th>
                       <th>Customer Name</th>
-                      <th>Sales Order</th>
+                      <th>Sales Order#</th>
+                      <th>Reference#</th>
                       <th>Amount</th>
                       <th>Actions</th>
                     </tr>
@@ -170,9 +158,10 @@ const SalesOrderList = () => {
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td>{so.lead?.name || "---"}</td>
-                          <td>{so?.sales_order_no || "---"}</td>
-                          <td>₹{so?.total || "---"}</td>
+                          <td>{so.lead?.name || "--"}</td>
+                          <td>{so?.sales_order_no || "--"}</td>
+                          <td>{so?.reference || "--"}</td>
+                          <td>₹{so?.total || "--"}</td>
                           <td>
                             <VisibilityIcon
                               style={{ color: "#0d6efd", cursor: "pointer" }}

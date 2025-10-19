@@ -14,7 +14,7 @@ import CustomSelect from "../../../../components/Form/CustomSelect";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import { useNavigate } from "react-router-dom";
 import { Tooltip } from "@mui/material";
-
+import PaidIcon from "@mui/icons-material/Paid";
 const initialValues = {
   branchId: "",
 };
@@ -159,10 +159,13 @@ const BranchStockList = () => {
                           <td>
                             {" "}
                             <Tooltip title="History" arrow>
-                              <FormatListNumberedIcon
+                              <PaidIcon
                                 variant="outline-secondary"
                                 size="sm"
-                                style={{ cursor: "pointer" }}
+                                style={{
+                                  cursor: "pointer",
+                                  marginRight: "5px",
+                                }}
                                 onClick={() =>
                                   navigate(
                                     `/branch-stock-list-history/${t.id}`,
@@ -173,6 +176,21 @@ const BranchStockList = () => {
                                       },
                                     }
                                   )
+                                }
+                              />
+                            </Tooltip>
+                            <Tooltip title="Sr No" arrow>
+                              <FormatListNumberedIcon
+                                variant="outline-secondary"
+                                size="sm"
+                                style={{ cursor: "pointer" }}
+                                onClick={() =>
+                                  navigate(`/branch-stock-srno-list/${t.id}`, {
+                                    state: {
+                                      branch_id: t.branch_id,
+                                      stock_material_id: t.stock_material_id,
+                                    },
+                                  })
                                 }
                               />
                             </Tooltip>

@@ -23,7 +23,7 @@ import { useLocation } from "react-router-dom";
 
 const AddCustomer = () => {
   const location = useLocation();
-  const leadId = location.state.leadId.leadId;
+  const leadId = location.state.leadId.leadId || location.state.leadId;
 
   console.log("leadDataCustomer", leadId);
   console.log("location", location);

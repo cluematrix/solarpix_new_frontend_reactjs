@@ -197,7 +197,7 @@ const CustomerList = () => {
 
   return (
     <>
-      <Row style={{ marginTop: "-25px" }}>
+      <Row style={{ marginTop: "0px" }}>
         <Col md={4}>
           <CustomInput
             name="searchQuery"
@@ -215,12 +215,6 @@ const CustomerList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Customers</h5>
-              <Button
-                className="btn-primary me-1"
-                onClick={() => navigate("/add-customer")}
-              >
-                + Add Customer
-              </Button>
             </Card.Header>
 
             <Card.Body className="px-0 pt-3">
@@ -236,7 +230,6 @@ const CustomerList = () => {
                         <th>Sr. No.</th>
                         <th>Cust ID</th>
                         <th>Name</th>
-                        <th>Email</th>
                         <th>Kyc Status</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -245,8 +238,8 @@ const CustomerList = () => {
                     <tbody>
                       {currentCustomers.length === 0 ? (
                         <tr>
-                          <td colSpan="6" className="text-center">
-                            No customers available
+                          <td colSpan="7" className="text-center">
+                            No customer available
                           </td>
                         </tr>
                       ) : (
@@ -255,7 +248,6 @@ const CustomerList = () => {
                             <td>{indexOfFirst + idx + 1}</td>
                             <td>{item.client_id || "--"}</td>
                             <td>{item.name || "--"}</td>
-                            <td>{item.email || "--"}</td>
                             <td className="p-0 text-center">
                               {" "}
                               <Tooltip title={item.kyc_status || "--"}>

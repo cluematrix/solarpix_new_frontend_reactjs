@@ -120,6 +120,7 @@ import PurchaseOrderList from "../views/dashboard/Leads/PurchaseOrder/PurchaseOr
 import AddPurchaseOrder from "../views/dashboard/Leads/PurchaseOrder/AddPurchaseOrder";
 import BranchStockHisList from "../views/dashboard/InventoryManagement/WarehouseManagment/BranchStockHisList";
 import CustomerStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockList";
+import SrNoList from "../views/dashboard/InventoryManagement/WarehouseManagment/SrNoList";
 
 // employee profile 01 Sep
 
@@ -301,6 +302,11 @@ export const DefaultRouter = [
       {
         path: "/branch-stock-list-history/:id",
         element: <BranchStockHisList />,
+      },
+
+      {
+        path: "/branch-stock-srno-list/:id",
+        element: <SrNoList />,
       },
 
       {
