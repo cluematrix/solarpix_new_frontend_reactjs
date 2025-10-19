@@ -46,6 +46,7 @@ const AddCustomer = () => {
     client_category_id: "",
     description: "",
     kyc_status: "Pending",
+    lead_id: leadId,
     dynamic_fields: {},
   };
 
@@ -232,6 +233,7 @@ const AddCustomer = () => {
         setFieldValue("billing_city", data.city || "");
         setFieldValue("billing_state", data.state || "");
         setFieldValue("billing_pincode", data.pincode || "");
+        setFieldValue("lead_id", leadId || "");
       } catch (err) {
         console.error("Error fetching stock material:", err);
         errorToast(

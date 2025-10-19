@@ -76,11 +76,11 @@ const BranchStockHisList = () => {
                           </td>
                           <td>{t.branch?.branch_name || "—"}</td>
                           <td>{t.material?.material || "—"}</td>
-                          <td>{t.balance_after || t.balance}</td>
                           <td>{t.Debit || "--"}</td>
                           <td>{t.Credit || "--"}</td>
+                          <td>{t.balance_after || t.balance}</td>
                           <td>
-                            {new Date(t.created_at).toLocaleDateString("en-IN")}
+                            {new Date(t.createdAt).toLocaleDateString("en-IN")}
                           </td>
                         </tr>
                       ))

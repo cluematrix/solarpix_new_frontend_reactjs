@@ -45,9 +45,9 @@ const AddPurchaseOrder = () => {
     reference: "",
     payment_terms_id: "",
     type: "Warehouse",
-    client_id: "",
+    client_id: null,
     supplier_id: "",
-    branch_id: "",
+    branch_id: null,
   };
 
   const formik = useFormik({
@@ -84,10 +84,10 @@ const AddPurchaseOrder = () => {
           delivery_date: values.delivery_date || "",
           type: values.type || "",
           notes_customer: values.notes_customer || "",
-          client_id: values.client_id || "",
+          client_id: values.client_id || null,
           supplier_id: values.supplier_id || "",
           payment_terms_id: values.payment_terms_id || "",
-          branch_id: values.branch_id || "",
+          branch_id: values.branch_id || null,
         };
 
         // Send only one of them

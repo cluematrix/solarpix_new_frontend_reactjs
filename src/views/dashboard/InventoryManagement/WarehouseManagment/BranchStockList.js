@@ -45,9 +45,9 @@ const BranchStockList = () => {
     try {
       setLoading(true);
 
-      let url = `/api/v1/admin/stockTransaction/summary/pagination?page=${page}&limit=${itemsPerPage}`;
+      let url = `/api/v1/admin/stockTransaction/getAllBranchStock/pagination?page=${page}&limit=${itemsPerPage}`;
       if (!showAll && values.branchId) {
-        url = `/api/v1/admin/stockTransaction/${values.branchId}/summary/pagination?page=${page}&limit=${itemsPerPage}`;
+        url = `/api/v1/admin/stockTransaction/${values.branchId}/pagination?page=${page}&limit=${itemsPerPage}`;
       }
 
       const res = await api.get(url);
@@ -139,7 +139,6 @@ const BranchStockList = () => {
                       <th>Branch</th>
                       <th>Material</th>
                       <th>Balance</th>
-                      <th>Remark</th>
                       <th>Date</th>
                       <th>Action</th>
                     </tr>
@@ -154,9 +153,8 @@ const BranchStockList = () => {
                           <td>{t.branch?.branch_name || "—"}</td>
                           <td>{t.material?.material || "—"}</td>
                           <td>{t.balance_after || t.balance}</td>
-                          <td>{t.remark || "-"}</td>
                           <td>
-                            {new Date(t.created_at).toLocaleDateString("en-IN")}
+                            {new Date(t.createdAt).toLocaleDateString("en-IN")}
                           </td>
                           <td>
                             {" "}

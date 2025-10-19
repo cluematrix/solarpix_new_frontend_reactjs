@@ -102,8 +102,15 @@ const AddSalesOrder = () => {
         } else {
           await api.post("/api/v1/admin/salesOrder", payload);
           successToast("Sales orders created successfully");
-          console.log("payload", payload);
-          navigate("/sales-order-list");
+
+          // create the customer if not exist
+          if (values.lead_id) {
+            navigate("/add-customer", {
+              state: { leadId: values.lead_id },
+            });
+          } else {
+            navigate("/sales-order-list");
+          }
         }
       } catch (err) {
         console.error(err);

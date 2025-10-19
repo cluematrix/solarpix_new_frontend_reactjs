@@ -45,9 +45,9 @@ const CustomerStockList = () => {
     try {
       setLoading(true);
 
-      let url = `/api/v1/admin/stockTransaction/client/summary/pagination?page=${page}&limit=${itemsPerPage}`;
+      let url = `/api/v1/admin/clientStockTransaction/getAllClientStock/pagination?page=${page}&limit=${itemsPerPage}`;
       if (!showAll && values.clientId) {
-        url = `/api/v1/admin/stockTransaction/${values.clientId}/summary/pagination?page=${page}&limit=${itemsPerPage}`;
+        url = `/api/v1/admin/clientStockTransaction/${values.clientId}/pagination?page=${page}&limit=${itemsPerPage}`;
       }
 
       const res = await api.get(url);
@@ -139,7 +139,6 @@ const CustomerStockList = () => {
                       <th>Client</th>
                       <th>Material</th>
                       <th>Balance</th>
-                      <th>Remark</th>
                       <th>Date</th>
                     </tr>
                   </thead>
@@ -153,9 +152,8 @@ const CustomerStockList = () => {
                           <td>{t.client?.name || "—"}</td>
                           <td>{t.material?.material || "—"}</td>
                           <td>{t.balance_after || t.balance}</td>
-                          <td>{t.remark || "-"}</td>
                           <td>
-                            {new Date(t.created_at).toLocaleDateString("en-IN")}
+                            {new Date(t.createdAt).toLocaleDateString("en-IN")}
                           </td>
                         </tr>
                       ))
