@@ -8,7 +8,7 @@ import AddEditModal from "./add-edit-modal";
 import DeleteModal from "../Department/delete-modal";
 import api from "../../../../api/axios";
 import { useLocation } from "react-router";
-
+// rishi doing department designation
 const DesignationList = () => {
   const [userlist, setUserlist] = useState([]);
   const [roleName, setRoleName] = useState("");

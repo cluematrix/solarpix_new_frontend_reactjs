@@ -121,7 +121,7 @@ import AddPurchaseOrder from "../views/dashboard/Leads/PurchaseOrder/AddPurchase
 import BranchStockHisList from "../views/dashboard/InventoryManagement/WarehouseManagment/BranchStockHisList";
 import CustomerStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockList";
 import SrNoList from "../views/dashboard/InventoryManagement/WarehouseManagment/SrNoList";
-
+import AttedenceList from "../views/dashboard/EmployeeManagment/Attedence/AttedenceList";
 // employee profile 01 Sep
 
 export const DefaultRouter = [
@@ -205,6 +205,11 @@ export const DefaultRouter = [
       {
         path: "/EmployeeType",
         element: <EmployeeType />,
+      },
+
+      {
+        path: "/AttedenceList",
+        element: <AttedenceList />,
       },
 
       {
