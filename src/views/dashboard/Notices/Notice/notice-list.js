@@ -44,6 +44,33 @@ const NoticeBoardList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
+  // At top of NoticeBoardList component
+  const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
+
+  // Fetch all once
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [empRes, deptRes, desigRes] = await Promise.all([
+          api.get("/api/v1/admin/employee/active"),
+          api.get("/api/v1/admin/department/active"),
+          api.get("/api/v1/admin/designation/active"),
+        ]);
+        setEmployees(empRes.data.data || []);
+        setDepartments(deptRes.data.data || deptRes.data || []);
+        setDesignations(desigRes.data.data || desigRes.data || []);
+      } catch (err) {
+        console.error(
+          "Failed to fetch employees/departments/designations:",
+          err
+        );
+      }
+    };
+    fetchData();
+  }, []);
+
   // ✅ Fetch Permissions
   const FETCHPERMISSION = async () => {
     try {
@@ -83,7 +110,7 @@ const NoticeBoardList = () => {
   // ✅ Fetch Notices
   const fetchNotices = async () => {
     try {
-      const res = await api.get("/api/v1/admin/noticeBoard");
+      const res = await api.get("/api/v1/admin/notice");
       setNotices(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (err) {
       console.error("Failed to fetch notices:", err);
@@ -345,38 +372,126 @@ const NoticeBoardList = () => {
       />
 
       {/* View Modal */}
+      {/* View Modal */}
       {showView && viewData && (
-        <Modal show={showView} onHide={() => setShowView(false)} centered>
+        <Modal
+          show={showView}
+          onHide={() => setShowView(false)}
+          centered
+          size="lg"
+        >
           <Modal.Header closeButton>
             <Modal.Title>Notice Details</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <p>
-              <strong>Heading:</strong> {viewData.heading}
-            </p>
-            <p>
-              <strong>To:</strong> {viewData.to}
-            </p>
-            <p>
-              <strong>Description:</strong> {viewData.description}
-            </p>
-            {viewData.attachment && (
-              <p>
-                <strong>Attachment:</strong>{" "}
-                <a
-                  href={viewData.attachment}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View PDF
-                </a>
-              </p>
-            )}
+            <Row>
+              <Col md={12} className="mb-3">
+                <strong>Title:</strong>
+                <p>{viewData.title || viewData.heading}</p>
+              </Col>
+
+              <Col md={12} className="mb-3">
+                <strong>Description:</strong>
+                <p>{viewData.description}</p>
+              </Col>
+
+              <Col md={6} className="mb-3">
+                <strong>Notice Type:</strong>
+                <p>
+                  {viewData.notice_type === "specific"
+                    ? "Specific Employees"
+                    : "By Department/Designation"}
+                </p>
+              </Col>
+
+              <Col md={6} className="mb-3">
+                <strong>Priority:</strong>
+                <p>{viewData.priority}</p>
+              </Col>
+
+              {viewData.notice_type === "specific" && (
+                <Col md={12} className="mb-3">
+                  <strong>Employees:</strong>
+                  {viewData.employee_ids && viewData.employee_ids.length > 0 ? (
+                    <ul>
+                      {viewData.employee_ids.map((id) => {
+                        const emp = employees.find((e) => e.id === id);
+                        return emp ? <li key={id}>{emp.name}</li> : null;
+                      })}
+                    </ul>
+                  ) : (
+                    <p>None</p>
+                  )}
+                </Col>
+              )}
+
+              {viewData.notice_type === "department" && (
+                <>
+                  <Col md={6} className="mb-3">
+                    <strong>Departments:</strong>
+                    {viewData.department_ids &&
+                    viewData.department_ids.length > 0 ? (
+                      <ul>
+                        {viewData.department_ids.map((id) => {
+                          const dept = departments.find((d) => d.id === id);
+                          return dept ? <li key={id}>{dept.name}</li> : null;
+                        })}
+                      </ul>
+                    ) : (
+                      <p>None</p>
+                    )}
+                  </Col>
+
+                  <Col md={6} className="mb-3">
+                    <strong>Designations:</strong>
+                    {viewData.designation_ids &&
+                    viewData.designation_ids.length > 0 ? (
+                      <ul>
+                        {viewData.designation_ids.map((id) => {
+                          const desig = designations.find((d) => d.id === id);
+                          return desig ? <li key={id}>{desig.name}</li> : null;
+                        })}
+                      </ul>
+                    ) : (
+                      <p>None</p>
+                    )}
+                  </Col>
+
+                  <Col md={12} className="mb-3">
+                    <strong>Employees:</strong>
+                    {viewData.employee_ids &&
+                    viewData.employee_ids.length > 0 ? (
+                      <ul>
+                        {viewData.employee_ids.map((id) => {
+                          const emp = employees.find((e) => e.id === id);
+                          return emp ? <li key={id}>{emp.name}</li> : null;
+                        })}
+                      </ul>
+                    ) : (
+                      <p>None</p>
+                    )}
+                  </Col>
+                </>
+              )}
+
+              {viewData.attachment && (
+                <Col md={12} className="mb-3">
+                  <strong>Attachment:</strong>{" "}
+                  <a
+                    href={viewData.attachment}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View PDF
+                  </a>
+                </Col>
+              )}
+            </Row>
           </Modal.Body>
           <Modal.Footer>
-            {/* <Button variant="secondary" onClick={() => setShowView(false)}>
+            <Button variant="secondary" onClick={() => setShowView(false)}>
               Close
-            </Button> */}
+            </Button>
           </Modal.Footer>
         </Modal>
       )}
