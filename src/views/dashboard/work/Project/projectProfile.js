@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Spinner } from "react-bootstrap";
-import api from "../../../../api/axios";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { GrStorage } from "react-icons/gr";
-import { FaClock } from "react-icons/fa";
+  Card,
+  Row,
+  Col,
+  Table,
+  Badge,
+  Container,
+  Spinner,
+} from "react-bootstrap";
 import { useParams } from "react-router-dom";
+import api from "../../../../api/axios"; // adjust this import path as per your project
+import { IoMdCall } from "react-icons/io";
 
 const ProjectProfile = () => {
   const { id } = useParams();
@@ -23,7 +19,7 @@ const ProjectProfile = () => {
   const [client, setClient] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  //  Fetch project by ID
+  // Fetch project by ID
   const getProjectById = async () => {
     try {
       setLoading(true);
@@ -36,21 +32,16 @@ const ProjectProfile = () => {
     }
   };
 
-  //  Fetch client categories
+  // Fetch client categories
   const getClient = async () => {
     try {
-      setLoading(true);
       const res = await api.get(`/api/v1/admin/clientCategory`);
-      console.log("Client Category Response:", res.data);
       setClient(res.data || []);
     } catch (error) {
       console.error("Fetch Client Error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  //  Call APIs after ID is available
   useEffect(() => {
     if (id) {
       getProjectById();
@@ -60,210 +51,215 @@ const ProjectProfile = () => {
     }
   }, [id]);
 
-  console.log("client list:", client);
-  console.log("project data:", viewProjectData);
-
-  // Safe filter with optional chaining
+  // Filtered client category
   const filteredClientCategory =
     client?.filter(
-      (item) => item.id == Number(viewProjectData?.category?.id)
+      (item) => item.id === Number(viewProjectData?.category?.id)
     ) || [];
 
-  console.log("filteredClientCategory:", filteredClientCategory);
+  // Render dynamic fields table
+  const renderDynamicFields = (fields) => {
+    if (!fields || Object.keys(fields).length === 0) return <p>—</p>;
 
+    return (
+      <Table bordered hover responsive className="mt-2">
+        <thead className="table-light">
+          <tr>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Value / File</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(fields).map(([key, field]) => (
+            <tr key={key}>
+              <td>{field.label}</td>
+              <td>{field.data_type}</td>
+              <td>
+                {field.data_type === "text" || field.data_type === "number" ? (
+                  field.value || "-"
+                ) : field.file_url ? (
+                  <a
+                    href={field.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary fw-semibold"
+                  >
+                    View File
+                  </a>
+                ) : (
+                  "-"
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    );
+  };
+
+  // Render team/people lists
+  const renderPeopleList = (list) => {
+    if (!list || list.length === 0) return <p>—</p>;
+    return (
+      <div>
+        {list.map((person) => (
+          <Card key={person.id} className="mb-2 border-0 shadow-sm">
+            <Card.Body className="p-2">
+              <strong>{person.name}</strong>
+              <br />
+              <small>{person.email}</small>
+              <br />
+              <Badge bg="secondary" className="align-items-center">
+                {person.contact && <IoMdCall />} {person.contact}
+              </Badge>
+            </Card.Body>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  // Show loading spinner
   if (loading) {
     return (
       <div className="text-center mt-5">
-        <Spinner animation="border" />
+        <Spinner animation="border" variant="primary" />
       </div>
     );
   }
 
-  const COLORS = ["#28a745", "#ffc107", "#dc3545"];
-
-  const taskData = [
-    { name: "Completed", value: 60 },
-    { name: "In Progress", value: 20 },
-    { name: "Pending", value: 20 },
-  ];
-
-  const hoursData = [
-    { name: "Planned", value: 0 },
-    { name: "Actual", value: 5 },
-  ];
-
-  const budgetData = [
-    { name: "Planned", value: 0 },
-    { name: "Actual", value: 0 },
-  ];
+  if (!viewProjectData?.id) {
+    return <p className="text-center mt-5">No project data found.</p>;
+  }
 
   return (
-    <Container fluid className="p-3">
-      {/* Top Row */}
-      <Row className="mb-3">
-        <Col md={6}>
-          <Card className="pt-3 pb-0 px-3">
-            <h5>Project Progress</h5>
-            <div className="text-center d-flex p-3 justify-content-between align-items-center w-100">
-              <h4 className="w-25" style={{ color: "#28a745" }}>
-                97%
-              </h4>
-
-              <div className="d-flex w-75 justify-content-around mt-2">
-                <div>
-                  <p>Start Date:</p>
-                  <p className="text-black">
-                    {viewProjectData?.start_date || "--"}
-                  </p>
-                </div>
-                <div>
-                  <p>End Date:</p>
-                  <p className="text-black">
-                    {viewProjectData?.end_date || "--"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </Col>
-
-        <Col md={6}>
-          <Card className="p-3">
-            <h5>Customer</h5>
-            <div className="d-flex align-items-center">
-              {viewProjectData?.client?.photo && (
-                <img
-                  src={viewProjectData?.client?.photo}
-                  alt="Customer"
-                  className="rounded-circle me-3 w-25 mt-2"
-                />
-              )}
-              <div>
-                <h6>{viewProjectData?.client?.name || "--"}</h6>
-                <p className="mb-0">
-                  {filteredClientCategory
-                    ?.map((item) => item.category)
-                    .join(", ")}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Middle Row */}
-      <Row className="mb-3">
-        <Col md={6}>
-          <Card className="p-3">
-            <h5>Tasks</h5>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie data={taskData} dataKey="value" outerRadius={70} label>
-                  {taskData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-
-        <Col md={6}>
-          <h5 className="mb-3">Statistics</h5>
+    <Container fluid className="py-3">
+      {/* ================= Project Overview ================= */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="fw-bold border pb-2">
+          Project Overview
+        </Card.Header>
+        <Card.Body>
           <Row>
-            <Col xs={6} className="mb-1">
-              <Card className="p-0">
-                <Card.Body className="pt-3 pb-0">
-                  <p className="text-black">Project Budget</p>
-                  <div className="d-flex justify-content-between align-items-baseline">
-                    <p className="text-primary">
-                      ${viewProjectData?.project_budget || "--"}
-                    </p>
-                    <GrStorage />
-                  </div>
-                </Card.Body>
-              </Card>
+            <Col md={6}>
+              <p>
+                <strong>Project Name:</strong> {viewProjectData.project_name}
+              </p>
+              <p>
+                <strong>Category:</strong>{" "}
+                {viewProjectData.category?.category || "-"}
+              </p>
+              <p>
+                <strong>Client:</strong> {viewProjectData.client?.name || "-"}
+              </p>
+              <p>
+                <strong>Status:</strong>{" "}
+                <Badge bg="info">{viewProjectData.status}</Badge>
+              </p>
             </Col>
-            <Col xs={6} className="mb-1">
-              <Card className="p-0">
-                <Card.Body className="pt-3 pb-0">
-                  <p className="text-black">Hours Logged</p>
-                  <div className="d-flex justify-content-between align-items-baseline">
-                    <p className="text-primary">
-                      {viewProjectData?.hour_estimate || "--"}
-                    </p>
-                    <FaClock />
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col xs={6} className="mb-1">
-              <Card className="p-0">
-                <Card.Body className="pt-3 pb-0">
-                  <p className="text-black">Earnings</p>
-                  <div className="d-flex justify-content-between align-items-baseline">
-                    <p className="text-primary">$0.00</p>
-                    <GrStorage />
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col xs={6} className="mb-1">
-              <Card>
-                <Card.Body className="pt-3 pb-0">
-                  <p className="text-black">Expenses</p>
-                  <div className="d-flex justify-content-between align-items-baseline">
-                    <p className="text-primary">$0.00</p>
-                    <GrStorage />
-                  </div>
-                </Card.Body>
-              </Card>
+            <Col md={6}>
+              <p>
+                <strong>Estimate (₹):</strong> {viewProjectData.estimate}
+              </p>
+              <p>
+                <strong>Start Date:</strong> {viewProjectData.start_date}
+              </p>
+              <p>
+                <strong>End Date:</strong> {viewProjectData.end_date || "-"}
+              </p>
+              <p>
+                <strong>Remarks:</strong>{" "}
+                {viewProjectData.project_remarks || "-"}
+              </p>
             </Col>
           </Row>
-        </Col>
-      </Row>
+        </Card.Body>
+      </Card>
 
-      {/* Charts */}
-      <Row className="mb-3">
-        <Col md={6}>
-          <Card className="p-3">
-            <h5>Hours Logged</h5>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={hoursData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#dc3545" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-        <Col md={6}>
-          <Card className="p-3">
-            <h5>Project Budget</h5>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={budgetData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#28a745" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-      </Row>
+      {/* ================= MSEB Details ================= */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="fw-bold border pb-2">MSEB Details</Card.Header>
+        <Card.Body>
+          {renderDynamicFields(viewProjectData.mseb_dynamic_fields)}
+        </Card.Body>
+      </Card>
 
-      {/* Project Details */}
-      <Row>
-        <Col>
-          <Card className="p-3">
-            <h5>Project Details</h5>
-            <p className="text-black mt-2" style={{ fontSize: "13px" }}>
-              {viewProjectData?.project_summary || "No summary available."}
-            </p>
-          </Card>
-        </Col>
-      </Row>
+      {/* ================= Net Metering Details ================= */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="fw-bold border pb-2">
+          Net Metering Details
+        </Card.Header>
+        <Card.Body>
+          {renderDynamicFields(viewProjectData.net_metering_dynamic_fields)}
+        </Card.Body>
+      </Card>
+
+      {/* ================= NP Details ================= */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="fw-bold border pb-2">NP Details</Card.Header>
+        <Card.Body>
+          {renderDynamicFields(viewProjectData.np_dynamic_fields)}
+        </Card.Body>
+      </Card>
+
+      {/* ================= Team Details ================= */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="fw-bold border pb-2">Team Details</Card.Header>
+        <Card.Body>
+          <Row>
+            <Col md={4}>
+              <h6>Coordinators</h6>
+              {renderPeopleList(viewProjectData.co_ordinate_details)}
+            </Col>
+            <Col md={4}>
+              <h6>Structure Installers</h6>
+              {renderPeopleList(viewProjectData.structure_installer_details)}
+            </Col>
+            <Col md={4}>
+              <h6>Panel Wiring Installers</h6>
+              {renderPeopleList(viewProjectData.panel_wiring_installer_details)}
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      {/* ================= SEPL Inspection ================= */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="fw-bold border pb-2">
+          SEPL Inspection
+        </Card.Header>
+        <Card.Body>
+          <Row>
+            <Col md={6}>
+              <p>
+                <strong>Date:</strong>{" "}
+                {viewProjectData.sepl_inspection_date || "-"}
+              </p>
+              <p>
+                <strong>Remarks:</strong>{" "}
+                {viewProjectData.sepl_inspection_remarks || "-"}
+              </p>
+            </Col>
+            <Col md={6}>
+              <h6>Inspected By</h6>
+              {Array.isArray(viewProjectData.sepl_inspection_by) &&
+              viewProjectData.sepl_inspection_by.length > 0 ? (
+                renderPeopleList(
+                  viewProjectData.sepl_inspection_by.map((id, i) => ({
+                    id: i,
+                    name: `Employee ID: ${id}`,
+                    email: "-",
+                    contact: "-",
+                  }))
+                )
+              ) : (
+                <p>—</p>
+              )}
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };

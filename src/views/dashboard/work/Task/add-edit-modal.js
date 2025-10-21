@@ -38,9 +38,11 @@ const AddEditTaskModal = ({
       const catRes = await api.get("/api/v1/admin/taskCategory/active");
       setCategoryOptions(catRes.data || []);
 
-      const projRes = await api.get("/api/v1/admin/project/active");
+      const projRes = await api.get(
+        "/api/v1/admin/project/active/pagination?page=1&limit=10"
+      );
       setProjectOptions(projRes.data.data || []);
-
+      console.log("projRes", projRes);
       const empRes = await api.get("/api/v1/admin/employee/active");
       setMembersList(empRes.data.data || []);
     } catch (err) {
@@ -90,9 +92,12 @@ const AddEditTaskModal = ({
             <Row>
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label>Title *</Form.Label>
+                  <Form.Label>
+                    Title <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Control
                     name="title"
+                    placeholder="Enter Title"
                     value={formData.title || ""}
                     onChange={handleChange}
                     required
@@ -101,14 +106,16 @@ const AddEditTaskModal = ({
               </Col>
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label>Category *</Form.Label>
+                  <Form.Label>
+                    Category <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Select
                     name="task_category_id"
                     value={formData.task_category_id || ""}
                     onChange={handleChange}
                     required
                   >
-                    <option value="">Select Category</option>
+                    <option value="">--</option>
                     {categoryOptions.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.category}
@@ -119,14 +126,16 @@ const AddEditTaskModal = ({
               </Col>
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label>Project *</Form.Label>
+                  <Form.Label>
+                    Project <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Select
                     name="project_id"
                     value={formData.project_id || ""}
                     onChange={handleChange}
                     required
                   >
-                    <option value="">Select Project</option>
+                    <option value="">--</option>
                     {projectOptions.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.project_name}
@@ -140,7 +149,9 @@ const AddEditTaskModal = ({
             <Row className="mt-2">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label>Start Date *</Form.Label>
+                  <Form.Label>
+                    Start Date <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Control
                     type="date"
                     name="start_date"
@@ -163,7 +174,9 @@ const AddEditTaskModal = ({
               </Col>
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label>Status *</Form.Label>
+                  <Form.Label>
+                    Status <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Select
                     name="status"
                     value={formData.status || "To Do"}
@@ -182,7 +195,9 @@ const AddEditTaskModal = ({
             <Row className="mt-2">
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label>Priority *</Form.Label>
+                  <Form.Label>
+                    Priority <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Select
                     name="priority"
                     value={formData.priority || "Medium"}
@@ -198,13 +213,15 @@ const AddEditTaskModal = ({
               </Col>
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label>Task Type *</Form.Label>
+                  <Form.Label>
+                    Task Type <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Select
                     name="task_type"
                     value={formData.task_type || ""}
                     onChange={handleChange}
                   >
-                    <option value="">Select Type</option>
+                    <option value="">--</option>
                     {taskTypeOptions.map((t) => (
                       <option key={t} value={t}>
                         {t}
@@ -218,7 +235,9 @@ const AddEditTaskModal = ({
             <Row className="mt-2">
               <Col>
                 <Form.Group>
-                  <Form.Label>Assigned To *</Form.Label>
+                  <Form.Label>
+                    Assigned To <span className="text-danger">*</span>
+                  </Form.Label>
                   <div className="d-flex">
                     <Form.Control
                       type="text"
@@ -244,7 +263,9 @@ const AddEditTaskModal = ({
             <Row className="mt-2">
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label>Description *</Form.Label>
+                  <Form.Label>
+                    Description <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Control
                     as="textarea"
                     rows={3}
@@ -252,6 +273,7 @@ const AddEditTaskModal = ({
                     value={formData.description || ""}
                     onChange={handleChange}
                     required
+                    style={{ color: "black" }}
                   />
                 </Form.Group>
               </Col>

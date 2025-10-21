@@ -110,7 +110,7 @@ const AddPurchaseOrder = () => {
             "/api/v1/admin/purchaseOrder",
             payload
           );
-          successToast("Purchase Order created successfully");
+          successToast("Purchase order created successfully");
         }
 
         // create SR No

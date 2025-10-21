@@ -1,188 +1,251 @@
-// Created by: Sufyan 26 Sep 2025
-
-import React, { Fragment, useEffect, useState } from "react";
-import { Badge, Button, Col, Form, Modal, Row, Table } from "react-bootstrap";
-import CustomInput from "../../../../../components/Form/CustomInput";
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Row,
+  Col,
+  Table,
+  Spinner,
+  Pagination,
+  Form,
+} from "react-bootstrap";
+import api from "../../../../../api/axios";
+import CustomSelect from "../../../../../components/Form/CustomSelect";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import { Tooltip } from "@mui/material";
+import SrNoModal from "./SrNoModal"; // new modal component
 
 const AddProjectMaterial = ({ formik, metaData }) => {
-  const [stockModal, setStockModal] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
-  console.log("formik.client_id", formik.values.client_id);
+  const [showSrNoModal, setShowSrNoModal] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(null);
 
-  const selectedCustomer = metaData.clientList.find(
-    (c) => c.id == formik.values.client_id
-  );
+  // store srno selection per (branch + stock_material)
+  const [selectedSrNosMap, setSelectedSrNosMap] = useState({});
 
-  console.log("selectedCustomer", selectedCustomer);
-  useEffect(() => {
-    if (selectedCustomer?.deal?.inv_cap) {
-      formik.setFieldValue("capacity", selectedCustomer.deal.inv_cap);
-    }
-  }, [selectedCustomer]);
-  // formik.setFieldValue("capacity", selectedCustomer?.deal?.inv_cap || "");
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const toggleStockSelection = (stockId) => {
-    const current = formik.values.stock_material || [];
+  // 🔹 Fetch all or branch-specific transactions
+  const fetchTransactions = async (page = 1) => {
+    try {
+      setLoading(true);
+      let url = `/api/v1/admin/stockTransaction/getAllBranchStock/pagination?page=${page}&limit=${itemsPerPage}`;
+      if (!showAll && formik.values.branchId) {
+        url = `/api/v1/admin/stockTransaction/${formik.values.branchId}/pagination?page=${page}&limit=${itemsPerPage}`;
+      }
+      const res = await api.get(url);
+      setTransactions(res.data?.data || []);
 
-    const exists = current.find((item) => item.id === stockId);
-    console.log("exists", exists);
-    if (exists) {
-      // unselect → remove from array
-      const updated = current.filter((item) => item.id !== stockId);
-      formik.setFieldValue("stock_material", updated);
-    } else {
-      // select → push with empty qty
-      const updated = [...current, { id: stockId, qty: null }];
-      formik.setFieldValue("stock_material", updated);
+      const pagination = res.data?.pagination;
+      if (pagination) setTotalPages(pagination.totalPages || 1);
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+      setTransactions([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const selectedMemberNames =
-    metaData.stock
-      ?.filter((m) =>
-        formik.values.stock_material?.some((item) => item.id === m.id)
-      )
-      ?.map((m) => m.material) || [];
+  // 🔹 Fetch active branches
+  const fetchBranches = async () => {
+    try {
+      const res = await api.get(`/api/v1/admin/branch/active`);
+      setBranches(res.data.data || []);
+    } catch (err) {
+      console.error("Error fetching branches:", err);
+      setBranches([]);
+    }
+  };
 
-  console.log("formik", formik.values);
+  useEffect(() => {
+    fetchBranches();
+  }, []);
+
+  useEffect(() => {
+    fetchTransactions(currentPage);
+  }, [currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchTransactions(1);
+  }, [showAll, formik.values.branchId]);
+
+  // 🔹 handle modal open
+  const handleOpenSrNoModal = (transaction) => {
+    setSelectedStock(transaction);
+    setShowSrNoModal(true);
+  };
+
+  // 🔹 handle modal close
+  const handleCloseSrNoModal = () => {
+    setShowSrNoModal(false);
+  };
+
+  // 🔹 Update selected srnos in parent
+  const handleSrNoSelectionChange = (key, selectedSrNos) => {
+    setSelectedSrNosMap((prev) => ({
+      ...prev,
+      [key]: selectedSrNos,
+    }));
+  };
+
+  const getKey = (branch_id, stock_material_id) =>
+    `${branch_id}-${stock_material_id}`;
+
+  console.log("selectedSrNosMap", selectedSrNosMap);
+  console.log("item_details", formik.values.item_details);
   return (
-    <Form>
-      <div className="mb-3 mt-3 fw-light">
-        <h6>Material Information: </h6>
-      </div>
-      {/* Row 1 {stock_material} */}
-      <Row>
+    <Card className="p-3">
+      <Row className="mb-3 d-flex align-items-center justify-content-between">
         <Col md={4}>
-          <Form.Group>
-            <Form.Label className="pt-4">Procurement</Form.Label>
-            <div>
-              {!stockModal && selectedMemberNames.length > 0 ? (
-                selectedMemberNames.map((name) => (
-                  <Badge key={name} bg="light" text="dark" className="me-2 p-1">
-                    {name}
-                  </Badge>
-                ))
-              ) : (
-                <p className="text-muted" style={{ fontSize: "13px" }}>
-                  No Procurement selected
-                </p>
+          <Form.Check
+            type="switch"
+            id="toggle-all"
+            label={showAll ? "Showing All Stock" : "Filter by Branch"}
+            checked={showAll}
+            onChange={(e) => setShowAll(e.target.checked)}
+          />
+        </Col>
+
+        {!showAll && (
+          <Col md={4}>
+            <CustomSelect
+              name="branchId"
+              value={formik.values.branchId}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              options={branches}
+              placeholder="-- Select Branch --"
+              lableName="branch_name"
+              lableKey="id"
+            />
+          </Col>
+        )}
+      </Row>
+
+      <Row>
+        <Col>
+          {loading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" />
+            </div>
+          ) : (
+            <>
+              <div className="table-responsive">
+                <Table hover responsive className="table">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Branch</th>
+                      <th>Material</th>
+                      <th>Balance</th>
+                      <th>Date</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.length > 0 ? (
+                      transactions.map((t, index) => {
+                        const key = getKey(t.branch_id, t.stock_material_id);
+                        const hasSelected = selectedSrNosMap[key]?.length > 0;
+
+                        return (
+                          <tr key={t.id}>
+                            <td>
+                              {(currentPage - 1) * itemsPerPage + index + 1}
+                            </td>
+                            <td>{t.branch?.branch_name || "—"}</td>
+                            <td>{t.material?.material || "—"}</td>
+                            <td>{t.balance_after || t.balance}</td>
+                            <td>
+                              {new Date(t.createdAt).toLocaleDateString(
+                                "en-IN"
+                              )}
+                            </td>
+                            <td>
+                              <Tooltip
+                                title={
+                                  hasSelected
+                                    ? "View Selected SrNos"
+                                    : "Select SrNos"
+                                }
+                                arrow
+                              >
+                                <FormatListNumberedIcon
+                                  color={hasSelected ? "primary" : "inherit"}
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => handleOpenSrNoModal(t)}
+                                />
+                              </Tooltip>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="text-center">
+                          No transactions found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+
+              {totalPages > 1 && (
+                <Pagination className="justify-content-center mt-3">
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  />
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Pagination.Item
+                      key={i + 1}
+                      active={i + 1 === currentPage}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
               )}
-            </div>
-            <Button
-              size="sm"
-              className="mt-2"
-              onClick={() => setStockModal(true)}
-            >
-              Select Procurement
-            </Button>
-          </Form.Group>
-          {formik.touched.stock_material && formik.errors.stock_material && (
-            <div className="text-danger mt-1" style={{ fontSize: "11px" }}>
-              {formik.errors.stock_material}
-            </div>
+            </>
           )}
         </Col>
       </Row>
 
-      {/* Row 2, {company_name, capacity } */}
-      <Row className="mt-3">
-        {/* <Col md={4}>
-          <CustomInput
-            label="Company Name"
-            name="company_name"
-            value={formik.values.company_name}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter Project Name"
-            touched={formik.touched.company_name}
-            errors={formik.errors.company_name}
-          />
-        </Col> */}
-        <Col md={4}>
-          <CustomInput
-            label="Capacity"
-            name="capacity"
-            value={selectedCustomer?.deal?.inv_cap || formik.values.capacity}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter Capacity"
-            touched={formik.touched.capacity}
-            errors={formik.errors.capacity}
-            readOnly={true}
-          />
-        </Col>
-      </Row>
-
-      <Modal
-        backdrop="static"
-        show={stockModal}
-        onHide={() => setStockModal(false)}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Select Stock Material</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Table hover responsive>
-            <thead className="table-light">
-              <tr className="align-top text-start">
-                <th>Name</th>
-                <th>Balance</th>
-                <th>Quantity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {metaData.stock?.map((stock) => {
-                const selectedItem = formik.values.stock_material?.find(
-                  (item) => item.id === stock.id
-                );
-
-                return (
-                  <tr key={stock.id}>
-                    <td>
-                      <Form.Check
-                        id={stock.id}
-                        type="checkbox"
-                        label={stock.material}
-                        checked={!!selectedItem} // agar object mila to true
-                        onChange={() => toggleStockSelection(stock.id)}
-                      />
-                    </td>
-
-                    <td>
-                      <span>{stock.balance}</span>
-                    </td>
-
-                    <td>
-                      <CustomInput
-                        type="number"
-                        placeholder="Qty"
-                        value={selectedItem?.qty || ""}
-                        onChange={(e) => {
-                          const newQty = e.target.value;
-                          const updated = formik.values.stock_material.map(
-                            (item) =>
-                              item.id === stock.id
-                                ? { ...item, qty: newQty }
-                                : item
-                          );
-                          formik.setFieldValue("stock_material", updated);
-                        }}
-                        disabled={!selectedItem} // if not select then disable
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={() => setStockModal(false)}>
-            Save Selection
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </Form>
+      {/* Modal for SrNo List */}
+      {selectedStock && (
+        <SrNoModal
+          show={showSrNoModal}
+          handleClose={handleCloseSrNoModal}
+          branch_id={selectedStock.branch_id}
+          stock_material_id={selectedStock.stock_material_id}
+          selectedSrNos={
+            selectedSrNosMap[
+              getKey(selectedStock.branch_id, selectedStock.stock_material_id)
+            ] || []
+          }
+          onSelectionChange={(selected) =>
+            handleSrNoSelectionChange(
+              getKey(selectedStock.branch_id, selectedStock.stock_material_id),
+              selected
+            )
+          }
+          formik={formik}
+        />
+      )}
+    </Card>
   );
 };
 

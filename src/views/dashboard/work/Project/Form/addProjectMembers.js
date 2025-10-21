@@ -14,7 +14,7 @@ const AddProjectMembers = ({ formik, metaData }) => {
             label="Coordinate Members"
             formik={formik}
             formikField="co_ordinate"
-            options={metaData?.employee} // employee list
+            options={metaData?.employeeList} // employee list
             optionLabel="name"
           />
         </Col>
@@ -23,7 +23,7 @@ const AddProjectMembers = ({ formik, metaData }) => {
             label="Structure Installer"
             formik={formik}
             formikField="structure_installer"
-            options={metaData?.employee}
+            options={metaData?.employeeList}
             optionLabel="name"
           />
         </Col>
@@ -32,7 +32,7 @@ const AddProjectMembers = ({ formik, metaData }) => {
             label="Panel Wiring Installer"
             formik={formik}
             formikField="panel_wiring_installer"
-            options={metaData?.employee}
+            options={metaData?.employeeList}
             optionLabel="name"
           />
         </Col>
@@ -44,7 +44,7 @@ const AddProjectMembers = ({ formik, metaData }) => {
             label="SEPL Inspection By"
             formik={formik}
             formikField="sepl_inspection_by"
-            options={metaData?.employee}
+            options={metaData?.employeeList}
             optionLabel="name"
           />
         </Col>

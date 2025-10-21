@@ -18,11 +18,11 @@ import EvStationOutlinedIcon from "@mui/icons-material/EvStationOutlined"; // Ne
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined"; // Nodal Point
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined"; // Staff Assignment Info
 import AddProjectInfo from "./Form/addProjectInfo";
-import AddProjectMaterial from "./Form/addProjectMaterial";
 import AddProjectMseb from "./Form/addProjectMseb";
 import AddProjectMetering from "./Form/addProjectMetering";
 import AddProjectNp from "./Form/addProjectNp";
 import AddProjectMembers from "./Form/addProjectMembers";
+import AddProjectMaterial from "./Form/AddProjectMaterial";
 
 const QontoStepIconRoot = styled("div")(({ theme }) => ({
   color: "#eaeaf0",
@@ -186,6 +186,12 @@ export default function CustomizedSteppers({
   activeStep,
   setActiveStep,
   validationSchemas,
+  msebField,
+  NmField,
+  NpField,
+  handleDynamicChangeMseb,
+  handleDynamicChangeNm,
+  handleDynamicChangeNp,
 }) {
   // Stepper
   const steps = [
@@ -207,11 +213,29 @@ export default function CustomizedSteppers({
       case 1:
         return <AddProjectMaterial formik={formik} metaData={metaData} />;
       case 2:
-        return <AddProjectMseb formik={formik} />;
+        return (
+          <AddProjectMseb
+            formik={formik}
+            msebField={msebField}
+            handleDynamicChangeMseb={handleDynamicChangeMseb}
+          />
+        );
       case 3:
-        return <AddProjectMetering formik={formik} />;
+        return (
+          <AddProjectMetering
+            formik={formik}
+            NmField={NmField}
+            handleDynamicChangeNm={handleDynamicChangeNm}
+          />
+        );
       case 4:
-        return <AddProjectNp formik={formik} />;
+        return (
+          <AddProjectNp
+            formik={formik}
+            NpField={NpField}
+            handleDynamicChangeNp={handleDynamicChangeNp}
+          />
+        );
       case 5:
         return <AddProjectMembers formik={formik} metaData={metaData} />;
       default:

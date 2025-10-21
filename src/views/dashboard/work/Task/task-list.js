@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Table,
-  Spinner,
-  Modal,
-  Form,
-} from "react-bootstrap";
+import { Card, Row, Col, Button, Table, Spinner, Form } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -38,7 +29,7 @@ const TaskList = () => {
     description: "",
     priority: "Medium",
     task_type: "",
-    start_date: "",
+    start_date: new Date().toISOString().split("T")[0],
     end_date: "",
     assign_by: "",
     assign_to: [],
@@ -174,7 +165,7 @@ const TaskList = () => {
                   setShowAddEdit(true);
                 }}
               >
-                + Add Task
+                + New
               </Button>
             </Card.Header>
             <Card.Body className="px-0 pt-3">
@@ -191,7 +182,7 @@ const TaskList = () => {
                         <th>Title</th>
                         <th>Project</th>
                         <th>Task Type</th>
-                        <th>Assigned To</th>
+                        {/* <th>Assigned To</th> */}
                         <th>Status</th>
 
                         <th>Action</th>
@@ -200,7 +191,7 @@ const TaskList = () => {
                     <tbody>
                       {taskList.length === 0 ? (
                         <tr>
-                          <td colSpan="6" className="text-center">
+                          <td colSpan="7" className="text-center">
                             No tasks available
                           </td>
                         </tr>
@@ -211,7 +202,7 @@ const TaskList = () => {
                             <td>{task.title}</td>
                             <td>{task.project?.project_name || "-"}</td>
                             <td>{task.task_type || "-"}</td>
-                            <td className="text-center">
+                            {/* <td className="text-center">
                               <div className="d-flex justify-content-center">
                                 {task.assign_to_details
                                   ?.slice(0, 3)
@@ -249,7 +240,7 @@ const TaskList = () => {
                                   </div>
                                 )}
                               </div>
-                            </td>
+                            </td> */}
 
                             <td>
                               <Form.Select
@@ -271,14 +262,12 @@ const TaskList = () => {
                                 color="primary" // grayish tone
                                 style={{ cursor: "pointer" }}
                                 onClick={() => setSelectedTask(task)}
-                                className="me-2"
                               />
 
                               <CreateTwoToneIcon
                                 color="primary" // blue
                                 onClick={() => handleEdit(task)}
                                 style={{ cursor: "pointer" }}
-                                className="me-2"
                               />
 
                               <DeleteRoundedIcon

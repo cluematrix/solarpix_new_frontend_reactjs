@@ -26,39 +26,42 @@ import { useNavigate } from "react-router-dom";
 
 const ProjectList = ({ onActiveTab = () => {} }) => {
   const [projectData, setProjectData] = useState([]);
-  const [navigateId, setNavigateId] = useState(false);
+  // const [navigateId, setNavigateId] = useState(false);
   const navigate = useNavigate();
 
-  // Pagination states
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const rolesPerPage = 10;
-  const indexOfLastRole = currentPage * rolesPerPage;
-  const indexOfFirstRole = indexOfLastRole - rolesPerPage;
-  const totalPages = Math.ceil(projectData?.length / rolesPerPage);
-  // const currentProject =
-  //   projectData.length > 0
-  //     ? projectData?.slice(indexOfFirstRole, indexOfLastRole)
-  //     : [];
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // fetch project
-  const fetchProject = async () => {
-    setLoading(true);
+  const fetchProject = async (page = 1) => {
     try {
-      const res = await api.get("/api/v1/admin/project");
-      console.log("Project List API Response:", res.data.data);
-      setProjectData(res.data.data || []);
+      setLoading(true);
+      let url = `/api/v1/admin/project/active/pagination?page=${page}&limit=${itemsPerPage}`;
+
+      const res = await api.get(url);
+      setProjectData(res.data?.data || []);
+
+      // Extract pagination info
+      const pagination = res.data?.pagination;
+      if (pagination) {
+        setTotalPages(pagination.totalPages || 1);
+      }
     } catch (err) {
-      console.error("Error fetching employee:", err);
+      console.error("Error fetching data:", err);
+      setProjectData([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProject();
-  }, []);
+    fetchProject(currentPage);
+  }, [currentPage]);
 
   const [formData, setFormData] = useState({
     short_code: "",
@@ -79,7 +82,7 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [openEditModalData, setOpenEditModalData] = useState(false);
-  const [viewProjectData, setViewProjectData] = useState(null);
+
   const handleAddOrUpdateProject = (data) => {
     if (!data.projectName.trim()) return; // basic validation
 
@@ -94,13 +97,6 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   };
 
   const handleEdit = (index, item) => {
-    // setFormData(item);
-    // setEditIndex(index);
-    // setShowAddEdit(true);
-    // setOpenEditModalData(true);
-    // navigate("/add-project", {
-    //   state: { formData: item },
-    // });
     navigate(`/project-list/edit-project/${item.id}`);
   };
 
@@ -171,16 +167,13 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   };
 
   // navigate to employee profile tab
-  const handleNavigateToProfile = (item) => {
-    navigate(`/view-employee/${item.id}`);
-    console.log("itemEmp", item);
-  };
+  // const handleNavigateToProfile = (item) => {
+  //   navigate(`/view-employee/${item.id}`);
+  //   console.log("itemEmp", item);
+  // };
 
   return (
     <>
-      {/* {navigateId ? (
-        <ProjectProfile viewProjectData={viewProjectData} />
-      ) : ( */}
       <Row className="mt-4">
         <Col sm="12">
           <Card>
@@ -197,7 +190,7 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                   navigate("/add-project");
                 }}
               >
-                + Add Project
+                + New
               </Button>
             </Card.Header>
 
@@ -214,10 +207,8 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                         <th>Sr. No.</th>
                         <th>Short Code</th>
                         <th>Project Name</th>
-                        <th>Member</th>
                         <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Deadline</th>
+                        <th>As per sales order</th>
                         <th>Status</th>
                         <th>Action</th>
                       </tr>
@@ -236,11 +227,6 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                             <td>{item.short_code || "--"}</td>
                             <td>{item.project_name || "--"}</td>
                             {/* <td>
-                                {item.assign_to_details.map(
-                                  (ass) => ass.name
-                                ) || "--"}
-                              </td> */}
-                            <td>
                               <div className="d-flex align-items-center justify-content-center">
                                 {item?.assign_to_details
                                   ?.slice(0, 3)
@@ -286,13 +272,10 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                                   </div>
                                 )}
                               </div>
-                            </td>
+                            </td> */}
 
                             <td>{item.start_date || "--"}</td>
-                            <td>{item.end_date || "--"}</td>
-                            <td className="text-center">
-                              {item.is_deadline || "--"}
-                            </td>
+                            <td>₹{item.estimate || "--"}</td>
                             <td>
                               <span
                                 className={`status-dot ${
@@ -311,7 +294,6 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                                 }
                               />
                               <CreateTwoToneIcon
-                                className="me-1"
                                 onClick={() => handleEdit(idx, item)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
@@ -326,7 +308,6 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                                 color="primary"
                                 style={{
                                   cursor: "pointer",
-                                  margin: "0px 5px",
                                 }}
                               />
                             </td>
@@ -337,24 +318,24 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                   </Table>
                 </div>
               )}
-              {/* Pagination Controls */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
-                  <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
+                  <Pagination.First
+                    onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
                   />
                   {[...Array(totalPages)].map((_, i) => (
                     <Pagination.Item
                       key={i + 1}
                       active={i + 1 === currentPage}
-                      onClick={() => handlePageChange(i + 1)}
+                      onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
                     </Pagination.Item>
                   ))}
-                  <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
+                  <Pagination.Last
+                    onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
                   />
                 </Pagination>

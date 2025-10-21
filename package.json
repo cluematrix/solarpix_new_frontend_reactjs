@@ -39,6 +39,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.3",
     "nouislider-react": "^3.4.1",
+    "npkill": "^0.12.2",
     "number-to-words": "^1.2.4",
     "pdfmake": "^0.2.20",
     "prismjs": "^1.24.1",
