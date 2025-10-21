@@ -1428,9 +1428,9 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/Attendance-list" ? "active" : ""
+                    location.pathname === "/AttedenceList" ? "active" : ""
                   } nav-link`}
-                  to="/Attendance-list"
+                  to="/AttedenceList"
                 >
                   <i className="icon">
                     <TimeToLeaveIcon fontSize="small" />

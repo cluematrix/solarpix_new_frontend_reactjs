@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Button, Row, Col, Card, Spinner } from "react-bootstrap";
+import { Card, Row, Col, Form, Button, Spinner } from "react-bootstrap";
 import * as Yup from "yup";
 import api from "../../../../api/axios";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,7 +18,6 @@ import CustomFileInput from "../../../../components/Form/CustomFileInput";
 
 const UpdateEmployee = () => {
   const initialValues = {
-    // emp_id: "",
     salutation: "",
     name: "",
     email: "",
@@ -28,12 +27,10 @@ const UpdateEmployee = () => {
     gender: "",
     dob: "",
     maritial_status: "",
-    role_id: "", // default
+    role_id: "",
     department_id: "",
     designation_id: "",
     employment_type_id: "",
-    skill: "",
-    probation_end_date: "",
     city: "",
     state: "",
     pincode: "",
@@ -42,7 +39,6 @@ const UpdateEmployee = () => {
     photo: null,
     notice_start_date: "",
     notice_end_date: "",
-    shift_id: "",
     bank_name: "",
     account_no: "",
     ifsc_code: "",
@@ -53,19 +49,17 @@ const UpdateEmployee = () => {
   const [metaData, setMetaData] = useState({
     departments: [],
     designations: [],
-    shift: [],
+    filteredDesignations: [],
     employeeType: [],
     employeeList: [],
     employeeRoleList: [],
   });
 
-  const [employeeById, setEmployeeById] = useState([]);
+  const [employeeById, setEmployeeById] = useState({});
   const { id } = useParams();
-
   const navigate = useNavigate();
 
   const validationSchema = Yup.object().shape({
-    // emp_id: Yup.string().required("Employee ID is required"),
     salutation: Yup.string().required("Salutation is required"),
     name: Yup.string().required("Name is required"),
     gender: Yup.string().required("Gender is required"),
@@ -73,12 +67,9 @@ const UpdateEmployee = () => {
     dob: Yup.date()
       .required("Date of Birth is required")
       .typeError("Invalid Date of Birth"),
-    probation_end_date: Yup.date()
-      .required("Probation End Date is required")
-      .typeError("Invalid date"),
     employment_type_id: Yup.string().required("Employment Type is required"),
     joining_date: Yup.string().required("Joining date is required"),
-    reporting_to: Yup.string().required("Reporting date is required"),
+    reporting_to: Yup.string().required("Reporting to is required"),
     contact: Yup.string()
       .required("Mobile number is required")
       .matches(/^[0-9]{10}$/, "Enter a valid 10-digit mobile number"),
@@ -87,7 +78,6 @@ const UpdateEmployee = () => {
       .email("Enter a valid email address"),
     department_id: Yup.string().required("Department is required"),
     designation_id: Yup.string().required("Designation is required"),
-    shift_id: Yup.string().required("Shift is required"),
     password: Yup.string()
       .required("Password is required")
       .min(8, "Password must be at least 6 characters long"),
@@ -112,15 +102,13 @@ const UpdateEmployee = () => {
         const [
           deptRes,
           desigRes,
-          shiftRes,
           empTypeRes,
           empListRes,
           empByIdRes,
           employeeRoleRes,
         ] = await Promise.all([
           api.get("/api/v1/admin/department"),
-          api.get("/api/v1/admin/designation"),
-          api.get("/api/v1/admin/shift"),
+          api.get("/api/v1/admin/designation/active"),
           api.get("/api/v1/admin/employmentType"),
           api.get("/api/v1/admin/employee"),
           api.get(`/api/v1/admin/employee/${id}`),
@@ -130,7 +118,7 @@ const UpdateEmployee = () => {
         setMetaData({
           departments: deptRes.data.filter((d) => d.isActive),
           designations: desigRes.data.filter((d) => d.isActive),
-          shift: shiftRes.data.filter((s) => s.isActive),
+          filteredDesignations: [],
           employeeType: empTypeRes.data.filter((t) => t.isActive),
           employeeList: empListRes.data.data.filter((e) => e.isActive),
           employeeRoleList: employeeRoleRes.data,
@@ -151,21 +139,22 @@ const UpdateEmployee = () => {
   const onSubmit = async (values) => {
     try {
       const formData = new FormData();
-
-      // Append keys dynamically
       Object.keys(values).forEach((key) => {
-        const value = values[key];
-        if (value !== "" && value !== null && value !== undefined) {
-          formData.append(key, value);
+        if (
+          values[key] !== "" &&
+          values[key] !== null &&
+          values[key] !== undefined
+        ) {
+          formData.append(key, values[key]);
         }
       });
 
       const res = await api.put(`/api/v1/admin/employee/${id}`, formData);
-      successToast(res.data.message);
+      successToast(res.data.message || "Employee updated successfully");
       navigate("/employee-list");
     } catch (error) {
       errorToast(error.response?.data?.message || "Internal Server Error");
-      console.error("Error updating employee:", error);
+      console.error(error);
     }
   };
 
@@ -187,7 +176,7 @@ const UpdateEmployee = () => {
     isSubmitting,
   } = formik;
 
-  // Create an object to map API data to Formik fields
+  // Populate Formik with API data
   useEffect(() => {
     if (employeeById) {
       const updatedValues = { ...initialValues };
@@ -202,19 +191,29 @@ const UpdateEmployee = () => {
         notice_end_date: employeeById.notice_end_date
           ? employeeById.notice_end_date.split("T")[0]
           : "",
-        probation_end_date: employeeById.probation_end_date
-          ? employeeById.probation_end_date.split("T")[0]
-          : "",
         joining_date: employeeById.joining_date
           ? employeeById.joining_date.split("T")[0]
           : "",
+        dob: employeeById.dob ? employeeById.dob.split("T")[0] : "",
       });
     }
   }, [employeeById]);
 
+  // Department-wise designation filter
+  // Filter designations based on selected department (or existing employee department)
+  useEffect(() => {
+    const departmentId = values.department_id || employeeById.department_id;
+    if (departmentId && metaData.designations.length > 0) {
+      const filtered = metaData.designations.filter(
+        (desig) => desig.department_id.toString() === departmentId.toString()
+      );
+      setMetaData((prev) => ({ ...prev, filteredDesignations: filtered }));
+    }
+  }, [values.department_id, metaData.designations, employeeById.department_id]);
+
   const today = new Date();
   today.setFullYear(today.getFullYear() - 18);
-  const maxDOB = today.toISOString().split("T")[0]; // Format YYYY-MM-DD
+  const maxDOB = today.toISOString().split("T")[0];
 
   if (loading) {
     return (
@@ -227,27 +226,13 @@ const UpdateEmployee = () => {
   return (
     <Card>
       <Card.Header>
-        <h5 className="mb-0">Account Details</h5>
+        <h5 className="mb-0">Update Employee</h5>
       </Card.Header>
       <hr />
       <Card.Body className="pt-0">
         <Form onSubmit={handleSubmit}>
-          {/* Row 1 {emp_id, salutation, name} */}
+          {/* Personal Details */}
           <Row>
-            {/* <Col md={4}>
-              <CustomInput
-                label="Employee ID"
-                name="emp_id"
-                value={values.emp_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Employee ID"
-                touched={touched.emp_id}
-                errors={errors.emp_id}
-                required={true}
-              />
-            </Col> */}
-
             <Col md={4}>
               <CustomSelect
                 label="Salutation"
@@ -260,7 +245,6 @@ const UpdateEmployee = () => {
                 error={errors.salutation}
                 touched={touched.salutation}
                 required
-                lableName="salutation"
               />
             </Col>
             <Col md={4}>
@@ -273,13 +257,9 @@ const UpdateEmployee = () => {
                 placeholder="Enter Name"
                 touched={touched.name}
                 errors={errors.name}
-                required={true}
+                required
               />
             </Col>
-          </Row>
-
-          {/* Row 2, {mobile_number, email, password } */}
-          <Row className="mt-3">
             <Col md={4}>
               <CustomInput
                 label="Mobile Number"
@@ -290,9 +270,12 @@ const UpdateEmployee = () => {
                 placeholder="Enter Mobile Number"
                 touched={touched.contact}
                 errors={errors.contact}
-                required={true}
+                required
               />
             </Col>
+          </Row>
+
+          <Row className="mt-3">
             <Col md={4}>
               <CustomInput
                 label="Email"
@@ -303,7 +286,20 @@ const UpdateEmployee = () => {
                 placeholder="Enter Email"
                 touched={touched.email}
                 errors={errors.email}
-                required={true}
+                required
+              />
+            </Col>
+            <Col md={4}>
+              <CustomInput
+                label="Password"
+                name="password"
+                value={values.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter Password"
+                touched={touched.password}
+                errors={errors.password}
+                required
               />
             </Col>
             <Col md={4}>
@@ -322,7 +318,6 @@ const UpdateEmployee = () => {
             </Col>
           </Row>
 
-          {/* Row 5  dob, gender, maritial_status*/}
           <Row className="mt-3">
             <Col md={4}>
               <CustomInput
@@ -332,11 +327,10 @@ const UpdateEmployee = () => {
                 value={values.dob}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter DOB"
                 touched={touched.dob}
                 errors={errors.dob}
-                required={true}
                 max={maxDOB}
+                required
               />
             </Col>
             <Col md={4}>
@@ -367,7 +361,6 @@ const UpdateEmployee = () => {
             </Col>
           </Row>
 
-          {/* Row 6 {address, state, city}*/}
           <Row className="mt-3">
             <Col md={12}>
               <CustomInput
@@ -380,27 +373,51 @@ const UpdateEmployee = () => {
                 placeholder="Enter Address"
                 touched={touched.address}
                 errors={errors.address}
-                required={true}
-                row={1}
+                required
               />
             </Col>
           </Row>
 
-          {/* Row 8 {pincode, photo, skill}*/}
           <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomInput
-                label="Pin Code"
+                label="Pincode"
                 name="pincode"
                 value={values.pincode}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Pin Code"
                 touched={touched.pincode}
                 errors={errors.pincode}
-                required={true}
+                required
               />
             </Col>
+            <Col md={4}>
+              <CustomInput
+                label="City"
+                name="city"
+                value={values.city}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.city}
+                errors={errors.city}
+                required
+              />
+            </Col>
+            <Col md={4}>
+              <CustomInput
+                label="State"
+                name="state"
+                value={values.state}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.state}
+                errors={errors.state}
+                required
+              />
+            </Col>
+          </Row>
+
+          <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomFileInput
                 label="Profile Picture"
@@ -414,18 +431,6 @@ const UpdateEmployee = () => {
                 error={errors.photo}
               />
             </Col>
-
-            <Col md={4}>
-              <CustomInput
-                label="Skill"
-                name="skill"
-                value={values.skill}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Skill"
-                touched={touched.skill}
-              />
-            </Col>
           </Row>
 
           <hr />
@@ -433,7 +438,6 @@ const UpdateEmployee = () => {
             <h5 className="mb-0">Job Details</h5>
           </Card.Header>
 
-          {/* Row 3, {probation_end_date, employment_type_id, joining_date*/}
           <Row className="mt-3">
             <Col md={4}>
               <CustomSelect
@@ -447,10 +451,8 @@ const UpdateEmployee = () => {
                 error={errors.employment_type_id}
                 touched={touched.employment_type_id}
                 required
-                lableName="emp_type"
               />
             </Col>
-
             <Col md={4}>
               <CustomInput
                 type="date"
@@ -459,32 +461,11 @@ const UpdateEmployee = () => {
                 value={values.joining_date}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Joining Date"
                 touched={touched.joining_date}
                 errors={errors.joining_date}
-                min={new Date().toISOString().split("T")[0]}
                 required
               />
             </Col>
-
-            <Col md={4}>
-              <CustomInput
-                type="date"
-                label="Probation End Date"
-                name="probation_end_date"
-                value={values.probation_end_date}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter Probation End Date"
-                touched={touched.probation_end_date}
-                errors={errors.probation_end_date}
-                required={true}
-              />
-            </Col>
-          </Row>
-
-          {/* Row 4 {reporting_to, department_id, designation_id}*/}
-          <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomSelect
                 label="Reporting To"
@@ -499,6 +480,9 @@ const UpdateEmployee = () => {
                 required
               />
             </Col>
+          </Row>
+
+          <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomSelect
                 label="Department"
@@ -520,60 +504,38 @@ const UpdateEmployee = () => {
                 value={values.designation_id}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                options={metaData.designations}
-                placeholder="--"
+                options={metaData.filteredDesignations}
+                placeholder="-- Select Designation --"
                 error={errors.designation_id}
                 touched={touched.designation_id}
                 required
               />
             </Col>
-          </Row>
-
-          {/* Row 7 { notice_start_date, notice_end_date}*/}
-          <Row className="mt-3">
-            <Col md={4}>
-              <CustomSelect
-                label="Shift"
-                name="shift_id"
-                value={values.shift_id}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={metaData.shift}
-                placeholder="--"
-                error={errors.shift_id}
-                touched={touched.shift_id}
-                required
-                lableName="shift_name"
-                le
-              />
-            </Col>
-
             <Col md={4}>
               <CustomInput
                 type="date"
-                label="Notice Period Start Date"
+                label="Notice Start Date"
                 name="notice_start_date"
                 value={values.notice_start_date}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Notice Period Start Date"
                 touched={touched.notice_start_date}
                 errors={errors.notice_start_date}
-                min={new Date().toISOString().split("T")[0]}
               />
             </Col>
+          </Row>
+
+          <Row className="mt-3 mb-4">
             <Col md={4}>
               <CustomInput
                 type="date"
-                label="Notice Period End Date"
+                label="Notice End Date"
                 name="notice_end_date"
                 value={values.notice_end_date}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Notice Period End Date"
                 touched={touched.notice_end_date}
                 errors={errors.notice_end_date}
-                min={new Date().toISOString().split("T")[0]}
               />
             </Col>
           </Row>
@@ -583,7 +545,6 @@ const UpdateEmployee = () => {
             <h5 className="mb-0">Bank Details</h5>
           </Card.Header>
 
-          {/* Row 9 */}
           <Row className="mt-3">
             <Col md={4}>
               <CustomInput
@@ -592,28 +553,23 @@ const UpdateEmployee = () => {
                 value={values.bank_name}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Bank Name"
                 touched={touched.bank_name}
                 errors={errors.bank_name}
-                required={true}
+                required
               />
             </Col>
-
             <Col md={4}>
               <CustomInput
-                type="text"
                 label="Account No"
                 name="account_no"
                 value={values.account_no}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Account No"
                 touched={touched.account_no}
                 errors={errors.account_no}
-                required={true}
+                required
               />
             </Col>
-
             <Col md={4}>
               <CustomInput
                 label="IFSC Code"
@@ -621,15 +577,13 @@ const UpdateEmployee = () => {
                 value={values.ifsc_code}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter IFSC Code"
                 touched={touched.ifsc_code}
                 errors={errors.ifsc_code}
-                required={true}
+                required
               />
             </Col>
           </Row>
 
-          {/* Row 10 */}
           <Row className="mt-3">
             <Col md={4}>
               <CustomInput
@@ -638,15 +592,13 @@ const UpdateEmployee = () => {
                 value={values.branch_name}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                placeholder="Enter Branch Name"
                 touched={touched.branch_name}
                 errors={errors.branch_name}
-                required={true}
+                required
               />
             </Col>
           </Row>
 
-          {/* Save */}
           <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
