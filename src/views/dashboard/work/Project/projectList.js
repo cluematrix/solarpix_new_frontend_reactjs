@@ -83,6 +83,9 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [openEditModalData, setOpenEditModalData] = useState(false);
 
+  // installation status
+  const [instStatus, setInstStatus] = useState([]);
+
   const handleAddOrUpdateProject = (data) => {
     if (!data.projectName.trim()) return; // basic validation
 
@@ -171,6 +174,42 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   //   navigate(`/view-employee/${item.id}`);
   //   console.log("itemEmp", item);
   // };
+
+  // 🔹 Fetch Lead Status Separately
+  const fetchInstStatus = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/installationStatus/active");
+      if (res.data?.data) {
+        setInstStatus(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setInstStatus(res.data);
+      } else {
+        setInstStatus([]);
+      }
+    } catch (err) {
+      console.error("Error fetching installation status:", err);
+    }
+  };
+
+  // Update installation status handler
+  const handleInstallationChange = async (item, newStatusId) => {
+    try {
+      await api.put(`/api/v1/admin/project/${item.id}`, {
+        installationStatus_id: newStatusId,
+      });
+
+      successToast("Installation status updated successfully");
+
+      // refresh data after update
+      fetchProject(currentPage);
+    } catch (err) {
+      console.error("Error updating installation status:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchInstStatus();
+  }, []);
 
   return (
     <>
@@ -276,13 +315,32 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
 
                             <td>{item.start_date || "--"}</td>
                             <td>₹{item.estimate || "--"}</td>
-                            <td>
+                            {/* <td>
                               <span
                                 className={`status-dot ${
                                   item.isActive ? "active" : "inactive"
                                 }`}
                               ></span>
                               {item.isActive ? "Active" : "Inactive"}
+                            </td> */}
+
+                            <td>
+                              <Form.Select
+                                size="sm"
+                                value={item.installationStatus?.id || ""}
+                                onChange={(e) =>
+                                  handleInstallationChange(item, e.target.value)
+                                }
+                              >
+                                <option disabled value="">
+                                  --
+                                </option>
+                                {instStatus?.map((option) => (
+                                  <option key={option.id} value={option.id}>
+                                    {option.installationStatus}
+                                  </option>
+                                ))}
+                              </Form.Select>
                             </td>
                             <td className="d-flex align-items-center">
                               <Form.Check
