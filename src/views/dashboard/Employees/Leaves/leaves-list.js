@@ -45,6 +45,7 @@ const LeaveList = () => {
           add: true,
           edit: true,
           del: true,
+          any_one: true, // admin has implicit full access
         });
         return;
       }
@@ -62,6 +63,9 @@ const LeaveList = () => {
           add: matchedPermission.add === true || matchedPermission.add === 1,
           edit: matchedPermission.edit === true || matchedPermission.edit === 1,
           del: matchedPermission.del === true || matchedPermission.del === 1,
+          any_one:
+            matchedPermission.any_one === true ||
+            matchedPermission.any_one === 1, // ✅ added this
         });
       } else {
         setPermissions(null);
@@ -78,7 +82,7 @@ const LeaveList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔹 Fetch leaves (filter based on session employeeId)
+  // 🔹 Fetch leaves (with any_one logic)
   const fetchLeaves = async () => {
     try {
       setLoading(true);
@@ -92,8 +96,12 @@ const LeaveList = () => {
         ? res.data.data
         : [];
 
+      // 🧠 Logic based on role + permission.any_one
       if (roleId === "1") {
         // 👑 Super Admin - show all
+        setLeaveList(allLeaves);
+      } else if (permissions?.any_one) {
+        // 🌍 Role with any_one access - show all
         setLeaveList(allLeaves);
       } else {
         // 👤 Normal Employee - show only their leaves
@@ -111,9 +119,12 @@ const LeaveList = () => {
     }
   };
 
+  // ✅ Fetch leave data only after permissions are loaded
   useEffect(() => {
-    fetchLeaves();
-  }, []);
+    if (!permLoading && permissions?.view) {
+      fetchLeaves();
+    }
+  }, [permLoading, permissions]);
 
   // 🔹 Save leave locally after modal submit
   const handleSaveLeave = (data) => {
@@ -252,6 +263,10 @@ const LeaveList = () => {
                                       : "status-reject"
                                   }`}
                                   value={item.status}
+                                  disabled={
+                                    String(sessionStorage.getItem("roleId")) !==
+                                    "1"
+                                  } // 🔒 disable for non-admins
                                   onChange={(e) =>
                                     handleStatusChange(item.id, e.target.value)
                                   }

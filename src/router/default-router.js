@@ -208,7 +208,7 @@ export const DefaultRouter = [
       },
 
       {
-        path: "/AttedenceList",
+        path: "/Attendance",
         element: <AttedenceList />,
       },
 

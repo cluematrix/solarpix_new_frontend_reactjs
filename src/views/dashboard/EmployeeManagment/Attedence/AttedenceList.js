@@ -5,8 +5,9 @@ import "react-toastify/dist/ReactToastify.css";
 import api from "../../../../api/axios";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { BsDownload } from "react-icons/bs";
-import { MdEventAvailable } from "react-icons/md"; // Holiday icon
-import { GiPalmTree } from "react-icons/gi"; // Leave icon
+import { MdEventAvailable } from "react-icons/md";
+import { GiPalmTree } from "react-icons/gi";
+import { useLocation } from "react-router";
 
 const AttendanceList = () => {
   const [employees, setEmployees] = useState([]);
@@ -17,40 +18,87 @@ const AttendanceList = () => {
   const [holidays, setHolidays] = useState([]);
   const [defaultHolidays, setDefaultHolidays] = useState([]);
   const [employeeLeaves, setEmployeeLeaves] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // include permissions loading state
+  const [permissions, setPermissions] = useState(null);
 
-  // 🟢 Fetch Active Employees
-  // 🟢 Fetch Active Employees
-  const fetchEmployees = async () => {
-    setLoading(true);
+  const { pathname } = useLocation();
+
+  // 🔑 Fetch Role Permissions
+  const FETCHPERMISSION = async () => {
     try {
-      const res = await api.get("/api/v1/admin/employee/active");
-      const empList = res.data.data || [];
+      const res = await api.get("/api/v1/admin/rolePermission");
 
-      // Get employee ID and role from sessionStorage
-      const sessionEmpId = sessionStorage.getItem("employee_id");
-      const sessionRoleId = sessionStorage.getItem("roleId");
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
 
-      if (parseInt(sessionRoleId) === 1) {
-        // Admin: show all employees
-        setEmployees(empList);
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+          any_one:
+            matchedPermission.any_one === true ||
+            matchedPermission.any_one === 1,
+        });
       } else {
-        // Non-admin: show only the employee from session
-        const filtered = empList.filter(
-          (emp) => emp.id === parseInt(sessionEmpId)
-        );
-        setEmployees(filtered);
-        setSelectedEmp(sessionEmpId); // auto select employee
+        setPermissions(null);
       }
     } catch (err) {
-      console.error("Error fetching employees:", err);
-      toast.error("Failed to fetch employees");
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // 🟢 Fetch Active Holidays (specific dates)
+  // Run once when route changes
+  useEffect(() => {
+    setLoading(true);
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // 🟢 Fetch Active Employees
+  const fetchEmployees = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/employee/active");
+      const empList = res.data.data || [];
+
+      const sessionEmpId = parseInt(sessionStorage.getItem("employee_id"));
+      const sessionRoleId = parseInt(sessionStorage.getItem("roleId"));
+
+      if (sessionRoleId === 1) {
+        // 🟢 Admin (Role ID 1): show all employees
+        setEmployees(empList);
+      } else if (permissions && permissions.any_one === true) {
+        // 🟡 Non-admin but "any_one" is true → show all employees
+        setEmployees(empList);
+      } else {
+        // 🔴 Non-admin and "any_one" is false → show only own record
+        const filtered = empList.filter((emp) => emp.id === sessionEmpId);
+        setEmployees(filtered);
+        setSelectedEmp(sessionEmpId);
+      }
+    } catch (err) {
+      console.error("Error fetching employees:", err);
+      toast.error("Failed to fetch employees");
+    }
+  };
+
   const fetchHolidays = async () => {
     try {
       const res = await api.get("/api/v1/admin/holiday/active");
@@ -61,7 +109,6 @@ const AttendanceList = () => {
     }
   };
 
-  // 🟢 Fetch Default Holidays (like Sunday, Monday)
   const fetchDefaultHolidays = async () => {
     try {
       const res = await api.get("/api/v1/admin/defaultHoliday/active");
@@ -72,7 +119,6 @@ const AttendanceList = () => {
     }
   };
 
-  // 🟢 Fetch Employee Leaves (approved only)
   const fetchEmployeeLeaves = async () => {
     try {
       const res = await api.get("/api/v1/admin/employeeLeave/");
@@ -87,13 +133,15 @@ const AttendanceList = () => {
   };
 
   useEffect(() => {
-    fetchEmployees();
-    fetchHolidays();
-    fetchDefaultHolidays();
-    fetchEmployeeLeaves();
-  }, []);
+    if (permissions?.view) {
+      fetchEmployees();
+      fetchHolidays();
+      fetchDefaultHolidays();
+      fetchEmployeeLeaves();
+    }
+  }, [permissions]);
 
-  // 🗓️ Get all dates for a month
+  // 🗓️ Utility to get all dates of month
   const getAllDatesOfMonth = (month, year) => {
     const dates = [];
     const lastDay = new Date(year, month, 0).getDate();
@@ -121,9 +169,8 @@ const AttendanceList = () => {
       if (res.data.success) {
         const data = res.data.data;
         const report = data.report || [];
-
-        // Filter report only for selected month/year
         const monthStr = String(month).padStart(2, "0");
+
         const filteredReport = report.filter((r) =>
           r.date.includes(`/${monthStr}/`)
         );
@@ -138,13 +185,11 @@ const AttendanceList = () => {
 
         const allDates = getAllDatesOfMonth(month, year);
 
-        // 🟡 Merge Attendance + Holidays + Default Holidays + Leaves
         const attendance = allDates.map((date) => {
           const dayName = new Date(date).toLocaleString("en-US", {
             weekday: "long",
           });
 
-          // 1️⃣ Check Default Holiday
           const defaultHoliday = defaultHolidays.find((h) =>
             h.day.includes(dayName)
           );
@@ -156,7 +201,6 @@ const AttendanceList = () => {
             };
           }
 
-          // 2️⃣ Check Specific Holiday (from DB)
           const holiday = holidays.find((h) => h.date === date);
           if (holiday) {
             return {
@@ -166,7 +210,6 @@ const AttendanceList = () => {
             };
           }
 
-          // 3️⃣ Check Approved Leave for Employee
           const leave = employeeLeaves.find(
             (l) =>
               l.employee_id === parseInt(selectedEmp) &&
@@ -181,7 +224,6 @@ const AttendanceList = () => {
             };
           }
 
-          // 4️⃣ Else Attendance Record
           return {
             date,
             status: reportMap[date] || "Absent",
@@ -240,6 +282,27 @@ const AttendanceList = () => {
     }
   };
 
+  // 🌀 Show loader while permissions are fetched
+  if (loading && !permissions) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
+
+  // 🚫 No View Permission
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
   return (
     <>
       <Row className="mt-4">
@@ -247,10 +310,12 @@ const AttendanceList = () => {
           <Card className="shadow-sm border-0">
             <Card.Header className="bg-white d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Attendance</h5>
-              <Button variant="outline-primary" size="sm">
-                <BsDownload className="me-2" />
-                Export
-              </Button>
+              {permissions.add && (
+                <Button variant="outline-primary" size="sm">
+                  <BsDownload className="me-2" />
+                  Export
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body>
@@ -307,18 +372,20 @@ const AttendanceList = () => {
                   md={2}
                   className="d-flex align-items-end justify-content-end mb-2"
                 >
-                  <Button
-                    variant="primary"
-                    className="w-100"
-                    onClick={fetchAttendance}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Spinner animation="border" size="sm" />
-                    ) : (
-                      "Load"
-                    )}
-                  </Button>
+                  {permissions.view && (
+                    <Button
+                      variant="primary"
+                      className="w-100"
+                      onClick={fetchAttendance}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <Spinner animation="border" size="sm" />
+                      ) : (
+                        "Load"
+                      )}
+                    </Button>
+                  )}
                 </Col>
               </Row>
 

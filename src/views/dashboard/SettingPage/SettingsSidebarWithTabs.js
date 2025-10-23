@@ -44,6 +44,11 @@ import NetMeteringFieldList from "../work/NetMetering/NetMeteringFieldList";
 import NodalPointList from "../work/NodalPoint/NodalPointList";
 import InventoryCategoriesList from "../InventoryManagement/InventoryCategories/InventoryCategoriesList";
 import InventoryTypeList from "../InventoryManagement/InventoryType/InventoryTypeList";
+import SalaryComponentList from "../Employees/Leaves/leaves-list";
+import SalaryComponentListR from "../Employees/SalaryComponents/SalaryComponentListR";
+import SalaryTDSList from "../Employees/SalaryTDS/SalaryTDSList";
+import SalaryPaymentMethodList from "../Employees/SalaryPaymentMethod/SalaryPaymentMethodList";
+import SalaryGroupList from "../Employees/SalaryGroups/SalaryGroupList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -337,6 +342,30 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Bank" && activeTab === 0 && (
               <>
                 <BankList />
+              </>
+            )}
+
+            {activeSidebar === "Payroll" && activeTab === 0 && (
+              <>
+                <SalaryComponentListR />
+              </>
+            )}
+
+            {activeSidebar === "Payroll" && activeTab === 1 && (
+              <>
+                <SalaryGroupList />
+              </>
+            )}
+
+            {activeSidebar === "Payroll" && activeTab === 2 && (
+              <>
+                <SalaryTDSList />
+              </>
+            )}
+
+            {activeSidebar === "Payroll" && activeTab === 3 && (
+              <>
+                <SalaryPaymentMethodList />
               </>
             )}
           </Box>

@@ -27,7 +27,7 @@ const EmployeeList = () => {
   const [permissions, setPermissions] = useState(null);
   const [permLoading, setPermLoading] = useState(true);
 
-  // Pagination states
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const rolesPerPage = 10;
   const indexOfLastRole = currentPage * rolesPerPage;
@@ -39,35 +39,31 @@ const EmployeeList = () => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // 🔑 Fetch Role Permissions
+  // 🔑 Fetch Role Permissions (with any_one)
   const FETCHPERMISSION = async () => {
     setPermLoading(true);
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-
       let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
+
+      if (Array.isArray(res.data)) data = res.data;
+      else if (Array.isArray(res.data.data)) data = res.data.data;
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
 
-      // ✅ Super Admin (roleId == 1) gets full access
+      // ✅ Super Admin full access
       if (roleId === "1") {
         setPermissions({
           view: true,
           add: true,
           edit: true,
           del: true,
+          any_one: true,
         });
         return;
       }
 
-      // ✅ Match current role + route
+      // ✅ Match route + role
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
@@ -80,6 +76,9 @@ const EmployeeList = () => {
           add: matchedPermission.add === true || matchedPermission.add === 1,
           edit: matchedPermission.edit === true || matchedPermission.edit === 1,
           del: matchedPermission.del === true || matchedPermission.del === 1,
+          any_one:
+            matchedPermission.any_one === true ||
+            matchedPermission.any_one === 1,
         });
       } else {
         setPermissions(null);
@@ -96,20 +95,23 @@ const EmployeeList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 👥 Fetch Employee Data
+  // 👥 Fetch Employees
   const fetchEmployee = async () => {
     setLoading(true);
     try {
       const roleId = String(sessionStorage.getItem("roleId"));
-      const empId = String(sessionStorage.getItem("employee_id")); // 👈 get logged-in employee id
+      const empId = String(sessionStorage.getItem("employee_id"));
       const res = await api.get("/api/v1/admin/employee");
       const allEmployees = res.data.data || [];
 
       if (roleId === "1") {
         // 👑 Super Admin - show all
         setEmployee(allEmployees);
+      } else if (permissions?.any_one) {
+        // 🌐 any_one = true → show all
+        setEmployee(allEmployees);
       } else {
-        // 👤 Normal employee - show only their own record
+        // 👤 Own record only
         const filtered = allEmployees.filter((emp) => String(emp.id) === empId);
         setEmployee(filtered);
       }
@@ -121,14 +123,16 @@ const EmployeeList = () => {
     }
   };
 
+  // ✅ Fetch employee list only after permissions are ready
   useEffect(() => {
-    fetchEmployee();
-  }, []);
+    if (!permLoading && permissions?.view) {
+      fetchEmployee();
+    }
+  }, [permLoading, permissions]);
 
   const handleEdit = (id) => navigate(`/update-employee/${id}`);
   const handleView = (id) => navigate(`/view-employee/${id}`);
 
-  // 🗑 Delete Logic
   const openDeleteModal = (id, idx) => {
     setDeleteIndex(idx);
     setShowDelete(true);
@@ -150,7 +154,6 @@ const EmployeeList = () => {
       });
   };
 
-  // 🔁 Toggle Employee Active Status
   const handleToggleActive = async (id, status) => {
     const newStatus = !status;
     try {
@@ -175,7 +178,7 @@ const EmployeeList = () => {
     if (page > 0 && page <= totalPages) setCurrentPage(page);
   };
 
-  // 🌀 Loader while checking permissions
+  // 🌀 Loader
   if (permLoading) {
     return (
       <div className="loader-div">

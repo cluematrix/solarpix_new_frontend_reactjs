@@ -122,12 +122,12 @@ const Expensess = () => {
     try {
       const [empRes, projRes, catRes] = await Promise.all([
         api.get("/api/v1/admin/employee/active"),
-        api.get("/api/v1/admin/project/active"),
-        api.get("/api/v1/admin/expenseCategory/active"),
+        api.get("/api/v1/admin/project/active/pagination"),
+        api.get("/api/v1/admin/expenseCategory"),
       ]);
-      setEmployees(empRes.data.data || []);
-      setProjects(projRes.data.data || []);
-      setCategories(catRes.data || []);
+      setEmployees(empRes.data.data || empRes.data || []);
+      setProjects(projRes.data.data || projRes.data || []);
+      setCategories(catRes.data || catRes.data || []);
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
       toast.error("Failed to load dropdown data");
@@ -356,7 +356,8 @@ const Expensess = () => {
                 <strong>Employee:</strong> {selectedExpense.employee?.name}
               </p>
               <p>
-                <strong>Project:</strong> {selectedExpense.project?.project_name}
+                <strong>Project:</strong>{" "}
+                {selectedExpense.project?.project_name}
               </p>
               <p>
                 <strong>Category:</strong> {selectedExpense.category?.category}
@@ -365,8 +366,7 @@ const Expensess = () => {
                 <strong>Price:</strong> {selectedExpense.price}
               </p>
               <p>
-                <strong>Purchase Date:</strong>{" "}
-                {selectedExpense.purchase_date}
+                <strong>Purchase Date:</strong> {selectedExpense.purchase_date}
               </p>
               <p>
                 <strong>Description:</strong> {selectedExpense.description}
