@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
   Row,
@@ -12,17 +12,21 @@ import {
 } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteModal from "./deleteModal";
 import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const EmployeeList = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const [employee, setEmployee] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [permissions, setPermissions] = useState(null);
+  const [permLoading, setPermLoading] = useState(true);
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const rolesPerPage = 10;
@@ -35,14 +39,83 @@ const EmployeeList = () => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // fetch employee
+  // 🔑 Fetch Role Permissions
+  const FETCHPERMISSION = async () => {
+    setPermLoading(true);
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Super Admin (roleId == 1) gets full access
+      if (roleId === "1") {
+        setPermissions({
+          view: true,
+          add: true,
+          edit: true,
+          del: true,
+        });
+        return;
+      }
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching permissions:", err);
+      setPermissions(null);
+    } finally {
+      setPermLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // 👥 Fetch Employee Data
   const fetchEmployee = async () => {
     setLoading(true);
     try {
+      const roleId = String(sessionStorage.getItem("roleId"));
+      const empId = String(sessionStorage.getItem("employee_id")); // 👈 get logged-in employee id
       const res = await api.get("/api/v1/admin/employee");
-      setEmployee(res.data.data || []);
+      const allEmployees = res.data.data || [];
+
+      if (roleId === "1") {
+        // 👑 Super Admin - show all
+        setEmployee(allEmployees);
+      } else {
+        // 👤 Normal employee - show only their own record
+        const filtered = allEmployees.filter((emp) => String(emp.id) === empId);
+        setEmployee(filtered);
+      }
     } catch (err) {
       console.error("Error fetching employee:", err);
+      errorToast("Failed to fetch employees");
     } finally {
       setLoading(false);
     }
@@ -52,17 +125,10 @@ const EmployeeList = () => {
     fetchEmployee();
   }, []);
 
-  // navigate to edit page
-  const handleEdit = (id) => {
-    navigate(`/update-employee/${id}`);
-  };
+  const handleEdit = (id) => navigate(`/update-employee/${id}`);
+  const handleView = (id) => navigate(`/view-employee/${id}`);
 
-  // navigate to view page
-  const handleView = (id) => {
-    navigate(`/view-employee/${id}`);
-  };
-
-  // delete modal
+  // 🗑 Delete Logic
   const openDeleteModal = (id, idx) => {
     setDeleteIndex(idx);
     setShowDelete(true);
@@ -79,20 +145,19 @@ const EmployeeList = () => {
         setShowDelete(false);
       })
       .catch((err) => {
-        console.error("Error deleting department:", err);
+        console.error("Error deleting employee:", err);
         errorToast(err.response?.data?.message || "Failed to delete employee");
       });
   };
 
+  // 🔁 Toggle Employee Active Status
   const handleToggleActive = async (id, status) => {
     const newStatus = !status;
     try {
       const res = await api.put(`/api/v1/admin/employee/${id}`, {
         isActive: newStatus,
       });
-      console.log("resUpdatedEmp", res);
       if (res.status === 200) {
-        console.log("enter", res.status);
         successToast("Employee status updated successfully");
         setEmployee((prev) =>
           prev.map((emp) =>
@@ -101,18 +166,35 @@ const EmployeeList = () => {
         );
       }
     } catch (err) {
-      console.error("Error employee status:", err);
-      errorToast(
-        err.response?.data?.message || "Failed to update employee status"
-      );
+      console.error("Error updating employee status:", err);
+      errorToast("Failed to update employee status");
     }
   };
 
   const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+    if (page > 0 && page <= totalPages) setCurrentPage(page);
   };
+
+  // 🌀 Loader while checking permissions
+  if (permLoading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
+
+  // 🚫 No view permission
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -124,12 +206,14 @@ const EmployeeList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Employees</h5>
-              <Button
-                className="btn-primary fs-6"
-                onClick={() => navigate("/add-employee")}
-              >
-                + Add Employee
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary fs-6"
+                  onClick={() => navigate("/add-employee")}
+                >
+                  + Add Employee
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0 pt-3">
@@ -173,30 +257,36 @@ const EmployeeList = () => {
                               {item.isActive ? "Active" : "Inactive"}
                             </td>
                             <td className="d-flex align-items-center">
-                              <Form.Check
-                                type="switch"
-                                id={`active-switch-${item.id}`}
-                                checked={item.isActive}
-                                onChange={() =>
-                                  handleToggleActive(item.id, item.isActive)
-                                }
-                              />
-                              <CreateTwoToneIcon
-                                onClick={() => handleEdit(item.id)}
-                                color="primary"
-                                style={{
-                                  cursor: "pointer",
-                                  marginLeft: "5px",
-                                }}
-                              />
-                              <DeleteRoundedIcon
-                                onClick={() => openDeleteModal(item.id, idx)}
-                                color="error"
-                                style={{
-                                  cursor: "pointer",
-                                  marginLeft: "5px",
-                                }}
-                              />
+                              {permissions.edit && (
+                                <Form.Check
+                                  type="switch"
+                                  id={`active-switch-${item.id}`}
+                                  checked={item.isActive}
+                                  onChange={() =>
+                                    handleToggleActive(item.id, item.isActive)
+                                  }
+                                />
+                              )}
+                              {permissions.edit && (
+                                <CreateTwoToneIcon
+                                  onClick={() => handleEdit(item.id)}
+                                  color="primary"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "5px",
+                                  }}
+                                />
+                              )}
+                              {permissions.del && (
+                                <DeleteRoundedIcon
+                                  onClick={() => openDeleteModal(item.id, idx)}
+                                  color="error"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "5px",
+                                  }}
+                                />
+                              )}
                               <VisibilityIcon
                                 onClick={() => handleView(item.id)}
                                 color="primary"
@@ -213,7 +303,8 @@ const EmployeeList = () => {
                   </Table>
                 </div>
               )}
-              {/* Pagination Controls */}
+
+              {/* Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
                   <Pagination.Prev

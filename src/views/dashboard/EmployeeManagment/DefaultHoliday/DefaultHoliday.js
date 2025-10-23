@@ -19,7 +19,7 @@ import { useLocation } from "react-router";
 
 const DefaultHoliday = () => {
   const [holidayList, setHolidayList] = useState([]);
-  const [formData, setFormData] = useState({ day: "", occasion: "", year: "" });
+  const [formData, setFormData] = useState({ day: [], occasion: "", year: "" });
   const [editId, setEditId] = useState(null);
 
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -27,38 +27,23 @@ const DefaultHoliday = () => {
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // 🔑 Permission
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
 
-  // 🔄 Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
-
   const [loading, setLoading] = useState(true);
 
   // 🔑 Fetch Role Permissions
   const FETCHPERMISSION = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
-
       let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (Array.isArray(res.data.data)) {
-        data = res.data.data;
-      }
+
+      if (Array.isArray(res.data)) data = res.data;
+      else if (Array.isArray(res.data.data)) data = res.data.data;
 
       const roleId = String(sessionStorage.getItem("roleId"));
-      console.log(roleId, "roleId from sessionStorage");
-      console.log(pathname, "current pathname");
-
-      // // ✅ Match current role + route
-      // const matchedPermission = data.find(
-      //   (perm) =>
-      //     String(perm.role_id) === roleId &&
-      //     perm.route?.toLowerCase() === pathname?.toLowerCase()
-      // );
 
       const matchedPermission = data.find(
         (perm) =>
@@ -73,19 +58,17 @@ const DefaultHoliday = () => {
           edit: matchedPermission.edit === true || matchedPermission.edit === 1,
           del: matchedPermission.del === true || matchedPermission.del === 1,
         });
-      } else {
-        setPermissions(null);
-      }
+      } else setPermissions(null);
     } catch (err) {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); //  Stop loader after API call
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     setLoading(true);
-
     FETCHPERMISSION();
   }, [pathname]);
 
@@ -111,17 +94,23 @@ const DefaultHoliday = () => {
   // ✅ Add or Update
   const handleAddOrUpdate = () => {
     if (
-      !formData.day.trim() ||
-      !formData.occasion.trim() ||
-      !formData.year.trim()
+      !formData.day ||
+      formData.day.length === 0 ||
+      !formData.occasion?.trim() ||
+      !formData.year?.trim()
     ) {
-      toast.warning("Day, Occasion and Year are required");
+      toast.warning("Day(s), Occasion, and Year are required");
       return;
     }
 
+    const payload = {
+      ...formData,
+      day: Array.isArray(formData.day) ? formData.day : [formData.day],
+    };
+
     if (editId) {
       api
-        .put(`/api/v1/admin/defaultHoliday/${editId}`, formData)
+        .put(`/api/v1/admin/defaultHoliday/${editId}`, payload)
         .then(() => {
           toast.success("Default holiday updated successfully");
           fetchHolidays();
@@ -135,7 +124,7 @@ const DefaultHoliday = () => {
         });
     } else {
       api
-        .post("/api/v1/admin/defaultHoliday", formData)
+        .post("/api/v1/admin/defaultHoliday", payload)
         .then(() => {
           toast.success("Default holiday added successfully");
           fetchHolidays();
@@ -153,9 +142,13 @@ const DefaultHoliday = () => {
   const handleEdit = (index) => {
     const holiday = holidayList[index];
     setFormData({
-      day: holiday.day,
-      occasion: holiday.occasion,
-      year: holiday.year,
+      day: Array.isArray(holiday.day)
+        ? holiday.day
+        : holiday.day
+        ? holiday.day.split(",").map((d) => d.trim())
+        : [],
+      occasion: holiday.occasion || "",
+      year: holiday.year || "",
     });
     setEditId(holiday.id);
     setShowAddEdit(true);
@@ -181,11 +174,11 @@ const DefaultHoliday = () => {
 
   const resetForm = () => {
     setShowAddEdit(false);
-    setFormData({ day: "", occasion: "", year: "" });
+    setFormData({ day: [], occasion: "", year: "" });
     setEditId(null);
   };
 
-  //  Loader while checking permissions
+  // Loader
   if (loading) {
     return (
       <div className="loader-div">
@@ -193,6 +186,7 @@ const DefaultHoliday = () => {
       </div>
     );
   }
+
   if (!permissions?.view) {
     return (
       <div
@@ -204,7 +198,7 @@ const DefaultHoliday = () => {
     );
   }
 
-  // 🔄 Pagination Logic
+  // 🔄 Pagination
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = holidayList.slice(
@@ -222,7 +216,7 @@ const DefaultHoliday = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Default Holiday </h5>
+              <h5 className="card-title fw-lighter">Default Holiday</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -239,7 +233,7 @@ const DefaultHoliday = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Day</th>
+                      <th>Day(s)</th>
                       <th>Occasion</th>
                       <th>Year</th>
                       <th>Action</th>
@@ -256,7 +250,11 @@ const DefaultHoliday = () => {
                       currentRecords.map((item, idx) => (
                         <tr key={item.id}>
                           <td>{indexOfFirstRecord + idx + 1}</td>
-                          <td>{item.day}</td>
+                          <td>
+                            {Array.isArray(item.day)
+                              ? item.day.join(", ")
+                              : item.day}
+                          </td>
                           <td>{item.occasion}</td>
                           <td>{item.year}</td>
                           <td className="d-flex align-items-center">
@@ -289,7 +287,7 @@ const DefaultHoliday = () => {
                 </Table>
               </div>
 
-              {/* Pagination Controls */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
                   <Pagination.Prev
@@ -300,13 +298,13 @@ const DefaultHoliday = () => {
                     <Pagination.Item
                       key={i + 1}
                       active={i + 1 === currentPage}
-                      onClick={() => setCurrentPage((prev) => prev - 1)}
+                      onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
                     </Pagination.Item>
                   ))}
                   <Pagination.Next
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   />
                 </Pagination>
@@ -346,7 +344,6 @@ const DefaultHoliday = () => {
         }
       />
 
-      {/* Toast container */}
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );

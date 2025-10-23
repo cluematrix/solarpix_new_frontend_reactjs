@@ -10,6 +10,9 @@ import { GiPalmTree } from "react-icons/gi"; // Leave icon
 
 const AttendanceList = () => {
   const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDept, setSelectedDept] = useState("");
   const [selectedEmp, setSelectedEmp] = useState("");
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -20,28 +23,21 @@ const AttendanceList = () => {
   const [loading, setLoading] = useState(false);
 
   // 🟢 Fetch Active Employees
-  // 🟢 Fetch Active Employees
   const fetchEmployees = async () => {
     setLoading(true);
     try {
       const res = await api.get("/api/v1/admin/employee/active");
       const empList = res.data.data || [];
+      setEmployees(empList);
 
-      // Get employee ID and role from sessionStorage
-      const sessionEmpId = sessionStorage.getItem("employee_id");
-      const sessionRoleId = sessionStorage.getItem("roleId");
-
-      if (parseInt(sessionRoleId) === 1) {
-        // Admin: show all employees
-        setEmployees(empList);
-      } else {
-        // Non-admin: show only the employee from session
-        const filtered = empList.filter(
-          (emp) => emp.id === parseInt(sessionEmpId)
-        );
-        setEmployees(filtered);
-        setSelectedEmp(sessionEmpId); // auto select employee
-      }
+      const uniqueDepts = [
+        ...new Map(
+          empList
+            .filter((e) => e.department)
+            .map((e) => [e.department.id, e.department])
+        ).values(),
+      ];
+      setDepartments(uniqueDepts);
     } catch (err) {
       console.error("Error fetching employees:", err);
       toast.error("Failed to fetch employees");
@@ -54,7 +50,13 @@ const AttendanceList = () => {
   const fetchHolidays = async () => {
     try {
       const res = await api.get("/api/v1/admin/holiday/active");
-      setHolidays(res.data.data || []);
+      if (res.data && Array.isArray(res.data)) {
+        setHolidays(res.data);
+      } else if (res.data.data) {
+        setHolidays(res.data.data);
+      } else {
+        setHolidays([]);
+      }
     } catch (err) {
       console.error("Error fetching holidays:", err);
       toast.error("Failed to fetch holidays");
@@ -65,7 +67,13 @@ const AttendanceList = () => {
   const fetchDefaultHolidays = async () => {
     try {
       const res = await api.get("/api/v1/admin/defaultHoliday/active");
-      setDefaultHolidays(res.data.data || []);
+      if (Array.isArray(res.data)) {
+        setDefaultHolidays(res.data);
+      } else if (res.data.data) {
+        setDefaultHolidays(res.data.data);
+      } else {
+        setDefaultHolidays([]);
+      }
     } catch (err) {
       console.error("Error fetching default holidays:", err);
       toast.error("Failed to fetch default holidays");
@@ -76,10 +84,12 @@ const AttendanceList = () => {
   const fetchEmployeeLeaves = async () => {
     try {
       const res = await api.get("/api/v1/admin/employeeLeave/");
-      const approved = (res.data.data || []).filter(
-        (l) => l.status === "approve"
-      );
-      setEmployeeLeaves(approved);
+      if (res.data && res.data.data) {
+        const approved = res.data.data.filter((l) => l.status === "approve");
+        setEmployeeLeaves(approved);
+      } else {
+        setEmployeeLeaves([]);
+      }
     } catch (err) {
       console.error("Error fetching leaves:", err);
       toast.error("Failed to fetch employee leaves");
@@ -92,6 +102,17 @@ const AttendanceList = () => {
     fetchDefaultHolidays();
     fetchEmployeeLeaves();
   }, []);
+
+  useEffect(() => {
+    if (selectedDept) {
+      const filtered = employees.filter(
+        (emp) => emp.department?.id === parseInt(selectedDept)
+      );
+      setFilteredEmployees(filtered);
+    } else {
+      setFilteredEmployees([]);
+    }
+  }, [selectedDept, employees]);
 
   // 🗓️ Get all dates for a month
   const getAllDatesOfMonth = (month, year) => {
@@ -148,6 +169,7 @@ const AttendanceList = () => {
           const defaultHoliday = defaultHolidays.find((h) =>
             h.day.includes(dayName)
           );
+
           if (defaultHoliday) {
             return {
               date,
@@ -220,6 +242,7 @@ const AttendanceList = () => {
     }
   };
 
+  // 🧩 Render icons
   const renderStatusIcon = (status, occasion) => {
     switch (status) {
       case "Present":
@@ -242,12 +265,34 @@ const AttendanceList = () => {
 
   return (
     <>
+      <style>{`
+        @media (max-width: 768px) {
+          .attendance-table th,
+          .attendance-table td {
+            font-size: 10px;
+            padding: 0.25rem;
+          }
+          .attendance-table th:first-child,
+          .attendance-table td:first-child {
+            min-width: 150px;
+            text-align: left;
+          }
+          .attendance-table {
+            white-space: nowrap;
+          }
+        }
+      `}</style>
+
       <Row className="mt-4">
         <Col sm="12">
           <Card className="shadow-sm border-0">
             <Card.Header className="bg-white d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Attendance</h5>
-              <Button variant="outline-primary" size="sm">
+              <Button
+                variant="outline-primary"
+                size="sm"
+                className="d-none d-md-inline-flex"
+              >
                 <BsDownload className="me-2" />
                 Export
               </Button>
@@ -256,7 +301,27 @@ const AttendanceList = () => {
             <Card.Body>
               {/* Filters */}
               <Row className="mb-3">
-                <Col xs={12} md={4} className="mb-2">
+                <Col xs={12} md={3} className="mb-2">
+                  <Form.Group>
+                    <Form.Label>Department</Form.Label>
+                    <Form.Select
+                      value={selectedDept}
+                      onChange={(e) => {
+                        setSelectedDept(e.target.value);
+                        setSelectedEmp("");
+                      }}
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+
+                <Col xs={12} md={3} className="mb-2">
                   <Form.Group>
                     <Form.Label>Employee</Form.Label>
                     <Form.Select
@@ -264,7 +329,7 @@ const AttendanceList = () => {
                       onChange={(e) => setSelectedEmp(e.target.value)}
                     >
                       <option value="">Select Employee</option>
-                      {employees.map((emp) => (
+                      {filteredEmployees.map((emp) => (
                         <option key={emp.id} value={emp.id}>
                           {emp.name}
                         </option>
@@ -349,14 +414,14 @@ const AttendanceList = () => {
                     bordered
                     hover
                     size="sm"
-                    className="align-middle text-center"
+                    className="align-middle text-center attendance-table"
                   >
                     <thead className="table-light">
                       <tr>
                         <th>Employee</th>
                         {attendanceData[0].attendance
                           .filter(
-                            (d) => new Date(d.date).getMonth() === month - 1
+                            (d) => new Date(d.date).getMonth() + 1 === month
                           )
                           .sort((a, b) => new Date(a.date) - new Date(b.date))
                           .map((d, idx) => (
@@ -377,7 +442,7 @@ const AttendanceList = () => {
                           </td>
                           {emp.attendance
                             .filter(
-                              (d) => new Date(d.date).getMonth() === month - 1
+                              (d) => new Date(d.date).getMonth() + 1 === month
                             )
                             .sort((a, b) => new Date(a.date) - new Date(b.date))
                             .map((d, idx) => (

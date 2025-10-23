@@ -4,35 +4,108 @@ import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddEditLeaveModal from "./add-edit-modal";
-import ViewLeaveModal from "./view-modal"; // new modal
+import ViewLeaveModal from "./view-modal";
 import api from "../../../../api/axios";
-import Select from "react-select";
+import { useLocation } from "react-router-dom";
+import { successToast } from "../../../../components/Toast/successToast";
+import { errorToast } from "../../../../components/Toast/errorToast";
+
 const LeaveList = () => {
   const [leaveList, setLeaveList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [permissions, setPermissions] = useState(null);
+  const [permLoading, setPermLoading] = useState(true);
+
   const [editIndex, setEditIndex] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
+  const [viewData, setViewData] = useState(null);
 
-  const [viewData, setViewData] = useState(null); // for view modal
+  const { pathname } = useLocation();
 
-  // 🔹 Fetch leaves from API
+  // 🔹 Fetch role permissions
+  const FETCHPERMISSION = async () => {
+    setPermLoading(true);
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+
+      // ✅ Super Admin gets full access
+      if (roleId === "1") {
+        setPermissions({
+          view: true,
+          add: true,
+          edit: true,
+          del: true,
+        });
+        return;
+      }
+
+      // ✅ Find permission based on current route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching permissions:", err);
+      setPermissions(null);
+    } finally {
+      setPermLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // 🔹 Fetch leaves (filter based on session employeeId)
   const fetchLeaves = async () => {
     try {
       setLoading(true);
+      const roleId = String(sessionStorage.getItem("roleId"));
+      const empId = String(sessionStorage.getItem("employee_id"));
       const res = await api.get("/api/v1/admin/employeeLeave");
 
-      // Adjust based on API response structure
-      if (Array.isArray(res.data)) {
-        setLeaveList(res.data);
-      } else if (Array.isArray(res.data.data)) {
-        setLeaveList(res.data.data);
+      const allLeaves = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.data)
+        ? res.data.data
+        : [];
+
+      if (roleId === "1") {
+        // 👑 Super Admin - show all
+        setLeaveList(allLeaves);
       } else {
-        setLeaveList([]);
+        // 👤 Normal Employee - show only their leaves
+        const filtered = allLeaves.filter(
+          (leave) => String(leave.employee_id) === empId
+        );
+        setLeaveList(filtered);
       }
     } catch (error) {
       console.error("Error fetching leaves:", error);
-      setLeaveList([]); // prevent crash
+      errorToast("Failed to fetch leave requests");
+      setLeaveList([]);
     } finally {
       setLoading(false);
     }
@@ -42,11 +115,7 @@ const LeaveList = () => {
     fetchLeaves();
   }, []);
 
-  const statusOptions = [
-    { value: "pending", label: "⏳ Pending" },
-    { value: "approve", label: "✅ Approve" },
-    { value: "reject", label: "❌ Reject" },
-  ];
+  // 🔹 Save leave locally after modal submit
   const handleSaveLeave = (data) => {
     if (editIndex !== null) {
       const updatedList = [...leaveList];
@@ -72,17 +141,19 @@ const LeaveList = () => {
 
     try {
       await api.delete(`/api/v1/admin/employeeLeave/${id}`);
+      successToast("Leave deleted successfully");
       setLeaveList(leaveList.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error deleting leave:", error);
-      alert("Failed to delete leave. Please try again.");
+      errorToast("Failed to delete leave");
     }
   };
 
-  // 🔹 Update status
+  // 🔹 Update leave status
   const handleStatusChange = async (id, newStatus) => {
     try {
       await api.put(`/api/v1/admin/employeeLeave/${id}`, { status: newStatus });
+      successToast("Leave status updated");
       setLeaveList((prev) =>
         prev.map((item) =>
           item.id === id ? { ...item, status: newStatus } : item
@@ -90,9 +161,30 @@ const LeaveList = () => {
       );
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Failed to update status. Please try again.");
+      errorToast("Failed to update status");
     }
   };
+
+  // 🌀 Loader while checking permissions
+  if (permLoading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
+
+  // 🚫 No view permission
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -104,12 +196,14 @@ const LeaveList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Leave Requests</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => setShowAddEdit(true)}
-              >
-                + Add Leave
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => setShowAddEdit(true)}
+                >
+                  + Add Leave
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0 pt-3">
@@ -134,7 +228,7 @@ const LeaveList = () => {
                     <tbody>
                       {leaveList.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="text-center ">
+                          <td colSpan="7" className="text-center">
                             No leave requests available
                           </td>
                         </tr>
@@ -147,26 +241,29 @@ const LeaveList = () => {
                             <td>{item.duration}</td>
                             <td>{item.reason}</td>
                             <td>
-                              <Form.Select
-                                size="sm"
-                                className={`status-dropdown text-black ${
-                                  item.status === "pending"
-                                    ? "status-pending"
-                                    : item.status === "approve"
-                                    ? "status-approve"
-                                    : "status-reject"
-                                }`}
-                                value={item.status}
-                                onChange={(e) =>
-                                  handleStatusChange(item.id, e.target.value)
-                                }
-                              >
-                                <option value="pending">⏳ Pending</option>
-                                <option value="approve">✅ Approve</option>
-                                <option value="reject">❌ Reject</option>
-                              </Form.Select>
+                              {permissions.edit ? (
+                                <Form.Select
+                                  size="sm"
+                                  className={`status-dropdown text-black ${
+                                    item.status === "pending"
+                                      ? "status-pending"
+                                      : item.status === "approve"
+                                      ? "status-approve"
+                                      : "status-reject"
+                                  }`}
+                                  value={item.status}
+                                  onChange={(e) =>
+                                    handleStatusChange(item.id, e.target.value)
+                                  }
+                                >
+                                  <option value="pending">⏳ Pending</option>
+                                  <option value="approve">✅ Approve</option>
+                                  <option value="reject">❌ Reject</option>
+                                </Form.Select>
+                              ) : (
+                                <span>{item.status}</span>
+                              )}
                             </td>
-
                             <td>
                               <VisibilityIcon
                                 className="me-2"
@@ -174,17 +271,21 @@ const LeaveList = () => {
                                 color="action"
                                 style={{ cursor: "pointer" }}
                               />
-                              <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() => handleEdit(idx)}
-                                color="primary"
-                                style={{ cursor: "pointer" }}
-                              />
-                              <DeleteRoundedIcon
-                                onClick={() => handleDelete(item.id)}
-                                color="error"
-                                style={{ cursor: "pointer" }}
-                              />
+                              {permissions.edit && (
+                                <CreateTwoToneIcon
+                                  className="me-2"
+                                  onClick={() => handleEdit(idx)}
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                              {permissions.del && (
+                                <DeleteRoundedIcon
+                                  onClick={() => handleDelete(item.id)}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
                             </td>
                           </tr>
                         ))
