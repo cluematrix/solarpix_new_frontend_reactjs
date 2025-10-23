@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Badge, Button, Form, Modal } from "react-bootstrap";
 
-const SelectWithModal = ({ 
-  label,              // UI label (e.g. "Coordinate Members")
-  formik,             // formik instance
-  formikField,        // field name in formik (e.g. "co_ordinate")
-  options,            // list of available options (array of {id, name})
-  optionLabel = "name" // which field to display in label (default: name)
+const SelectWithModal = ({
+  label, // UI label (e.g. "Coordinate Members")
+  formik, // formik instance
+  formikField, // field name in formik (e.g. "co_ordinate")
+  options, // list of available options (array of {id, name})
+  optionLabel = "name", // which field to display in label (default: name)
 }) => {
   const [showModal, setShowModal] = useState(false);
 
@@ -24,15 +24,15 @@ const SelectWithModal = ({
   };
 
   const selectedNames = options
-    .filter((m) => (formik.values[formikField] || []).includes(m.id))
-    .map((m) => m[optionLabel]);
+    ?.filter((m) => (formik.values[formikField] || [])?.includes(m.id))
+    ?.map((m) => m[optionLabel]);
 
   return (
     <Form.Group>
       <Form.Label className="pt-4">{label}</Form.Label>
       <div>
-        {!showModal && selectedNames.length > 0 ? (
-          selectedNames.map((name) => (
+        {!showModal && selectedNames?.length > 0 ? (
+          selectedNames?.map((name) => (
             <Badge key={name} bg="light" text="dark" className="me-2 p-1">
               {name}
             </Badge>
@@ -60,7 +60,7 @@ const SelectWithModal = ({
         <Modal.Body>
           {options?.map((opt) => (
             <Form.Check
-            id={opt.id}
+              id={opt.id}
               key={opt.id}
               type="checkbox"
               label={opt[optionLabel]}

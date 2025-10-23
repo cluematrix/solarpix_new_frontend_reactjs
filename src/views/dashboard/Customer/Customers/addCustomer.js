@@ -24,9 +24,11 @@ import { useLocation } from "react-router-dom";
 const AddCustomer = () => {
   const location = useLocation();
   const leadId = location.state.leadId.leadId || location.state.leadId;
+  const asPerSalesOrder = location?.state?.asPerSalesOrder;
 
   console.log("leadDataCustomer", leadId);
   console.log("location", location);
+  console.log("asPerSalesOrder", asPerSalesOrder);
   const initialValues = {
     salutation: "",
     name: "",
@@ -48,6 +50,7 @@ const AddCustomer = () => {
     kyc_status: "Pending",
     lead_id: leadId,
     dynamic_fields: {},
+    as_per_sales_order: asPerSalesOrder,
   };
 
   const navigate = useNavigate();
@@ -96,6 +99,9 @@ const AddCustomer = () => {
 
   const onSubmit = async (values, { resetForm }) => {
     try {
+      if (!values.as_per_sales_order && location?.state?.asPerSalesOrder) {
+        values.as_per_sales_order = location.state.asPerSalesOrder;
+      }
       const formData = new FormData();
       Object.keys(values).forEach((key) => {
         if (values[key] !== "" && values[key] !== null) {
@@ -157,6 +163,7 @@ const AddCustomer = () => {
     initialValues,
     validationSchema,
     onSubmit,
+    enableReinitialize: true,
   });
 
   const {
@@ -169,6 +176,8 @@ const AddCustomer = () => {
     setFieldValue,
     isSubmitting,
   } = formik;
+
+  console.log("valuesCust", values);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -233,6 +242,7 @@ const AddCustomer = () => {
         setFieldValue("billing_city", data.city || "");
         setFieldValue("billing_state", data.state || "");
         setFieldValue("billing_pincode", data.pincode || "");
+        setFieldValue("as_per_sales_order", data.asPerSalesOrder || "");
         setFieldValue("lead_id", leadId || "");
       } catch (err) {
         console.error("Error fetching stock material:", err);

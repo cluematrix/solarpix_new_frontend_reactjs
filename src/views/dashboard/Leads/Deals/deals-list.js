@@ -136,6 +136,7 @@ const DealList = () => {
     );
   }
 
+  console.log("selectedDeal", selectedDeal);
   return (
     <>
       <Row className="mt-4">
@@ -356,7 +357,11 @@ const DealList = () => {
             variant="success"
             onClick={() => {
               navigate(`/UpdateQuotationNew/${selectedDeal.id}`, {
-                state: { isCustomerNeg: true, isCustomer: false },
+                state: {
+                  isCustomerNeg: true,
+                  isCustomer: false,
+                  asPerSalesOrder: selectedDeal?.total,
+                },
               });
             }}
           >
@@ -392,7 +397,10 @@ const DealList = () => {
             variant="success"
             onClick={() => {
               navigate("/add-customer", {
-                state: { leadId: selectedDeal.lead.id },
+                state: {
+                  leadId: selectedDeal.lead.id,
+                  asPerSalesOrder: selectedDeal?.total,
+                },
               });
             }}
           >

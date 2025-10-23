@@ -9,6 +9,7 @@ const EditModalSrNo = ({
   onSave,
   modalTitle,
   buttonLabel,
+  loadingBtn,
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault(); // prevent page reload
@@ -34,8 +35,8 @@ const EditModalSrNo = ({
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" type="submit">
-            {buttonLabel}
+          <Button variant="primary" type="submit" disabled={loadingBtn}>
+            {loadingBtn ? "Loading..." : buttonLabel}
           </Button>
         </Modal.Footer>
       </Form>

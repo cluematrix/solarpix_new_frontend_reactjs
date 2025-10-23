@@ -1,12 +1,20 @@
 // Created by: Sufyan 26 Sep 2025
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Col, Form, Row } from "react-bootstrap";
 import CustomInput from "../../../../../components/Form/CustomInput";
 import CustomSelect from "../../../../../components/Form/CustomSelect";
 import CustomCheckbox from "../../../../../components/Form/CustomCheckbox";
 
 const AddProjectInfo = ({ formik, metaData }) => {
+  const filterAsPerSalesOrder = metaData.clientList.find(
+    (item) => item.id === Number(formik.values.client_id)
+  );
+
+  useEffect(() => {
+    formik.setFieldValue("estimate", filterAsPerSalesOrder?.as_per_sales_order);
+  }, [formik.values.client_id]);
+
   return (
     <Form>
       <div className="mb-3 mt-3 fw-light">
@@ -111,15 +119,14 @@ const AddProjectInfo = ({ formik, metaData }) => {
       <Row className="mt-3">
         <Col md={4}>
           <CustomInput
-            label="As per Sales Order"
+            label="As Per Sales Order"
             name="estimate"
             value={formik.values.estimate}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             placeholder="eg: ₹10000"
-            touched={formik.touched.estimate}
-            errors={formik.errors.estimate}
-            required={true}
+            disabled={true}
+            readOnly={true}
           />
         </Col>
       </Row>

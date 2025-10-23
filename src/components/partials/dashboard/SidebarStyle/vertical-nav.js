@@ -1499,65 +1499,6 @@ const VerticalNav = memo((props) => {
           </CustomToggle>
           <Accordion.Collapse eventKey="sidebar-auth2">
             <ul className="sub-nav">
-              {/* <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/taskcategory-list" ? "active" : ""
-                  } nav-link`}
-                  to="/taskcategory-list"
-                >
-                  <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Task Category
-                  </span>
-                </Link>
-              </li> */}
-
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/projectcategory-list"
-                      ? "active"
-                      : ""
-                  } nav-link`}
-                  to="/projectcategory-list"
-                >
-                  <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <AccountTreeIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Project Category
-                  </span>
-                </Link>
-              </li>
-
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/stock-list" ? "active" : ""
-                  } nav-link`}
-                  to="/stock-list"
-                >
-                  <i className="icon">
-                    <WarehouseSharpIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <WarehouseSharpIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">Stock</span>
-                </Link>
-              </li>
               <li className="nav-item">
                 <Link
                   className={`${

@@ -56,6 +56,12 @@ const AddSalesOrder = () => {
       if (!selectedItemsData)
         return errorToast("Please add at least one item.");
 
+      const totalValue = (
+        subTotals.subTotal -
+        subTotals.deductionAmount +
+        subTotals.adjustment
+      ).toFixed(2);
+
       try {
         // Determine which ID to send
         const isTDS = subTotals.taxType === "TDS";
@@ -73,11 +79,7 @@ const AddSalesOrder = () => {
             2
           ),
           adjustment: parseFloat(subTotals.adjustment || 0),
-          total: (
-            subTotals.subTotal -
-            subTotals.deductionAmount +
-            subTotals.adjustment
-          ).toFixed(2),
+          total: totalValue,
 
           // 🔹 Tax type details
           type: subTotals.taxType || null,
@@ -107,7 +109,10 @@ const AddSalesOrder = () => {
           // create the customer if not exist
           if (!filteredClient) {
             navigate("/add-customer", {
-              state: { leadId: values.lead_id },
+              state: {
+                leadId: values.lead_id,
+                asPerSalesOrder: totalValue,
+              },
             });
           } else {
             navigate("/sales-order-list");

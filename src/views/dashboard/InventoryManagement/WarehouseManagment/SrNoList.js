@@ -9,10 +9,11 @@ import EditModalSrNo from "./EditModalSrNo";
 
 const SrNoList = () => {
   const location = useLocation();
-  const { branch_id } = location.state;
-  const { stock_material_id } = location.state;
+  const { branch_id } = location?.state;
+  const { stock_material_id } = location?.state;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingBtn, setLoadingBtn] = useState(false);
 
   // for edit
   const [roleName, setRoleName] = useState("");
@@ -49,6 +50,7 @@ const SrNoList = () => {
   const handleEditSave = () => {
     if (editId) {
       // Update
+      setLoadingBtn(true);
       api
         .put(`/api/v1/admin/stockMaterialSrNo/updateSrNo/${editId}`, {
           serialNumber: roleName,
@@ -63,6 +65,10 @@ const SrNoList = () => {
           errorToast(
             err.response?.data?.message || "Failed to update serial number"
           );
+          setLoadingBtn(false);
+        })
+        .finally(() => {
+          setLoadingBtn(false);
         });
     }
   };
@@ -108,6 +114,7 @@ const SrNoList = () => {
                         <th>Inv Category</th>
                         <th>Material</th>
                         <th>Serial No</th>
+                        <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -122,12 +129,20 @@ const SrNoList = () => {
                             <td>{t.inv_cat?.category || "—"}</td>
                             <td>{t.stock_material?.material || "—"}</td>
                             <td>{t.serialNumber || "—"}</td>
+                            <td>{t.isUsed ? "Sold" : "Available" || "—"}</td>
                             <td>
                               {" "}
                               <CreateTwoToneIcon
-                                onClick={() => handleEdit(index)}
+                                onClick={
+                                  !t.isUsed
+                                    ? () => handleEdit(index)
+                                    : undefined
+                                }
                                 color="primary"
-                                style={{ cursor: "pointer" }}
+                                style={{
+                                  cursor: t.isUsed ? "not-allowed" : "pointer",
+                                  opacity: t.isUsed ? 0.5 : 1, // optional visual cue
+                                }}
                               />
                             </td>
                           </tr>
@@ -179,6 +194,7 @@ const SrNoList = () => {
         onSave={handleEditSave}
         modalTitle="Update Serial No."
         buttonLabel="Save"
+        loadingBtn={loadingBtn}
       />
     </>
   );

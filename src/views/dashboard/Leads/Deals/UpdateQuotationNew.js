@@ -19,6 +19,9 @@ const UpdateQuotationNew = () => {
   const isCustomer = location.state.isCustomer;
   const leadId = location.state;
   const isCustomerNeg = location.state.isCustomerNeg;
+  const asPerSalesOrder =
+    location.state.asPerSalesOrder.asPerSalesOrder ||
+    location.state.asPerSalesOrder;
 
   console.log("isCustomer", isCustomer);
   console.log("isCustomerNeg", isCustomerNeg);
@@ -139,7 +142,9 @@ const UpdateQuotationNew = () => {
           // Step 2: If customer flow, stop here and go to customer page
           if (isCustomer) {
             successToast("Quotation finalized and deal marked as Won");
-            navigate("/add-customer", { state: { leadId: leadId } });
+            navigate("/add-customer", {
+              state: { leadId: leadId, asPerSalesOrder: asPerSalesOrder },
+            });
             return; // prevent creating new deal
           }
         }

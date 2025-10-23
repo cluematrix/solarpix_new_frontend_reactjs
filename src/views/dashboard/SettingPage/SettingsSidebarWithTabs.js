@@ -126,12 +126,22 @@ export default function SettingsSidebarWithTabs() {
       </Drawer>
 
       {/* 📄 Right side content with tabs */}
-      <Box sx={{ flexGrow: 1, padding: "15px" }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          padding: "15px",
+          width: "100%",
+          overflowX: "auto",
+        }}
+      >
         <Paper elevation={1} sx={{ padding: "10px 16px 16px 16px" }}>
           {/* Tabs */}
           <Tabs
             value={activeTab}
             onChange={(e, newValue) => setActiveTab(newValue)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{
               "& .MuiTab-root": {
                 color: "#3a57e8", // text color

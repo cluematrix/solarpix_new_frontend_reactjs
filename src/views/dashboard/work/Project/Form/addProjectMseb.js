@@ -3,94 +3,71 @@
 import React from "react";
 import { Col, Form, Row } from "react-bootstrap";
 import CustomInput from "../../../../../components/Form/CustomInput";
+import CustomFileInput from "../../../../../components/Form/CustomFileInput";
 
-const AddProjectMseb = ({ formik }) => {
+const AddProjectMseb = ({ formik, msebField, handleDynamicChangeMseb }) => {
   return (
     <Form>
       <div className="mb-3 mt-3 fw-light">
         <h6>MSEB Information: </h6>
       </div>
-      {/* Row 1 {mseb_consumer_no, mseb_phone, mseb_email} */}
-      <Row>
-        <Col md={4}>
-          <CustomInput
-            label="Consumer No"
-            name="mseb_consumer_no"
-            value={formik.values.mseb_consumer_no}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter Consumer No"
-            touched={formik.touched.mseb_consumer_no}
-            errors={formik.errors.mseb_consumer_no}
-          />
-        </Col>
+      <Row className="mt-3 mb-4">
+        {msebField.length > 0 ? (
+          msebField.map((field) => (
+            <Col md={4} key={field.id} className="mb-3">
+              {field.data_type === "text" && (
+                <CustomInput
+                  label={field.label}
+                  name={`mseb_dynamic_fields.${field.field_name}`}
+                  value={
+                    formik.values.mseb_dynamic_fields?.[field.field_name] || ""
+                  }
+                  onChange={(e) =>
+                    handleDynamicChangeMseb(field.field_name, e.target.value)
+                  }
+                  placeholder={`Enter ${field.label}`}
+                />
+              )}
 
-        <Col md={4}>
-          <CustomInput
-            label="Phone"
-            name="mseb_phone"
-            value={formik.values.mseb_phone}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter Phone"
-            touched={formik.touched.mseb_phone}
-            errors={formik.errors.mseb_phone}
-          />
-        </Col>
-        <Col md={4}>
-          <CustomInput
-            label="Email"
-            name="mseb_email"
-            value={formik.values.mseb_email}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter Email"
-            touched={formik.touched.mseb_email}
-            errors={formik.errors.mseb_email}
-          />
-        </Col>
-      </Row>
+              {field.data_type === "number" && (
+                <CustomInput
+                  type="number"
+                  label={field.label}
+                  name={`mseb_dynamic_fields.${field.field_name}`}
+                  value={
+                    formik.values.mseb_dynamic_fields?.[field.field_name] || ""
+                  }
+                  onChange={(e) =>
+                    handleDynamicChangeMseb(field.field_name, e.target.value)
+                  }
+                  placeholder={`Enter ${field.label}`}
+                />
+              )}
 
-      {/* Row 2, { mseb_nsc, additional_load_id, additional_load_date} */}
-      <Row className="mt-3 d-flex align-items-start">
-        <Col md={4}>
-          <CustomInput
-            type="date"
-            label="NSC Date"
-            name="mseb_nsc"
-            value={formik.values.mseb_nsc}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter End Date"
-            touched={formik.touched.mseb_nsc}
-            errors={formik.errors.mseb_nsc}
-          />
-        </Col>
-        <Col md={4}>
-          <CustomInput
-            label="Additional Load Id"
-            name="additional_load_id"
-            value={formik.values.additional_load_id}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter Additional Load Id"
-            touched={formik.touched.additional_load_id}
-            errors={formik.errors.additional_load_id}
-          />
-        </Col>
-        <Col md={4}>
-          <CustomInput
-            type="date"
-            label="Additional Load Date"
-            name="additional_load_date"
-            value={formik.values.additional_load_date}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            placeholder="Enter Additional Load Date"
-            touched={formik.touched.additional_load_date}
-            errors={formik.errors.additional_load_date}
-          />
-        </Col>
+              {(field.data_type === "pdf" || field.data_type === "image") && (
+                <CustomFileInput
+                  label={`${field.label} (${
+                    field.data_type === "pdf" ? "PDF" : "Image"
+                  })`}
+                  name={`mseb_dynamic_fields.${field.field_name}`}
+                  accept={
+                    field.data_type === "pdf" ? "application/pdf" : "image/*"
+                  }
+                  onChange={(e) =>
+                    handleDynamicChangeMseb(
+                      field.field_name,
+                      e.currentTarget.files[0]
+                    )
+                  }
+                />
+              )}
+            </Col>
+          ))
+        ) : (
+          <Col>
+            <p className="text-muted">No dynamic fields configured.</p>
+          </Col>
+        )}
       </Row>
     </Form>
   );

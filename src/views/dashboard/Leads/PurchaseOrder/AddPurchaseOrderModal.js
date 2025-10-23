@@ -175,7 +175,6 @@ const AddPurchaseOrderModal = ({
   };
 
   // Open serial modal
-  // Open serial modal
   const openSerialModal = (item) => {
     const serials = Array.from(
       { length: item.quantity },
@@ -466,7 +465,7 @@ const AddPurchaseOrderModal = ({
         </Modal.Body>
       </Modal>
 
-      {/* 🔹 Serial Entry Modal */}
+      {/* Serial Entry Modal */}
       <Modal
         show={serialModal.show}
         onHide={() => setSerialModal({ show: false, item: null, serials: [] })}
@@ -514,7 +513,6 @@ const AddPurchaseOrderModal = ({
 
                     // Close serial modal
                     setSerialModal({ show: false, item: null, serials: [] });
-                    successToast("Serial numbers saved successfully!");
                   }}
                 >
                   Save
