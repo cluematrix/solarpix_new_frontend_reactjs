@@ -356,7 +356,8 @@ const Expensess = () => {
                 <strong>Employee:</strong> {selectedExpense.employee?.name}
               </p>
               <p>
-                <strong>Project:</strong> {selectedExpense.project?.project_name}
+                <strong>Project:</strong>{" "}
+                {selectedExpense.project?.project_name}
               </p>
               <p>
                 <strong>Category:</strong> {selectedExpense.category?.category}
@@ -365,8 +366,7 @@ const Expensess = () => {
                 <strong>Price:</strong> {selectedExpense.price}
               </p>
               <p>
-                <strong>Purchase Date:</strong>{" "}
-                {selectedExpense.purchase_date}
+                <strong>Purchase Date:</strong> {selectedExpense.purchase_date}
               </p>
               <p>
                 <strong>Description:</strong> {selectedExpense.description}
