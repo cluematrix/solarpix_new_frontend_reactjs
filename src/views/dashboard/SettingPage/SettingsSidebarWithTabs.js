@@ -44,15 +44,12 @@ import NetMeteringFieldList from "../work/NetMetering/NetMeteringFieldList";
 import NodalPointList from "../work/NodalPoint/NodalPointList";
 import InventoryCategoriesList from "../InventoryManagement/InventoryCategories/InventoryCategoriesList";
 import InventoryTypeList from "../InventoryManagement/InventoryType/InventoryTypeList";
-<<<<<<< HEAD
 import SubsidyList from "../../Subsidy/SubsidyList";
-=======
 import SalaryComponentList from "../Employees/Leaves/leaves-list";
 import SalaryComponentListR from "../Employees/SalaryComponents/SalaryComponentListR";
 import SalaryTDSList from "../Employees/SalaryTDS/SalaryTDSList";
 import SalaryPaymentMethodList from "../Employees/SalaryPaymentMethod/SalaryPaymentMethodList";
 import SalaryGroupList from "../Employees/SalaryGroups/SalaryGroupList";
->>>>>>> de06da5a29a216435d66019d557286b692489381
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -349,11 +346,12 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
-<<<<<<< HEAD
             {activeSidebar === "Subsidy" && activeTab === 0 && (
               <>
                 <SubsidyList />
-=======
+              </>
+            )}
+
             {activeSidebar === "Payroll" && activeTab === 0 && (
               <>
                 <SalaryComponentListR />
@@ -375,7 +373,6 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Payroll" && activeTab === 3 && (
               <>
                 <SalaryPaymentMethodList />
->>>>>>> de06da5a29a216435d66019d557286b692489381
               </>
             )}
           </Box>
