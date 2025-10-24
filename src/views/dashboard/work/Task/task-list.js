@@ -1,3 +1,5 @@
+// Created by: Rishiraj | Permission-integrated Task List | 23 Oct 2025
+
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col, Button, Table, Spinner, Form } from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
@@ -10,20 +12,27 @@ import avatarPic from "../../../../assets/images/avatars/avatar-pic.jpg";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import { statusOptions } from "../../../../mockData";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ViewTaskModal from "./ViewTaskModal";
 
 const TaskList = () => {
   const [taskList, setTaskList] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // 🔐 Permissions
+  const [permissions, setPermissions] = useState(null);
+  const [permLoading, setPermLoading] = useState(true);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  // Modal states
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteTask, setDeleteTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
-  const navigate = useNavigate();
 
-  // Form defaults
+  // Form data
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -38,29 +47,107 @@ const TaskList = () => {
     project_id: "",
   });
 
-  // Fetch all tasks
+  // 🧠 Fetch role-based permissions
+  const FETCHPERMISSION = async () => {
+    setPermLoading(true);
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+      let data = [];
+      if (Array.isArray(res.data)) data = res.data;
+      else if (Array.isArray(res.data.data)) data = res.data.data;
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+
+      // 👑 Super Admin — full access
+      if (roleId === "1") {
+        setPermissions({
+          view: true,
+          add: true,
+          edit: true,
+          del: true,
+          any_one: true,
+        });
+        return;
+      }
+
+      // Match permission by route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+          any_one:
+            matchedPermission.any_one === true ||
+            matchedPermission.any_one === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching permissions:", err);
+      setPermissions(null);
+    } finally {
+      setPermLoading(false);
+    }
+  };
+
+  // 🧩 Fetch tasks with permission filtering
   const fetchTasks = async () => {
     try {
       setLoading(true);
+      const roleId = String(sessionStorage.getItem("roleId"));
+      const empId = String(sessionStorage.getItem("employee_id"));
+
       const res = await api.get("/api/v1/admin/task");
-      if (res.data.success) {
-        setTaskList(res.data.data || []);
+      const allTasks = res.data?.data || [];
+
+      // 👑 Super Admin — sees all
+      if (roleId === "1") {
+        setTaskList(allTasks);
+      }
+      // 🌍 If any_one = true → show all
+      else if (permissions?.any_one) {
+        setTaskList(allTasks);
+      }
+      // 👤 Otherwise, show only own tasks
+      else {
+        const filtered = allTasks.filter(
+          (task) => String(task.assign_by) === empId
+        );
+        setTaskList(filtered);
       }
     } catch (err) {
       console.error("Error fetching tasks:", err);
+      errorToast("Failed to fetch tasks");
+      setTaskList([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch permissions first
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // Then fetch tasks when permissions are ready
+  useEffect(() => {
+    if (!permLoading && permissions?.view) {
+      fetchTasks();
+    }
+  }, [permLoading, permissions]);
 
   // Add/Edit task handler
   const handleAddOrUpdateTask = async (data) => {
     try {
-      const loggedInUser = JSON.parse(sessionStorage.getItem("employee_id"));
+      const loggedInUser = sessionStorage.getItem("employee_id");
       const payload = {
         ...data,
         assign_by: loggedInUser,
@@ -100,8 +187,13 @@ const TaskList = () => {
     }
   };
 
-  // Edit task
+  // Edit
   const handleEdit = (task) => {
+    if (!permissions?.edit) {
+      errorToast("You don't have permission to edit");
+      return;
+    }
+
     setFormData({
       title: task.title || "",
       description: task.description || "",
@@ -119,7 +211,7 @@ const TaskList = () => {
     setShowAddEdit(true);
   };
 
-  // Delete task
+  // Delete
   const handleDeleteConfirm = async () => {
     if (!deleteTask) return;
     try {
@@ -135,6 +227,28 @@ const TaskList = () => {
     }
   };
 
+  // 🌀 Loader while checking permissions
+  if (permLoading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
+
+  // 🚫 No view permission
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
+  // ✅ Main render
   return (
     <>
       <Row className="mt-4">
@@ -145,28 +259,30 @@ const TaskList = () => {
               style={{ padding: "15px" }}
             >
               <h5 className="card-title fw-lighter">Tasks</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => {
-                  setFormData({
-                    title: "",
-                    description: "",
-                    priority: "Medium",
-                    task_type: "",
-                    start_date: "",
-                    end_date: "",
-                    assign_by: "",
-                    assign_to: [],
-                    task_category_id: "",
-                    status: "Incomplete",
-                    project_id: "",
-                  });
-                  setEditTask(null);
-                  setShowAddEdit(true);
-                }}
-              >
-                + New
-              </Button>
+              {permissions?.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => {
+                    setFormData({
+                      title: "",
+                      description: "",
+                      priority: "Medium",
+                      task_type: "",
+                      start_date: "",
+                      end_date: "",
+                      assign_by: "",
+                      assign_to: [],
+                      task_category_id: "",
+                      status: "Incomplete",
+                      project_id: "",
+                    });
+                    setEditTask(null);
+                    setShowAddEdit(true);
+                  }}
+                >
+                  + New
+                </Button>
+              )}
             </Card.Header>
             <Card.Body className="px-0 pt-3">
               {loading ? (
@@ -182,16 +298,14 @@ const TaskList = () => {
                         <th>Title</th>
                         <th>Project</th>
                         <th>Task Type</th>
-                        {/* <th>Assigned To</th> */}
                         <th>Status</th>
-
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {taskList.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="text-center">
+                          <td colSpan="6" className="text-center">
                             No tasks available
                           </td>
                         </tr>
@@ -202,46 +316,6 @@ const TaskList = () => {
                             <td>{task.title}</td>
                             <td>{task.project?.project_name || "-"}</td>
                             <td>{task.task_type || "-"}</td>
-                            {/* <td className="text-center">
-                              <div className="d-flex justify-content-center">
-                                {task.assign_to_details
-                                  ?.slice(0, 3)
-                                  .map((m, i) => (
-                                    <img
-                                      key={i}
-                                      src={m.photo || avatarPic}
-                                      title={m.name}
-                                      className="rounded-circle me-1"
-                                      style={{
-                                        width: "25px",
-                                        height: "25px",
-                                        objectFit: "cover",
-                                        cursor: "pointer",
-                                        zIndex: 10 - i,
-                                        marginLeft: "-15px",
-                                      }}
-                                      onClick={() =>
-                                        navigate(`/view-employee/${m.id}`)
-                                      }
-                                    />
-                                  ))}
-                                {task.assign_to_details?.length > 3 && (
-                                  <div
-                                    className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark"
-                                    style={{
-                                      width: "25px",
-                                      height: "25px",
-                                      fontSize: "12px",
-                                      border: "1px solid #ccc",
-                                      cursor: "pointer",
-                                    }}
-                                  >
-                                    +{task.assign_to_details.length - 3}
-                                  </div>
-                                )}
-                              </div>
-                            </td> */}
-
                             <td>
                               <Form.Select
                                 size="sm"
@@ -259,25 +333,27 @@ const TaskList = () => {
                             </td>
                             <td>
                               <VisibilityIcon
-                                color="primary" // grayish tone
+                                color="primary"
                                 style={{ cursor: "pointer" }}
                                 onClick={() => setSelectedTask(task)}
                               />
-
-                              <CreateTwoToneIcon
-                                color="primary" // blue
-                                onClick={() => handleEdit(task)}
-                                style={{ cursor: "pointer" }}
-                              />
-
-                              <DeleteRoundedIcon
-                                color="error" // red
-                                onClick={() => {
-                                  setDeleteTask(task);
-                                  setShowDelete(true);
-                                }}
-                                style={{ cursor: "pointer" }}
-                              />
+                              {permissions?.edit && (
+                                <CreateTwoToneIcon
+                                  color="primary"
+                                  onClick={() => handleEdit(task)}
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                              {permissions?.del && (
+                                <DeleteRoundedIcon
+                                  color="error"
+                                  onClick={() => {
+                                    setDeleteTask(task);
+                                    setShowDelete(true);
+                                  }}
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
                             </td>
                           </tr>
                         ))

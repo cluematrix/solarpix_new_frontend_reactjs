@@ -17,6 +17,7 @@ import VisibilityTwoToneIcon from "@mui/icons-material/VisibilityTwoTone";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../../api/axios";
+import { useLocation } from "react-router";
 
 const AppreciationList = () => {
   const [appreciations, setAppreciations] = useState([]);
@@ -40,7 +41,57 @@ const AppreciationList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch Appreciations
+  // 🔑 Permissions
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
+
+  // 🔐 Fetch Role Permissions
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching permissions:", err);
+      setPermissions(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // 🔄 Fetch Appreciations
   const fetchAppreciations = () => {
     setLoading(true);
     api
@@ -64,7 +115,7 @@ const AppreciationList = () => {
     fetchAppreciations();
   }, []);
 
-  // Add / Update
+  // ➕ Add / ✏️ Update
   const handleAddOrUpdate = () => {
     if (!formData.award_id || !formData.employee_id || !formData.date) {
       toast.warning("Award, Employee & Date are required");
@@ -97,7 +148,7 @@ const AppreciationList = () => {
     }
   };
 
-  // Edit
+  // ✏️ Edit
   const handleEdit = (index) => {
     const appreciation = appreciations[index];
     setFormData({
@@ -106,13 +157,13 @@ const AppreciationList = () => {
       date: appreciation.date ? appreciation.date.split("T")[0] : "",
       description: appreciation.description || "",
       photo: null,
-      existingPhoto: appreciation.photo || null, // ✅ keep existing photo
+      existingPhoto: appreciation.photo || null,
     });
     setEditId(appreciation.id);
     setShowAddEdit(true);
   };
 
-  // Delete
+  // ❌ Delete
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api
@@ -137,7 +188,7 @@ const AppreciationList = () => {
     setEditId(null);
   };
 
-  // Pagination
+  // 🔄 Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentAppreciations = appreciations.slice(
@@ -146,12 +197,26 @@ const AppreciationList = () => {
   );
   const totalPages = Math.ceil(appreciations.length / itemsPerPage);
 
-  if (loading)
+  // 🌀 Loader while checking permissions
+  if (loading) {
     return (
       <div className="loader-div text-center p-4">
         <Spinner animation="border" className="spinner" />
       </div>
     );
+  }
+
+  // 🚫 View Restriction
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -160,13 +225,16 @@ const AppreciationList = () => {
           <Card>
             <Card.Header className="d-flex justify-content-between">
               <h5 className="card-title fw-lighter">Appreciations</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => setShowAddEdit(true)}
-              >
-                + New Appreciation
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => setShowAddEdit(true)}
+                >
+                  + New Appreciation
+                </Button>
+              )}
             </Card.Header>
+
             <Card.Body className="px-0">
               <div className="table-responsive">
                 <Table hover responsive className="table">
@@ -225,21 +293,27 @@ const AppreciationList = () => {
                               }}
                               style={{ cursor: "pointer" }}
                             />
-                            <CreateTwoToneIcon
-                              className="me-2"
-                              onClick={() => handleEdit(indexOfFirstItem + idx)}
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                            <DeleteRoundedIcon
-                              onClick={() => {
-                                setDeleteIndex(indexOfFirstItem + idx);
-                                setDeleteId(item.id);
-                                setShowDelete(true);
-                              }}
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                            />
+                            {permissions.edit && (
+                              <CreateTwoToneIcon
+                                className="me-2"
+                                onClick={() =>
+                                  handleEdit(indexOfFirstItem + idx)
+                                }
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
+                            {permissions.del && (
+                              <DeleteRoundedIcon
+                                onClick={() => {
+                                  setDeleteIndex(indexOfFirstItem + idx);
+                                  setDeleteId(item.id);
+                                  setShowDelete(true);
+                                }}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))

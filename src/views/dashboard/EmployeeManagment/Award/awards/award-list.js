@@ -5,7 +5,6 @@ import {
   Col,
   Button,
   Table,
-  Form,
   Pagination,
   Spinner,
 } from "react-bootstrap";
@@ -17,6 +16,7 @@ import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../../api/axios";
 import * as FaIcons from "react-icons/fa";
+import { useLocation } from "react-router";
 
 const AwardList = () => {
   const [awards, setAwards] = useState([]);
@@ -33,11 +33,60 @@ const AwardList = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const { pathname } = useLocation();
+  const [permissions, setPermissions] = useState(null);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch Awards
+  // 🔑 Fetch Role Permissions
+  const FETCHPERMISSION = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (Array.isArray(res.data.data)) {
+        data = res.data.data;
+      }
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      console.log(roleId, "roleId from sessionStorage");
+      console.log(pathname, "current pathname");
+
+      // ✅ Match current role + route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setPermissions(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    FETCHPERMISSION();
+  }, [pathname]);
+
+  // 🔄 Fetch Awards
   const fetchAwards = () => {
     api
       .get("/api/v1/admin/award")
@@ -50,7 +99,7 @@ const AwardList = () => {
         setAwards(data);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error fetching awards:", err);
         toast.error("Failed to fetch awards");
       })
       .finally(() => setLoading(false));
@@ -117,18 +166,31 @@ const AwardList = () => {
     setEditId(null);
   };
 
-  // Pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentAwards = awards.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(awards.length / itemsPerPage);
-
-  if (loading)
+  //  Loader while checking permissions
+  if (loading) {
     return (
       <div className="loader-div">
         <Spinner animation="border" className="spinner" />
       </div>
     );
+  }
+
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentAwards = awards.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(awards.length / itemsPerPage);
 
   return (
     <>
@@ -140,13 +202,16 @@ const AwardList = () => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Awards</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => setShowAddEdit(true)}
-              >
-                + New Award
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => setShowAddEdit(true)}
+                >
+                  + New Award
+                </Button>
+              )}
             </Card.Header>
+
             <Card.Body className="px-0 pt-3">
               <div className="table-responsive">
                 <Table hover responsive className="table">
@@ -155,7 +220,6 @@ const AwardList = () => {
                       <th>Sr. No.</th>
                       <th>Title</th>
                       <th>Icon</th>
-                      {/* <th>Color</th> */}
                       <th>Description</th>
                       <th>Action</th>
                     </tr>
@@ -163,7 +227,7 @@ const AwardList = () => {
                   <tbody>
                     {currentAwards.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center">
+                        <td colSpan="5" className="text-center">
                           No awards available
                         </td>
                       </tr>
@@ -175,35 +239,29 @@ const AwardList = () => {
                             <td>{indexOfFirstItem + idx + 1}</td>
                             <td>{item.title}</td>
                             <td>{IconComp ? <IconComp size={24} /> : "-"}</td>
-                            {/* <td>
-                              <div
-                                style={{
-                                  width: "20px",
-                                  height: "20px",
-                                  backgroundColor: item.color || "#000",
-                                  borderRadius: "50%",
-                                }}
-                              ></div>
-                            </td> */}
                             <td>{item.description}</td>
                             <td className="d-flex align-items-center">
-                              <CreateTwoToneIcon
-                                className="me-2"
-                                onClick={() =>
-                                  handleEdit(indexOfFirstItem + idx)
-                                }
-                                color="primary"
-                                style={{ cursor: "pointer" }}
-                              />
-                              <DeleteRoundedIcon
-                                onClick={() => {
-                                  setDeleteIndex(indexOfFirstItem + idx);
-                                  setDeleteId(item.id || item._id);
-                                  setShowDelete(true);
-                                }}
-                                color="error"
-                                style={{ cursor: "pointer" }}
-                              />
+                              {permissions.edit && (
+                                <CreateTwoToneIcon
+                                  className="me-2"
+                                  onClick={() =>
+                                    handleEdit(indexOfFirstItem + idx)
+                                  }
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
+                              {permissions.del && (
+                                <DeleteRoundedIcon
+                                  onClick={() => {
+                                    setDeleteIndex(indexOfFirstItem + idx);
+                                    setDeleteId(item.id || item._id);
+                                    setShowDelete(true);
+                                  }}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
                             </td>
                           </tr>
                         );
@@ -234,7 +292,9 @@ const AwardList = () => {
                     ))}
                     <Pagination.Next
                       onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages)
+                        )
                       }
                       disabled={currentPage === totalPages}
                     />

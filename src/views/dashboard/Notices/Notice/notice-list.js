@@ -224,7 +224,7 @@ const NoticeBoardList = () => {
         </Col>
         {permissions.add && (
           <Col className="text-end">
-            <Button onClick={() => setShowModal(true)}>+ Add Notice</Button>
+            <Button onClick={() => setShowModal(true)}>+ New</Button>
           </Col>
         )}
       </Row>
@@ -258,10 +258,10 @@ const NoticeBoardList = () => {
                   currentData.map((notice, idx) => (
                     <tr key={notice.id}>
                       <td>{indexOfFirst + idx + 1}</td>
-                      <td>{notice.heading}</td>
-                      <td>{notice.to}</td>
+                      <td>{notice.title}</td>
+                      <td>{notice.notice_type}</td>
                       <td>{truncateDescription(notice.description, 6)}</td>
-                      <td>
+                      {/* <td>
                         {notice.attachment ? (
                           <a
                             href={notice.attachment}
@@ -273,7 +273,7 @@ const NoticeBoardList = () => {
                         ) : (
                           "—"
                         )}
-                      </td>
+                      </td> */}
                       <td className="d-flex align-items-center">
                         {/* View */}
                         <VisibilityIcon

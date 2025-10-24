@@ -67,7 +67,11 @@ export const sidebarItems = [
   "Branch",
   "Company",
   "Bank",
+<<<<<<< HEAD
   "Subsidy",
+=======
+  "Payroll",
+>>>>>>> de06da5a29a216435d66019d557286b692489381
 ];
 
 // Tabs config –
@@ -99,7 +103,16 @@ export const tabConfig = {
   Branch: ["Branch"],
   Company: ["Details"],
   Bank: ["Details"],
+<<<<<<< HEAD
   Subsidy: ["Subsidy"],
+=======
+  Payroll: [
+    "Salary Components",
+    "Salary Groups",
+    "Salary TDS",
+    "Salary Payment Method",
+  ],
+>>>>>>> de06da5a29a216435d66019d557286b692489381
 };
 
 export const typeOfMaterial = [

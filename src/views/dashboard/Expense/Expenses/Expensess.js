@@ -8,65 +8,135 @@ import {
   Table,
   Pagination,
   Modal,
+  Form,
 } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import VisibilityIcon from "@mui/icons-material/Visibility"; // eye icon
-import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye"; // second eye icon
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddEditModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
-
+import { useLocation } from "react-router-dom";
+// rishi
 const Expensess = () => {
   const [expenseList, setExpenseList] = useState([]);
-
-  // dropdown data
   const [employees, setEmployees] = useState([]);
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState([]);
-
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const [showViewModal, setShowViewModal] = useState(false); // for viewing all details
-
+  const [showViewModal, setShowViewModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // pagination
+  // Permissions
+  const [permissions, setPermissions] = useState(null);
+  const [permLoading, setPermLoading] = useState(true);
+
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const { pathname } = useLocation();
 
-  // 🔄 Fetch All Data
+  // 🔹 Fetch Permissions
+  const FETCHPERMISSION = async () => {
+    setPermLoading(true);
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+      let data = [];
+
+      if (Array.isArray(res.data)) data = res.data;
+      else if (Array.isArray(res.data.data)) data = res.data.data;
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+
+      // Super Admin = full access
+      if (roleId === "1") {
+        setPermissions({
+          view: true,
+          add: true,
+          edit: true,
+          del: true,
+        });
+        return;
+      }
+
+      const matched = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matched) {
+        setPermissions({
+          view: matched.view === true || matched.view === 1,
+          add: matched.add === true || matched.add === 1,
+          edit: matched.edit === true || matched.edit === 1,
+          del: matched.del === true || matched.del === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching permissions:", err);
+      setPermissions(null);
+    } finally {
+      setPermLoading(false);
+    }
+  };
+
+  // 🔹 Fetch Expenses
   const fetchExpenses = async () => {
     try {
+      setLoading(true);
       const res = await api.get("/api/v1/admin/expenses");
-      setExpenseList(res.data || []);
+      const allExpenses = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.data)
+        ? res.data.data
+        : [];
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+      const empId = String(sessionStorage.getItem("employee_id"));
+
+      if (roleId === "1") {
+        setExpenseList(allExpenses);
+      } else {
+        const filtered = allExpenses.filter(
+          (exp) => String(exp.employee_id) === empId
+        );
+        setExpenseList(filtered);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching expenses:", err);
       toast.error("Failed to fetch expenses");
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔹 Dropdown data
   const fetchDropdownData = async () => {
     try {
       const [empRes, projRes, catRes] = await Promise.all([
         api.get("/api/v1/admin/employee/active"),
-        api.get("/api/v1/admin/project/active"),
-        api.get("/api/v1/admin/expenseCategory/active"),
+        api.get("/api/v1/admin/project/active/pagination"),
+        api.get("/api/v1/admin/expenseCategory"),
       ]);
-      setEmployees(empRes.data.data || []);
-      setProjects(projRes.data.data || []);
-      setCategories(catRes.data || []);
+      setEmployees(empRes.data.data || empRes.data || []);
+      setProjects(projRes.data.data || projRes.data || []);
+      setCategories(catRes.data || catRes.data || []);
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
       toast.error("Failed to load dropdown data");
     }
   };
+
+  useEffect(() => {
+    FETCHPERMISSION();
+  }, [pathname]);
 
   useEffect(() => {
     fetchExpenses();
@@ -112,10 +182,23 @@ const Expensess = () => {
   const currentData = expenseList.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(expenseList.length / rowsPerPage);
 
-  if (loading) {
+  // 🌀 Loader while checking permissions
+  if (permLoading || loading) {
     return (
       <div className="loader-div">
         <Spinner animation="border" />
+      </div>
+    );
+  }
+
+  // 🚫 No view permission
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
       </div>
     );
   }
@@ -127,12 +210,14 @@ const Expensess = () => {
           <Card>
             <Card.Header className="d-flex justify-content-between">
               <h5 className="card-title">Expenses</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => setShowAddEdit(true)}
-              >
-                + Add Expense
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => setShowAddEdit(true)}
+                >
+                  + Add Expense
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0">
@@ -148,14 +233,13 @@ const Expensess = () => {
                       <th>Price</th>
                       <th>Purchase Date</th>
                       <th className="text-center">Attachment</th>
-
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentData.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="text-center">
+                        <td colSpan="9" className="text-center">
                           No expenses available
                         </td>
                       </tr>
@@ -170,11 +254,9 @@ const Expensess = () => {
                           <td>{item.price}</td>
                           <td>{item.purchase_date}</td>
                           <td className="text-center">
-                            {" "}
-                            {/* 👁️ View attachment */}
                             {item.attachment && (
                               <VisibilityIcon
-                                className="me-2 text-center"
+                                className="me-2"
                                 color="info"
                                 style={{ cursor: "pointer" }}
                                 onClick={() =>
@@ -184,34 +266,36 @@ const Expensess = () => {
                             )}
                           </td>
                           <td>
-                            <CreateTwoToneIcon
-                              className="me-2"
-                              color="primary"
-                              style={{ cursor: "pointer" }}
-                              onClick={() => {
-                                setSelectedExpense(item);
-                                setShowAddEdit(true);
-                              }}
-                            />
-                            <DeleteRoundedIcon
-                              className="me-2"
-                              color="error"
-                              style={{ cursor: "pointer" }}
-                              onClick={() => {
-                                setDeleteId(item.id);
-                                setShowDelete(true);
-                              }}
-                            />
-
-                            {/* 👁️ View all details */}
                             <VisibilityIcon
-                              color="info"
+                              color="action"
+                              className="me-2"
                               style={{ cursor: "pointer" }}
                               onClick={() => {
                                 setSelectedExpense(item);
                                 setShowViewModal(true);
                               }}
                             />
+                            {permissions.edit && (
+                              <CreateTwoToneIcon
+                                className="me-2"
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                  setSelectedExpense(item);
+                                  setShowAddEdit(true);
+                                }}
+                              />
+                            )}
+                            {permissions.del && (
+                              <DeleteRoundedIcon
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                  setDeleteId(item.id);
+                                  setShowDelete(true);
+                                }}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))

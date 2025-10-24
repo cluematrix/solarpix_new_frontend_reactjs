@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Table, Form, Button, Spinner } from "react-bootstrap";
 import api from "../../../api/axios";
 import { toast } from "react-toastify";
+import { errorToast } from "../../../components/Toast/errorToast";
+import { successToast } from "../../../components/Toast/successToast";
 
 const RolePermissionList = () => {
   const [roles, setRoles] = useState([]);
@@ -11,12 +13,23 @@ const RolePermissionList = () => {
   const [loadingRoles, setLoadingRoles] = useState(true);
   const [loadingModules, setLoadingModules] = useState(true);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const permissionTypes = [
     { label: "View", field: "view" },
     { label: "Add", field: "add" },
     { label: "Edit", field: "edit" },
     { label: "Delete", field: "del" },
+  ];
+
+  // ✅ modules that should show Access dropdown
+  const accessModules = [
+    "employee-list",
+    "project-list",
+    "task-list",
+    "leavetype",
+    "leaves-list",
+    "payroll",
+    "Attendance",
   ];
 
   // fetch roles
@@ -77,6 +90,13 @@ const RolePermissionList = () => {
             add: perm.add === 1 || perm.add === true || perm.add === "1",
             edit: perm.edit === 1 || perm.edit === true || perm.edit === "1",
             del: perm.del === 1 || perm.del === true || perm.del === "1",
+            // ✅ any_one = 0 (own) or 1 (anyone)
+            any_one:
+              perm.any_one === 1 ||
+              perm.any_one === true ||
+              perm.any_one === "1"
+                ? 1
+                : 0,
           };
         });
         setPermissions(formatted);
@@ -101,6 +121,17 @@ const RolePermissionList = () => {
     }));
   };
 
+  // ✅ Handle Access dropdown (0 = own, 1 = anyone)
+  const handleAccessChange = (moduleId, value) => {
+    setPermissions((prev) => ({
+      ...prev,
+      [moduleId]: {
+        ...prev[moduleId],
+        any_one: parseInt(value, 10),
+      },
+    }));
+  };
+
   // Select All for module
   const handleSelectAll = (moduleId) => {
     const current = permissions[moduleId] || {};
@@ -109,7 +140,7 @@ const RolePermissionList = () => {
       ...prev,
       [moduleId]: permissionTypes.reduce(
         (acc, p) => ({ ...acc, [p.field]: !allSelected }),
-        {}
+        { any_one: current.any_one ?? 0 } // ✅ preserve any_one value
       ),
     }));
   };
@@ -126,6 +157,7 @@ const RolePermissionList = () => {
 
   const handleSave = async () => {
     try {
+      setLoading(true);
       const payloadArray = Object.entries(permissions).map(
         ([moduleId, perms]) => {
           const module = modules.find((m) => m.id === parseInt(moduleId));
@@ -138,6 +170,8 @@ const RolePermissionList = () => {
             del: perms.del || false,
             display_name: module?.display_name || null,
             route: module?.route || null,
+            // ✅ include boolean numeric field
+            any_one: perms.any_one ?? 0,
           };
         }
       );
@@ -145,21 +179,21 @@ const RolePermissionList = () => {
       await api.put("/api/v1/admin/rolePermission", payloadArray, {
         headers: { "Content-Type": "application/json" },
       });
-
-      toast.success("Permissions updated successfully");
+      setLoading(false);
+      successToast("Permissions updated successfully");
     } catch (err) {
       console.error("Error saving permissions:", err);
-      toast.error("Failed to save permissions");
+      errorToast("Failed to save permissions");
+      setLoading(false);
     }
   };
+
   return (
     <Card className="p-3 shadow-sm mt-4">
       <Row className="mb-3">
         <Col md={4}>
           <Form.Group>
-            <Form.Label>
-              <label>Select Role</label>
-            </Form.Label>
+            <Form.Label>Select Role</Form.Label>
             {loadingRoles ? (
               <div className="d-flex align-items-center">
                 <Spinner animation="border" size="sm" className="me-2" />{" "}
@@ -206,6 +240,7 @@ const RolePermissionList = () => {
                       {perm.label}
                     </th>
                   ))}
+                  <th className="text-center">Access</th> {/* ✅ new column */}
                 </tr>
               </thead>
               <tbody>
@@ -214,6 +249,11 @@ const RolePermissionList = () => {
                   const allSelected = permissionTypes.every(
                     (p) => modulePerms[p.field]
                   );
+
+                  const showAccessDropdown = accessModules.includes(
+                    module.display_name || module.display_name?.toLowerCase()
+                  );
+
                   return (
                     <tr key={module.id}>
                       <td>{module.display_name}</td>
@@ -235,6 +275,22 @@ const RolePermissionList = () => {
                           />
                         </td>
                       ))}
+                      <td className="text-center">
+                        {showAccessDropdown ? (
+                          <Form.Select
+                            size="sm"
+                            value={modulePerms.any_one ?? 0}
+                            onChange={(e) =>
+                              handleAccessChange(module.id, e.target.value)
+                            }
+                          >
+                            <option value={0}>Own</option>
+                            <option value={1}>Anyone</option>
+                          </Form.Select>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -243,8 +299,8 @@ const RolePermissionList = () => {
           )}
 
           <div className="text-end">
-            <Button variant="primary" onClick={handleSave}>
-              Save Permissions
+            <Button variant="primary" onClick={handleSave} disabled={loading}>
+              {loading ? "Saving..." : "Save"}
             </Button>
           </div>
         </>

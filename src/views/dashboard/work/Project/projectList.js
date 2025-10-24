@@ -19,14 +19,16 @@ import api from "../../../../api/axios";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import ProjectProfile from "./projectProfile";
 import avatarPic from "../../../../assets/images/avatars/avatar-pic.jpg";
 import "../../../../styles/hoverMembersImg.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ProjectList = ({ onActiveTab = () => {} }) => {
   const [projectData, setProjectData] = useState([]);
-  // const [navigateId, setNavigateId] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [permissions, setPermissions] = useState(null);
+  const [permLoading, setPermLoading] = useState(true);
+  const { pathname } = useLocation();
   const navigate = useNavigate();
 
   // Pagination
@@ -34,25 +36,99 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   const [itemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Modals
   const [deleteId, setDeleteId] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [showAddEdit, setShowAddEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
-  // fetch project
+  // Installation Status
+  const [instStatus, setInstStatus] = useState([]);
+
+  // 🧠 Fetch role-based permissions
+  const FETCHPERMISSION = async () => {
+    setPermLoading(true);
+    try {
+      const res = await api.get("/api/v1/admin/rolePermission");
+
+      let data = [];
+      if (Array.isArray(res.data)) data = res.data;
+      else if (Array.isArray(res.data.data)) data = res.data.data;
+
+      const roleId = String(sessionStorage.getItem("roleId"));
+
+      // 👑 Super Admin — full access
+      if (roleId === "1") {
+        setPermissions({
+          view: true,
+          add: true,
+          edit: true,
+          del: true,
+          any_one: true,
+        });
+        return;
+      }
+
+      // Match permission by route
+      const matchedPermission = data.find(
+        (perm) =>
+          String(perm.role_id) === roleId &&
+          perm.route?.toLowerCase() === pathname?.toLowerCase()
+      );
+
+      if (matchedPermission) {
+        setPermissions({
+          view: matchedPermission.view === true || matchedPermission.view === 1,
+          add: matchedPermission.add === true || matchedPermission.add === 1,
+          edit: matchedPermission.edit === true || matchedPermission.edit === 1,
+          del: matchedPermission.del === true || matchedPermission.del === 1,
+          any_one:
+            matchedPermission.any_one === true ||
+            matchedPermission.any_one === 1,
+        });
+      } else {
+        setPermissions(null);
+      }
+    } catch (err) {
+      console.error("Error fetching permissions:", err);
+      setPermissions(null);
+    } finally {
+      setPermLoading(false);
+    }
+  };
+
+  // 🧩 Fetch Project List (with permission logic)
   const fetchProject = async (page = 1) => {
     try {
       setLoading(true);
+      const roleId = String(sessionStorage.getItem("roleId"));
+      const empId = String(sessionStorage.getItem("employee_id"));
+
       let url = `/api/v1/admin/project/active/pagination?page=${page}&limit=${itemsPerPage}`;
-
       const res = await api.get(url);
-      setProjectData(res.data?.data || []);
+      const allProjects = res.data?.data || [];
 
-      // Extract pagination info
-      const pagination = res.data?.pagination;
-      if (pagination) {
-        setTotalPages(pagination.totalPages || 1);
+      // 👑 Admin shows all
+      if (roleId === "1") {
+        setProjectData(allProjects);
       }
+      // 🌍 If permission.any_one = true → show all
+      else if (permissions?.any_one) {
+        setProjectData(allProjects);
+      }
+      // 👤 Otherwise → show only own projects
+      else {
+        const filtered = allProjects.filter(
+          (proj) => String(proj.added_by) === empId
+        );
+        setProjectData(filtered);
+      }
+
+      const pagination = res.data?.pagination;
+      if (pagination) setTotalPages(pagination.totalPages || 1);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Error fetching projects:", err);
+      errorToast("Failed to fetch projects");
       setProjectData([]);
     } finally {
       setLoading(false);
@@ -60,157 +136,90 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
   };
 
   useEffect(() => {
-    fetchProject(currentPage);
-  }, [currentPage]);
+    FETCHPERMISSION();
+  }, [pathname]);
 
-  const [formData, setFormData] = useState({
-    short_code: "",
-    project_name: "",
-    is_deadline: false,
-    start_date: "",
-    end_date: "",
-    project_category_id: "",
-    client_id: "",
-    project_summary: "",
-    project_budget: "",
-    hour_estimate: "",
-    added_by: [],
-    projectMembers: "", // single member id
-  });
-  const [editIndex, setEditIndex] = useState(null);
-  const [showAddEdit, setShowAddEdit] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
-  const [openEditModalData, setOpenEditModalData] = useState(false);
-
-  // installation status
-  const [instStatus, setInstStatus] = useState([]);
-
-  const handleAddOrUpdateProject = (data) => {
-    if (!data.projectName.trim()) return; // basic validation
-
-    if (editIndex !== null) {
-      const updatedList = [...projectData];
-      updatedList[editIndex] = data;
-      setProjectData(updatedList);
-    } else {
-      setProjectData([...projectData, data]);
+  useEffect(() => {
+    if (!permLoading && permissions?.view) {
+      fetchProject(currentPage);
+      fetchInstStatus();
     }
-    setShowAddEdit(false);
-  };
+  }, [permLoading, permissions, currentPage]);
 
-  const handleEdit = (index, item) => {
-    navigate(`/project-list/edit-project/${item.id}`);
-  };
-
-  // delete modal
-  const openDeleteModal = (id, idx) => {
-    setDeleteIndex(idx);
-    setShowDelete(true);
-    setDeleteId(id);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (!deleteId) return;
-    api
-      .delete(`/api/v1/admin/project/${deleteId}`)
-      .then(() => {
-        successToast("Project Deleted Successfully");
-        setProjectData((prev) => prev.filter((p) => p.id !== deleteId));
-        setShowDelete(false);
-      })
-      .catch((err) => {
-        console.error("Error deleting project:", err);
-        errorToast(err.response?.data?.message || "Failed to delete project");
-      });
-
-    if (deleteIndex !== null) {
-      setProjectData(projectData?.filter((_, i) => i !== deleteIndex));
-    }
-    setShowDelete(false);
-    setDeleteIndex(null);
-  };
-
-  const handleToggleActive = async (id, status) => {
-    const newStatus = !status;
-    try {
-      const res = await api.put(`/api/v1/admin/project/${id}`, {
-        isActive: newStatus,
-      });
-      console.log("resUpdatedPro", res);
-      if (res.status === 200) {
-        console.log("enter", res.status);
-        successToast("Project updated successfully");
-        setProjectData((prev) =>
-          prev.map((emp) =>
-            emp.id === id ? { ...emp, isActive: newStatus } : emp
-          )
-        );
-      }
-    } catch (err) {
-      console.error("Error project status:", err);
-      errorToast(
-        err.response?.data?.message || "Failed to update project status"
-      );
-    }
-  };
-
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  // navigate to view page
-  const handleView = (item) => {
-    console.log("itemView_id", item.id);
-    navigate(`/project-list/view-project/${item.id}`);
-    // setNavigateId(!navigateId);
-    // setViewProjectData(item);
-  };
-
-  // navigate to employee profile tab
-  // const handleNavigateToProfile = (item) => {
-  //   navigate(`/view-employee/${item.id}`);
-  //   console.log("itemEmp", item);
-  // };
-
-  // 🔹 Fetch Lead Status Separately
+  // 🔹 Fetch installation status list
   const fetchInstStatus = async () => {
     try {
       const res = await api.get("/api/v1/admin/installationStatus/active");
-      if (res.data?.data) {
-        setInstStatus(res.data.data);
-      } else if (Array.isArray(res.data)) {
-        setInstStatus(res.data);
-      } else {
-        setInstStatus([]);
-      }
+      if (res.data?.data) setInstStatus(res.data.data);
+      else if (Array.isArray(res.data)) setInstStatus(res.data);
+      else setInstStatus([]);
     } catch (err) {
       console.error("Error fetching installation status:", err);
     }
   };
 
-  // Update installation status handler
+  // 🔹 Update Installation Status (Only for role_id = 1)
   const handleInstallationChange = async (item, newStatusId) => {
+    const roleId = String(sessionStorage.getItem("roleId"));
+    if (roleId !== "1") {
+      errorToast("You are not allowed to change installation status");
+      return;
+    }
+
     try {
       await api.put(`/api/v1/admin/project/${item.id}`, {
         installationStatus_id: newStatusId,
       });
 
       successToast("Installation status updated successfully");
-
-      // refresh data after update
       fetchProject(currentPage);
     } catch (err) {
       console.error("Error updating installation status:", err);
+      errorToast("Failed to update installation status");
     }
   };
 
-  useEffect(() => {
-    fetchInstStatus();
-  }, []);
+  // 🔹 Delete Project
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return;
+    api
+      .delete(`/api/v1/admin/project/${deleteId}`)
+      .then(() => {
+        successToast("Project deleted successfully");
+        setProjectData((prev) => prev.filter((p) => p.id !== deleteId));
+      })
+      .catch((err) => {
+        console.error("Error deleting project:", err);
+        errorToast(err.response?.data?.message || "Failed to delete project");
+      })
+      .finally(() => {
+        setShowDelete(false);
+        setDeleteId(null);
+      });
+  };
 
+  // 🌀 Loader while checking permissions
+  if (permLoading) {
+    return (
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
+      </div>
+    );
+  }
+
+  // 🚫 No view permission
+  if (!permissions?.view) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "70vh" }}
+      >
+        <h4>You don’t have permission to view this page.</h4>
+      </div>
+    );
+  }
+
+  // ✅ Main Render
   return (
     <>
       <Row className="mt-4">
@@ -221,22 +230,20 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
               style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Projects</h5>
-              <Button
-                className="btn-primary"
-                onClick={() => {
-                  setShowAddEdit(true);
-                  setOpenEditModalData(false);
-                  navigate("/add-project");
-                }}
-              >
-                + New
-              </Button>
+              {permissions.add && (
+                <Button
+                  className="btn-primary"
+                  onClick={() => navigate("/add-project")}
+                >
+                  + New
+                </Button>
+              )}
             </Card.Header>
 
             <Card.Body className="px-0 pt-3">
               {loading ? (
-                <div className="loader-div">
-                  <Spinner animation="border" className="spinner" />
+                <div className="text-center p-4">
+                  <Spinner animation="border" />
                 </div>
               ) : (
                 <div className="table-responsive">
@@ -248,82 +255,25 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                         <th>Project Name</th>
                         <th>Start Date</th>
                         <th>As per sales order</th>
-                        <th>Status</th>
+                        <th>Installation Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {projectData && projectData?.length === 0 ? (
+                      {projectData.length === 0 ? (
                         <tr>
-                          <td colSpan="8" className="text-center">
+                          <td colSpan="7" className="text-center">
                             No projects available
                           </td>
                         </tr>
                       ) : (
-                        projectData?.map((item, idx) => (
+                        projectData.map((item, idx) => (
                           <tr key={idx}>
                             <td>{idx + 1}</td>
                             <td>{item.short_code || "--"}</td>
                             <td>{item.project_name || "--"}</td>
-                            {/* <td>
-                              <div className="d-flex align-items-center justify-content-center">
-                                {item?.assign_to_details
-                                  ?.slice(0, 3)
-                                  ?.map((ass, index) => (
-                                    <img
-                                      key={index}
-                                      src={ass.photo || avatarPic}
-                                      alt={ass.name}
-                                      title={ass.name}
-                                      className="rounded-circle me-1 avatar-hover"
-                                      style={{
-                                        width: "25px",
-                                        height: "25px",
-                                        objectFit: "cover",
-                                        border: "1px solid #ccc",
-                                        cursor: "pointer",
-                                        zIndex: 10 - index,
-                                        marginLeft: "-15px",
-                                      }}
-                                      onClick={() =>
-                                        handleNavigateToProfile(ass)
-                                      }
-                                    />
-                                  ))}
-
-                                {item.assign_to_details?.length > 3 && (
-                                  <div
-                                    className="rounded-circle d-flex align-items-center justify-content-center bg-light text-dark member-avatar"
-                                    style={{
-                                      width: "25px",
-                                      height: "25px",
-                                      fontSize: "12px",
-                                      border: "1px solid #ccc",
-                                      cursor: "pointer",
-                                    }}
-                                    onClick={() =>
-                                      handleNavigateToProfile(
-                                        item.assign_to_details
-                                      )
-                                    }
-                                  >
-                                    +{item.assign_to_details?.length - 3}
-                                  </div>
-                                )}
-                              </div>
-                            </td> */}
-
                             <td>{item.start_date || "--"}</td>
                             <td>₹{item.estimate || "--"}</td>
-                            {/* <td>
-                              <span
-                                className={`status-dot ${
-                                  item.isActive ? "active" : "inactive"
-                                }`}
-                              ></span>
-                              {item.isActive ? "Active" : "Inactive"}
-                            </td> */}
-
                             <td>
                               <Form.Select
                                 size="sm"
@@ -335,38 +285,42 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                                 <option disabled value="">
                                   --
                                 </option>
-                                {instStatus?.map((option) => (
+                                {instStatus.map((option) => (
                                   <option key={option.id} value={option.id}>
                                     {option.installationStatus}
                                   </option>
                                 ))}
                               </Form.Select>
                             </td>
-                            <td className="d-flex align-items-center">
-                              <Form.Check
-                                type="switch"
-                                id={`active-switch-${item.id}`}
-                                checked={item.isActive}
-                                onChange={() =>
-                                  handleToggleActive(item.id, item.isActive)
-                                }
-                              />
+                            <td className="d-flex align-items-center gap-2">
                               <CreateTwoToneIcon
-                                onClick={() => handleEdit(idx, item)}
+                                onClick={() =>
+                                  navigate(
+                                    `/project-list/edit-project/${item.id}`
+                                  )
+                                }
                                 color="primary"
                                 style={{ cursor: "pointer" }}
                               />
-                              <DeleteRoundedIcon
-                                onClick={() => openDeleteModal(item.id, idx)}
-                                color="error"
-                                style={{ cursor: "pointer" }}
-                              />
+                              {permissions.del && (
+                                <DeleteRoundedIcon
+                                  onClick={() => {
+                                    setDeleteId(item.id);
+                                    setDeleteIndex(idx);
+                                    setShowDelete(true);
+                                  }}
+                                  color="error"
+                                  style={{ cursor: "pointer" }}
+                                />
+                              )}
                               <VisibilityIcon
-                                onClick={() => handleView(item)}
+                                onClick={() =>
+                                  navigate(
+                                    `/project-list/view-project/${item.id}`
+                                  )
+                                }
                                 color="primary"
-                                style={{
-                                  cursor: "pointer",
-                                }}
+                                style={{ cursor: "pointer" }}
                               />
                             </td>
                           </tr>
@@ -376,6 +330,7 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
                   </Table>
                 </div>
               )}
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
@@ -402,28 +357,11 @@ const ProjectList = ({ onActiveTab = () => {} }) => {
           </Card>
         </Col>
       </Row>
-      {/* )} */}
-
-      {/* Add/Edit Modal */}
-      <AddEditModal
-        show={showAddEdit}
-        handleClose={() => {
-          setShowAddEdit(false);
-        }}
-        formData={formData}
-        setFormData={setFormData}
-        onSave={handleAddOrUpdateProject}
-        editData={editIndex !== null}
-        openEditModal={openEditModalData} // selected item data
-      />
 
       {/* Delete Confirmation Modal */}
       <DeleteModal
         show={showDelete}
-        handleClose={() => {
-          setShowDelete(false);
-          setDeleteIndex(null);
-        }}
+        handleClose={() => setShowDelete(false)}
         onConfirm={handleDeleteConfirm}
         modalTitle="Delete Project"
         modalMessage={
