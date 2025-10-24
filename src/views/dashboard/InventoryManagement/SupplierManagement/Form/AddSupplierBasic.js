@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Col, Form, Row } from "react-bootstrap";
 import CustomInput from "../../../../../components/Form/CustomInput";
+import CustomSelect from "../../../../../components/Form/CustomSelect";
+import { salutationData } from "../../../../../mockData";
 
 // Created by: Sufyan 30 Sep 2025
 const AddSupplierBasic = ({ formik }) => {
@@ -14,15 +16,18 @@ const AddSupplierBasic = ({ formik }) => {
       {/* Row 1: salutation, name, company_name */}
       <Row>
         <Col md={4}>
-          <CustomInput
+          <CustomSelect
             label="Salutation"
             name="salutation"
             value={formik.values.salutation}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter salutation (e.g., Mr/Mrs)"
+            options={salutationData}
+            placeholder="--"
+            error={formik.errors.salutation}
             touched={formik.touched.salutation}
-            errors={formik.errors.salutation}
+            required
+            lableName="salutation"
           />
         </Col>
         <Col md={4}>
@@ -32,7 +37,7 @@ const AddSupplierBasic = ({ formik }) => {
             value={formik.values.name}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter name"
+            placeholder="Enter Name"
             touched={formik.touched.name}
             errors={formik.errors.name}
             required={true}
@@ -50,7 +55,7 @@ const AddSupplierBasic = ({ formik }) => {
               }
             }}
             onBlur={formik.handleBlur}
-            placeholder="Enter company name"
+            placeholder="Enter Company Name"
             touched={formik.touched.company_name}
             errors={formik.errors.company_name}
             required={true}
@@ -73,7 +78,7 @@ const AddSupplierBasic = ({ formik }) => {
               formik.handleChange(e);
             }}
             onBlur={formik.handleBlur}
-            placeholder="Enter display name"
+            placeholder="Enter Display Name"
             touched={formik.touched.display_name}
             errors={formik.errors.display_name}
             required={true}
@@ -91,7 +96,7 @@ const AddSupplierBasic = ({ formik }) => {
             value={formik.values.email}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter email"
+            placeholder="Enter Email"
             touched={formik.touched.email}
             errors={formik.errors.email}
             required={true}
@@ -99,12 +104,13 @@ const AddSupplierBasic = ({ formik }) => {
         </Col>
         <Col md={4}>
           <CustomInput
+            type="number"
             label="Mobile"
             name="phone"
             value={formik.values.phone}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter mobile number"
+            placeholder="Enter Mobile Number"
             touched={formik.touched.phone}
             errors={formik.errors.phone}
             required={true}

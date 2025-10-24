@@ -114,7 +114,7 @@ const AddPurchaseOrder = () => {
         }
 
         // create SR No
-        if (purchaseOrderRes) {
+        if (purchaseOrderRes && values.branch_id) {
           const payload = {
             selectedCategories: selectedItemsData.selectedCategories,
             branch_id: values.branch_id,

@@ -20,11 +20,8 @@ const UpdateQuotationNew = () => {
   const leadId = location.state;
   const isCustomerNeg = location.state.isCustomerNeg;
   const asPerSalesOrder =
-    location.state.asPerSalesOrder.asPerSalesOrder ||
-    location.state.asPerSalesOrder;
-
-  console.log("isCustomer", isCustomer);
-  console.log("isCustomerNeg", isCustomerNeg);
+    location?.state?.asPerSalesOrder?.asPerSalesOrder ||
+    location?.state?.asPerSalesOrder;
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -369,7 +366,9 @@ const UpdateQuotationNew = () => {
     <>
       <Card>
         <Card.Header>
-          <h5 className="mb-0">Finalize Quotation</h5>
+          <h5 className="mb-0">
+            {isCustomerNeg ? "Negotiation Quotation" : "Final Quotation"}
+          </h5>
         </Card.Header>
         <hr />
         <Card.Body className="pt-0">

@@ -71,6 +71,7 @@ const LeadsList = () => {
     last_call: "",
     priority: "",
     requirement_lead_id: "",
+    gender: "Male",
   });
 
   // 🔹 Fetch Permissions
@@ -169,6 +170,7 @@ const LeadsList = () => {
   const resetForm = () => {
     setFormData({
       customerType: "Individual",
+      gender: "Male",
       companyName: "",
       salutation: "",
       name: "",
@@ -203,6 +205,7 @@ const LeadsList = () => {
       name: data.name,
       company_name: data.customerType === "Business" ? data.companyName : null,
       salutation: data.customerType === "Individual" ? data.salutation : null,
+      gender: data.gender,
       email: data.email,
       contact: data.contact,
       lead_source: Number(data.leadSource),
@@ -386,10 +389,12 @@ const LeadsList = () => {
                             <td>
                               {(currentPage - 1) * itemsPerPage + idx + 1}
                             </td>
-                            <td>{item.name}</td>
+                            <td>
+                              {item.salutation} {item.name}
+                            </td>
                             <td>{item.company_name || "Individual"}</td>
 
-                            <td>
+                            <td style={{ width: "155px" }}>
                               <Form.Select
                                 size="sm"
                                 value={item.priority || ""}
@@ -436,7 +441,7 @@ const LeadsList = () => {
                               </Form.Select>
                             </td>
 
-                            <td>
+                            <td style={{ width: "200px" }}>
                               <Form.Select
                                 size="sm"
                                 value={item.lead_status_id || ""} // use ID as value, not name

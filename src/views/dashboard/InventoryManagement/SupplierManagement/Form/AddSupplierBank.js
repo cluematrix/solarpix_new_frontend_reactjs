@@ -18,7 +18,7 @@ const AddSupplierBank = ({ formik }) => {
             value={formik.values.account_holder_name}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter account holder name"
+            placeholder="Enter Account Holder Name"
             touched={formik.touched.account_holder_name}
             errors={formik.errors.account_holder_name}
             required={true}
@@ -31,7 +31,7 @@ const AddSupplierBank = ({ formik }) => {
             value={formik.values.bank_name}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter bank name"
+            placeholder="Enter Bank Name"
             touched={formik.touched.bank_name}
             errors={formik.errors.bank_name}
             required={true}
@@ -39,12 +39,13 @@ const AddSupplierBank = ({ formik }) => {
         </Col>
         <Col md={4}>
           <CustomInput
+            type="number"
             label="Account Number"
             name="account_number"
             value={formik.values.account_number}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter account number"
+            placeholder="Enter Account Number"
             touched={formik.touched.account_number}
             errors={formik.errors.account_number}
             required={true}
@@ -52,18 +53,18 @@ const AddSupplierBank = ({ formik }) => {
         </Col>
       </Row>
 
-      {/* Row 2: ifsc_code, remark */}
+      {/* Row 2: IFSC_no, remark */}
       <Row className="mt-3">
         <Col md={4}>
           <CustomInput
             label="IFSC Code"
-            name="ifsc_code"
-            value={formik.values.ifsc_code}
+            name="IFSC_no"
+            value={formik.values.IFSC_no}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            placeholder="Enter IFSC code"
-            touched={formik.touched.ifsc_code}
-            errors={formik.errors.ifsc_code}
+            placeholder="Enter IFSC Code"
+            touched={formik.touched.IFSC_no}
+            errors={formik.errors.IFSC_no}
             required={true}
           />
         </Col>

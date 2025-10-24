@@ -122,6 +122,7 @@ import BranchStockHisList from "../views/dashboard/InventoryManagement/Warehouse
 import CustomerStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockList";
 import SrNoList from "../views/dashboard/InventoryManagement/WarehouseManagment/SrNoList";
 import AttedenceList from "../views/dashboard/EmployeeManagment/Attedence/AttedenceList";
+import CenterStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CentralStockList";
 // employee profile 01 Sep
 
 export const DefaultRouter = [
@@ -317,6 +318,10 @@ export const DefaultRouter = [
       {
         path: "customer-management-list",
         element: <CustomerStockList />,
+      },
+      {
+        path: "central-warehouse-list",
+        element: <CenterStockList />,
       },
       {
         path: "supplier-management-list",

@@ -217,7 +217,7 @@ const SupplierManagementList = () => {
               className="d-flex justify-content-between"
               style={{ padding: "15px 15px 0px 15px" }}
             >
-              <h5 className="card-title fw-lighter">Supplier Management</h5>
+              <h5 className="card-title fw-lighter">Supplier</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -252,10 +252,12 @@ const SupplierManagementList = () => {
                       currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>{item.name}</td>
+                          <td>
+                            {item.salutation} {item.name}
+                          </td>
                           <td>{item.display_name}</td>
                           <td>{item.paymentTerm?.payment_term}</td>
-                          <td>
+                          <td style={{ width: "100px" }}>
                             <span
                               className={`status-dot ${
                                 item.isActive ? "active" : "inactive"
@@ -274,7 +276,6 @@ const SupplierManagementList = () => {
                             />
                             {/* View */}
                             <VisibilityIcon
-                              className="me-2"
                               onClick={() => handleView(item)}
                               color="info"
                               style={{ cursor: "pointer" }}

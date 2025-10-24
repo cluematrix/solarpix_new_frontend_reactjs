@@ -69,7 +69,7 @@ const CustomerList = () => {
       console.log(roleId, "roleId from sessionStorage");
       console.log(pathname, "current pathname");
 
-      // ✅ Match current role + route
+      // Match current role + route
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
@@ -90,7 +90,7 @@ const CustomerList = () => {
       console.error("Error fetching roles:", err);
       setPermissions(null);
     } finally {
-      setLoading(false); // ✅ Stop loader after API call
+      setLoading(false); // Stop loader after API call
     }
   };
 
@@ -247,9 +247,12 @@ const CustomerList = () => {
                           <tr key={item.id}>
                             <td>{indexOfFirst + idx + 1}</td>
                             <td>{item.client_id || "--"}</td>
-                            <td>{item.name || "--"}</td>
-                            <td className="p-0 text-center">
+                            <td>
+                              {item.salutation || "--"} {item.name || "--"}
+                            </td>
+                            <td>
                               {" "}
+                              {item.kyc_status}
                               <Tooltip title={item.kyc_status || "--"}>
                                 <Button
                                   className={`${
@@ -296,7 +299,6 @@ const CustomerList = () => {
                                 color="primary"
                                 style={{
                                   cursor: "pointer",
-                                  marginLeft: "2px",
                                 }}
                               />
                               <CreateTwoToneIcon
@@ -304,7 +306,6 @@ const CustomerList = () => {
                                 color="primary"
                                 style={{
                                   cursor: "pointer",
-                                  marginLeft: "2px",
                                 }}
                               />
                               <DeleteRoundedIcon
@@ -314,7 +315,6 @@ const CustomerList = () => {
                                 color="error"
                                 style={{
                                   cursor: "pointer",
-                                  marginLeft: "2px",
                                 }}
                               />
                             </td>

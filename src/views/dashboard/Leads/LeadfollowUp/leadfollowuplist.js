@@ -305,6 +305,7 @@ const LeadFollowupList = () => {
                           </tr>
                         ) : (
                           currentItems.map((item, idx) => {
+                            console.log("itemFo", item);
                             const dateObj = item.followup_date
                               ? new Date(item.followup_date)
                               : null;
@@ -312,6 +313,7 @@ const LeadFollowupList = () => {
                               <tr key={item.id}>
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>
+                                  {item?.lead?.salutation}{" "}
                                   {item.lead_id?.name ||
                                     leads.find((l) => l.id === item.lead_id)
                                       ?.name ||

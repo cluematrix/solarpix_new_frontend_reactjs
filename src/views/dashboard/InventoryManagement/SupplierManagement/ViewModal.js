@@ -1,11 +1,12 @@
 import React from "react";
 import { Modal, Row, Col } from "react-bootstrap";
+import { FaEye } from "react-icons/fa";
 
 const ViewModal = ({ showView, setShowView, viewData }) => {
   return (
     <Modal show={showView} onHide={() => setShowView(false)} centered size="lg">
-      <Modal.Header closeButton className="bg-light">
-        <Modal.Title className="fw-lighter text-primary fs-5">
+      <Modal.Header closeButton>
+        <Modal.Title className="fw-lighter fs-5">
           Supplier Management Details
         </Modal.Title>
       </Modal.Header>
@@ -39,7 +40,7 @@ const ViewModal = ({ showView, setShowView, viewData }) => {
             </Col>
             <Col md={4} className="mb-2">
               <div className="fw-semibold text-muted">GST:</div>
-              <div>{viewData.gst || "N/A"}</div>
+              <div>{viewData.GST || "N/A"}</div>
             </Col>
           </Row>
 
@@ -47,7 +48,7 @@ const ViewModal = ({ showView, setShowView, viewData }) => {
           <Row className="mb-3">
             <Col md={4} className="mb-2">
               <div className="fw-semibold text-muted">PAN:</div>
-              <div>{viewData.pan || "N/A"}</div>
+              <div>{viewData.PAN || "N/A"}</div>
             </Col>
             <Col md={4} className="mb-2">
               <div className="fw-semibold text-muted">GST Treatment:</div>
@@ -80,13 +81,13 @@ const ViewModal = ({ showView, setShowView, viewData }) => {
             <Col md={4} className="mb-2">
               <div className="fw-semibold text-muted">Document:</div>
               <div>
-                {viewData.document ? (
+                {viewData?.document ? (
                   <a
-                    href={viewData.document}
+                    href={viewData?.document}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    View Document
+                    <FaEye />
                   </a>
                 ) : (
                   "N/A"

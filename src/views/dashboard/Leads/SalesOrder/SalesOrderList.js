@@ -115,6 +115,8 @@ const SalesOrderList = () => {
       </div>
     );
   }
+
+  console.log("salesOrderList", salesOrderList);
   return (
     <>
       <Row className="mt-4">
@@ -158,7 +160,10 @@ const SalesOrderList = () => {
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td>{so.lead?.name || "--"}</td>
+                          <td>
+                            {so.lead?.salutation || "--"}{" "}
+                            {so.lead?.name || "--"}
+                          </td>
                           <td>{so?.sales_order_no || "--"}</td>
                           <td>{so?.reference || "--"}</td>
                           <td>₹{so?.total || "--"}</td>

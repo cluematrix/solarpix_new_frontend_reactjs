@@ -44,6 +44,7 @@ import NetMeteringFieldList from "../work/NetMetering/NetMeteringFieldList";
 import NodalPointList from "../work/NodalPoint/NodalPointList";
 import InventoryCategoriesList from "../InventoryManagement/InventoryCategories/InventoryCategoriesList";
 import InventoryTypeList from "../InventoryManagement/InventoryType/InventoryTypeList";
+import SubsidyList from "../../Subsidy/SubsidyList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -337,6 +338,12 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Bank" && activeTab === 0 && (
               <>
                 <BankList />
+              </>
+            )}
+
+            {activeSidebar === "Subsidy" && activeTab === 0 && (
+              <>
+                <SubsidyList />
               </>
             )}
           </Box>

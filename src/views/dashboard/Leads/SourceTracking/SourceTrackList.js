@@ -114,7 +114,7 @@ const SourceTrackList = () => {
     <Card className="p-3">
       <Row className="mb-3">
         <Col>
-          <h5>Filter by Lead Source</h5>
+          <h5 className="card-title fw-lighter">Lead Source</h5>
           <Dropdown
             show={showDropdown}
             onToggle={() => setShowDropdown(!showDropdown)}
@@ -188,14 +188,9 @@ const SourceTrackList = () => {
                   <tr>
                     <th>Lead No</th>
                     <th>Name</th>
-                    {/* <th>Email</th> */}
-                    {/* <th>Contact</th> */}
                     <th>Lead Source</th>
-                    {/* <th>Customer Type</th> */}
                     <th>Priority</th>
                     <th>Status</th>
-                    {/* <th>Last Call</th> */}
-                    {/* <th>Added By</th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -203,22 +198,20 @@ const SourceTrackList = () => {
                     currentLeads.map((lead) => (
                       <tr key={lead.id}>
                         <td>{lead.lead_number}</td>
-                        <td>{lead.name}</td>
-                        {/* <td>{lead.email}</td> */}
-                        {/* <td>{lead.contact}</td> */}
+                        <td>
+                          {lead.salutation} {lead.name}
+                        </td>
                         <td>{lead.leadSource?.lead_source || "-"}</td>
-                        {/* <td>{lead.customer_type}</td> */}
-
-                        {/* Priority with background */}
                         <td>
                           <span
                             style={{
                               backgroundColor: getPriorityColor(lead.priority),
-                              padding: "4px 8px",
+                              padding: "5px",
                               borderRadius: "6px",
                               display: "inline-block",
                               fontWeight: "500",
-                              width: "80px",
+                              width: "58px",
+                              textAlign: "center",
                             }}
                           >
                             {lead.priority || "-"}
@@ -230,11 +223,12 @@ const SourceTrackList = () => {
                           <span
                             style={{
                               backgroundColor: getStatusColor(lead.status),
-                              padding: "4px 8px",
+                              padding: "5px",
                               borderRadius: "6px",
                               display: "inline-block",
                               fontWeight: "500",
-                              width: "130px",
+                              width: "67px",
+                              textAlign: "center",
                             }}
                           >
                             {lead.status || "-"}
@@ -263,7 +257,7 @@ const SourceTrackList = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <Pagination className="justify-content-end mt-3">
+                <Pagination className="justify-content-center mt-3">
                   <Pagination.First
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}

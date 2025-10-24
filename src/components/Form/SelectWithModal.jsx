@@ -53,7 +53,12 @@ const SelectWithModal = ({
       )}
 
       {/* Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal
+        show={showModal}
+        backdrop="static"
+        centered
+        onHide={() => setShowModal(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Select {label}</Modal.Title>
         </Modal.Header>

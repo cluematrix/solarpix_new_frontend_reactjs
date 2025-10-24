@@ -137,6 +137,7 @@ const BranchStockList = () => {
                     <tr>
                       <th>Sr. No.</th>
                       <th>Branch</th>
+                      <th>Category</th>
                       <th>Material</th>
                       <th>Balance</th>
                       <th>Date</th>
@@ -151,6 +152,10 @@ const BranchStockList = () => {
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
                           <td>{t.branch?.branch_name || "—"}</td>
+                          <td>
+                            {t.material?.stockName?.InventoryCat?.category ||
+                              "—"}
+                          </td>
                           <td>{t.material?.material || "—"}</td>
                           <td>{t.balance_after || t.balance}</td>
                           <td>
