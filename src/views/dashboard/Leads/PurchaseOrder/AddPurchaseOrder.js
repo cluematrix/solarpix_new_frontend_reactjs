@@ -12,6 +12,7 @@ import CustomInput from "../../../../components/Form/CustomInput";
 import AddPurchaseOrderModal from "./AddPurchaseOrderModal";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import { defaultNotes, personType } from "../../../../mockData";
+import * as Yup from "yup";
 
 const AddPurchaseOrder = () => {
   const { id } = useParams();
@@ -29,8 +30,6 @@ const AddPurchaseOrder = () => {
   });
 
   const [selectedItemsData, setSelectedItemsData] = useState(null); // modal data
-
-  console.log("selectedItemsData", selectedItemsData);
 
   const [subTotals, setSubTotals] = useState({
     subTotal: 0,
@@ -52,9 +51,35 @@ const AddPurchaseOrder = () => {
     branch_id: null,
   };
 
+  const validationSchema = Yup.object().shape({
+    date: Yup.string().required("Date is required"),
+    delivery_date: Yup.string().required("Delivery date is required"),
+    notes_customer: Yup.string().required(
+      "Customer notes or subsidy is required"
+    ),
+    payment_terms_id: Yup.string().required("Payment terms is required"),
+    supplier_id: Yup.string().required("Supplier is required"),
+    type: Yup.string()
+      .oneOf(["Warehouse", "Customer"])
+      .required("Type is required"),
+
+    branch_id: Yup.string().when("type", {
+      is: "Warehouse",
+      then: (schema) => schema.required("Branch is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+    client_id: Yup.string().when("type", {
+      is: "Customer",
+      then: (schema) => schema.required("Client is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  });
+
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
+    validationSchema: validationSchema,
     onSubmit: async (values) => {
       if (!selectedItemsData)
         return errorToast("Please add at least one item.");
@@ -443,6 +468,7 @@ const AddPurchaseOrder = () => {
                   touched={touched.supplier_id}
                   lableName="name"
                   lableKey="id"
+                  required
                 />
               </Col>
               <Col md={4}>
@@ -558,6 +584,7 @@ const AddPurchaseOrder = () => {
                   touched={touched.delivery_date}
                   errors={errors.delivery_date}
                   min={new Date().toISOString().split("T")[0]}
+                  required
                 />
               </Col>
             </Row>

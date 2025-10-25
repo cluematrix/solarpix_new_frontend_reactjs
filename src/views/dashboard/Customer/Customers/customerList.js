@@ -30,6 +30,7 @@ const CustomerList = () => {
   const [loading, setLoading] = useState(false);
   const { pathname } = useLocation();
   const [permissions, setPermissions] = useState(null);
+  const [loadingDlt, setLoadingDlt] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -136,6 +137,7 @@ const CustomerList = () => {
 
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
+    setLoadingDlt(true);
     api
       .delete(`/api/v1/admin/client/${deleteId}`)
       .then(() => {
@@ -146,6 +148,9 @@ const CustomerList = () => {
       .catch((err) => {
         console.error("Error deleting customer:", err);
         errorToast(err.response?.data?.message || "Failed to delete customer");
+      })
+      .finally(() => {
+        setLoadingDlt(false);
       });
   };
 
@@ -375,9 +380,10 @@ const CustomerList = () => {
         modalTitle="Delete Customer"
         modalMessage={
           deleteIndex !== null && filteredData[deleteIndex]
-            ? `Are you sure you want to delete the customer ${filteredData[deleteIndex].name}?`
+            ? `Are you sure you want to delete this customer "${filteredData[deleteIndex].name}"?`
             : ""
         }
+        loadingDlt={loadingDlt}
       />
 
       {/* Kyc Modal */}

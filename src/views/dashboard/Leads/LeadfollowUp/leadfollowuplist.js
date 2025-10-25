@@ -38,6 +38,10 @@ const LeadFollowupList = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [showOutcome, setShowOutcome] = useState(false);
   const [outcomeData, setOutcomeData] = useState({
     followup_id: "",
@@ -55,10 +59,6 @@ const LeadFollowupList = () => {
   const [filterToDate, setFilterToDate] = useState("");
   const [filteredFollowups, setFilteredFollowups] = useState([]);
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
   // Fetch leads
   const fetchLeads = async () => {
     try {
@@ -70,16 +70,18 @@ const LeadFollowupList = () => {
   };
 
   // Fetch followups
-  const fetchFollowups = async () => {
+  const fetchFollowups = async (page = 1) => {
     try {
       setLoading(true);
-      const res = await api.get("/api/v1/admin/followUp");
-      const data = Array.isArray(res.data?.data)
-        ? res.data.data
-        : res.data || [];
-      setFollowups(data);
-      setFilteredFollowups(data);
-      setCurrentPage(1); // reset to first page after fetching
+      const res = await api.get(
+        `/api/v1/admin/followUp/pagination?page=${page}&limit=${itemsPerPage}`
+      );
+
+      setFollowups(res.data?.data || []);
+      setFilteredFollowups(res.data?.data);
+      if (res.data?.pagination?.total) {
+        setTotalPages(Math.ceil(res.data.pagination.total / itemsPerPage));
+      }
     } catch (err) {
       console.error("Error fetching followups:", err);
     } finally {
@@ -89,8 +91,8 @@ const LeadFollowupList = () => {
 
   useEffect(() => {
     fetchLeads();
-    fetchFollowups();
-  }, []);
+    fetchFollowups(currentPage);
+  }, [currentPage]);
 
   // Reset Add/Edit Form
   const resetForm = () => {
@@ -125,15 +127,6 @@ const LeadFollowupList = () => {
     setFilteredFollowups(filtered);
     setCurrentPage(1); // reset pagination after filter
   }, [filterLead, filterFromDate, filterToDate, followups, leads]);
-
-  // Pagination logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredFollowups.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(filteredFollowups.length / itemsPerPage);
 
   // Open View Modal
   const openViewModal = (followup) => {
@@ -309,21 +302,23 @@ const LeadFollowupList = () => {
                       </thead>
 
                       <tbody>
-                        {currentItems.length === 0 ? (
+                        {followups.length === 0 ? (
                           <tr>
                             <td colSpan="7" className="text-center">
                               No Follow Ups available
                             </td>
                           </tr>
                         ) : (
-                          currentItems.map((item, idx) => {
+                          followups.map((item, idx) => {
                             console.log("itemFo", item);
                             const dateObj = item.followup_date
                               ? new Date(item.followup_date)
                               : null;
                             return (
                               <tr key={item.id}>
-                                <td>{indexOfFirstItem + idx + 1}</td>
+                                <td>
+                                  {(currentPage - 1) * itemsPerPage + idx + 1}
+                                </td>
                                 <td>
                                   {item?.lead?.salutation}{" "}
                                   {item.lead?.name || "—"}
@@ -392,34 +387,20 @@ const LeadFollowupList = () => {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <Pagination className="justify-content-end mt-3 me-3">
+                    <Pagination className="justify-content-center mt-3">
                       <Pagination.First
                         onClick={() => setCurrentPage(1)}
                         disabled={currentPage === 1}
                       />
-                      <Pagination.Prev
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(prev - 1, 1))
-                        }
-                        disabled={currentPage === 1}
-                      />
-                      {[...Array(totalPages)].map((_, idx) => (
+                      {[...Array(totalPages)].map((_, i) => (
                         <Pagination.Item
-                          key={idx + 1}
-                          active={currentPage === idx + 1}
-                          onClick={() => setCurrentPage(idx + 1)}
+                          key={i + 1}
+                          active={i + 1 === currentPage}
+                          onClick={() => setCurrentPage(i + 1)}
                         >
-                          {idx + 1}
+                          {i + 1}
                         </Pagination.Item>
                       ))}
-                      <Pagination.Next
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, totalPages)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                      />
                       <Pagination.Last
                         onClick={() => setCurrentPage(totalPages)}
                         disabled={currentPage === totalPages}
