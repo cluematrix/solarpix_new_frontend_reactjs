@@ -49,6 +49,7 @@ import SalaryComponentListR from "../Employees/SalaryComponents/SalaryComponentL
 import SalaryTDSList from "../Employees/SalaryTDS/SalaryTDSList";
 import SalaryPaymentMethodList from "../Employees/SalaryPaymentMethod/SalaryPaymentMethodList";
 import SalaryGroupList from "../Employees/SalaryGroups/SalaryGroupList";
+import PFCappingList from "../Employees/PFCapping/PFCappingList";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -366,6 +367,12 @@ export default function SettingsSidebarWithTabs() {
             {activeSidebar === "Payroll" && activeTab === 3 && (
               <>
                 <SalaryPaymentMethodList />
+              </>
+            )}
+
+                {activeSidebar === "Payroll" && activeTab === 4 && (
+              <>
+                <PFCappingList />
               </>
             )}
           </Box>

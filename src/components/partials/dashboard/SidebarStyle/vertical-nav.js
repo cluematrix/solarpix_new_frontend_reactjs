@@ -1460,6 +1460,25 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">Payroll</span>
                 </Link>
               </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/EmployeeSalary" ? "active" : ""
+                  } nav-link`}
+                  to="/EmployeeSalary"
+                >
+                  <i className="icon">
+                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Employee Salary
+                  </span>
+                </Link>
+              </li>
             </ul>
           </Accordion.Collapse>
         </Accordion.Item>

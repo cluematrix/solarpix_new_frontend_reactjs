@@ -104,6 +104,7 @@ export const tabConfig = {
     "Salary Groups",
     "Salary TDS",
     "Salary Payment Method",
+    "PF Capping",
   ],
 };
 
