@@ -17,7 +17,6 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
   const [tdsData, setTdsData] = useState([]);
   const [pfCapping, setPfCapping] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({});
-  const [componentOverrides, setComponentOverrides] = useState({});
 
   // Fetch salary components, TDS, and PF capping when modal opens
   useEffect(() => {
@@ -30,6 +29,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
         group.employees.some((emp) => emp.id === employee.id)
       );
 
+      // Find default Basic component (e.g., 40%)
       const defaultBasic = componentsData.find(
         (b) => b.salary_components === "Basic" && b.isActive
       );
@@ -39,7 +39,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
         annual_ctc: "",
         basic_salary_percent: defaultBasic
           ? parseFloat(defaultBasic.component_value_monthly)
-          : 40,
+          : 40, // fallback default 40%
         selectedBasicId: defaultBasic ? defaultBasic.id : "",
       });
 
@@ -49,7 +49,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     }
   }, [show, employee, salaryGroups]);
 
-  // Auto-select Basic component after componentsData loads and initialize overrides
+  // Auto-select Basic component after componentsData loads
   useEffect(() => {
     if (componentsData.length > 0 && show) {
       const defaultBasic = componentsData.find(
@@ -63,24 +63,9 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
           basic_salary_percent:
             parseFloat(defaultBasic.component_value_monthly) || 40,
         }));
-
-        // Initialize component overrides with default percentages from componentsData
-        const initialOverrides = {};
-        salaryComponents.forEach((comp) => {
-          const compData = componentsData.find(
-            (c) => c.salary_components === comp.salary_components && c.isActive
-          );
-          if (compData && comp.value_type.includes("Percent")) {
-            initialOverrides[comp.salary_components] = parseFloat(
-              compData.component_value_monthly
-            );
-          }
-        });
-        setComponentOverrides(initialOverrides);
       }
     }
-  }, [componentsData, show, salaryComponents]);
-
+  }, [componentsData, show]);
   // Fetch Active Salary Components
   const fetchSalaryComponents = async () => {
     try {
@@ -125,11 +110,8 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     (c) => c.salary_components === "Basic" && c.isActive
   );
 
-  // Get Component Value (uses override if present, otherwise default)
+  // Get Component Value by Name
   const getComponentValue = (componentName) => {
-    if (componentOverrides[componentName] !== undefined) {
-      return parseFloat(componentOverrides[componentName]);
-    }
     const comp = componentsData.find(
       (c) => c.salary_components === componentName && c.isActive
     );
@@ -145,7 +127,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
         ctc <= parseFloat(tds.annual_salary_upto)
     );
     if (!tds) return 0;
-    return (ctc * parseFloat(tds.salary_percent)) / 100 / 12;
+    return (ctc * parseFloat(tds.salary_percent)) / 100 / 12; // Monthly TDS
   };
 
   // Main Calculation Logic
@@ -155,7 +137,16 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     const values = {};
     let netPayAdjustment = 0;
 
-    // BASIC CALCULATION
+    // BASIC SALARY OLD CODE BY RISHI LOGIC
+    // const basicAnnual = (ctc * basicPercent) / 100;
+    // const basicMonthly = basicAnnual / 12;
+    // values["Basic Salary"] = {
+    //   monthly: basicMonthly,
+    //   annual: basicAnnual,
+    //   type: "Earnings",
+    // };
+
+    // BASIC SALARY  SAI RITIK LOGIC 24 OCT
     const selectedBasic = componentsData.find(
       (b) => b.id === parseInt(formData.selectedBasicId)
     );
@@ -164,10 +155,12 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
 
     if (selectedBasic) {
       if (selectedBasic.value_type === "Fixed") {
+        // User enters a fixed monthly value
         basicMonthly = parseFloat(formData.basic_salary_percent) || 0;
         basicAnnual = basicMonthly * 12;
       } else if (selectedBasic.value_type === "CTC Percent") {
-        basicAnnual = (ctc * basicPercent) / 100;
+        // Calculate from Annual CTC percentage
+        basicAnnual = (ctc * parseFloat(formData.basic_salary_percent)) / 100;
         basicMonthly = basicAnnual / 12;
       }
     }
@@ -197,24 +190,38 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
           value = 0;
       }
 
-      // PF Capping
+      // Apply PF Capping for PF (Employee) and PF (Employer)
       if (
         pfCapping &&
         (comp.salary_components === "PF (Employee)" ||
           comp.salary_components === "PF (Employer)")
       ) {
         if (value > 1800) {
-          netPayAdjustment += value - 1800;
-          value = 1800;
+          netPayAdjustment += value - 1800; // Excess goes to net pay
+          value = 1800; // Cap at 1800
         }
       }
 
       values[comp.salary_components] = {
         monthly: value,
         annual: value * 12,
-        type: comp.component_type || "Earnings",
+        type: comp.component_type || "Earnings", // Default to Earnings if not specified
       };
     });
+
+    // SPECIAL ALLOWANCE (Remaining)
+    // const totalUsed = Object.values(values).reduce(
+    //   (sum, v) => sum + v.annual,
+    //   0
+    // );
+    // const specialAnnual = ctc - totalUsed;
+    // const specialMonthly = specialAnnual / 12;
+
+    // values["Special Allowance"] = {
+    //   monthly: specialMonthly,
+    //   annual: specialAnnual,
+    //   type: "Earnings",
+    // };
 
     // TDS
     const tdsMonthly = calculateTds(ctc);
@@ -224,6 +231,13 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
       type: "Deduction",
     };
 
+    // Net Pay Adjustment (from PF capping excess)
+    // values["Net Pay Adjustment"] = {
+    //   monthly: netPayAdjustment,
+    //   annual: netPayAdjustment * 12,
+    //   type: "Earnings",
+    // };
+
     return values;
   };
 
@@ -232,14 +246,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     if (formData.annual_ctc) {
       setCalculatedValues(calculateComponentValues());
     }
-  }, [
-    formData,
-    componentsData,
-    salaryComponents,
-    tdsData,
-    pfCapping,
-    componentOverrides,
-  ]);
+  }, [formData, componentsData, salaryComponents, tdsData, pfCapping]);
 
   // Handle Input Change
   const handleChange = (e) => {
@@ -250,129 +257,28 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     }));
   };
 
-  // Handle Component Percent Change
-  const handleComponentPercentChange = (componentName, value) => {
-    setComponentOverrides((prev) => ({
-      ...prev,
-      [componentName]: parseFloat(value) || 0,
-    }));
-  };
-
   // Save Salary Data
-  // const onSave = async () => {
-  //   try {
-  //     setLoading(true);
-  //     if (!formData.employee_id || !formData.annual_ctc) {
-  //       toast.warn("Please fill required fields");
-  //       return;
-  //     }
-  //     console.log("Saving salary:", formData, calculatedValues);
-  //     toast.success("Salary saved successfully!");
-  //     handleClose();
-  //   } catch (err) {
-  //     toast.error("Failed to save salary");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const onSave = async () => {
     try {
       setLoading(true);
-
       if (!formData.employee_id || !formData.annual_ctc) {
         toast.warn("Please fill required fields");
         return;
       }
 
-      // --- Prepare salary component breakdown ---
-      const componentPayload = Object.entries(calculatedValues).map(
-        ([name, comp]) => {
-          const matchedComp = componentsData.find(
-            (c) => c.salary_components === name
-          );
-
-          return {
-            component_id: matchedComp ? matchedComp.id : null,
-            component_name: name,
-            component_type:
-              comp.type?.toLowerCase() === "deduction"
-                ? "deduction"
-                : "earning",
-            component_percent:
-              componentOverrides[name] ||
-              matchedComp?.component_value_monthly ||
-              0,
-            component_annual: comp.annual?.toFixed(2) || 0,
-            component_monthly: comp.monthly?.toFixed(2) || 0,
-          };
-        }
-      );
-
-      // --- Calculate totals ---
-      const totalEarningsMonthly = Object.values(calculatedValues)
-        .filter((v) => v.type === "Earnings")
-        .reduce((sum, v) => sum + v.monthly, 0);
-
-      const totalDeductionsMonthly = Object.values(calculatedValues)
-        .filter((v) => v.type === "Deduction")
-        .reduce((sum, v) => sum + v.monthly, 0);
-
-      const totalEarningsAnnual = totalEarningsMonthly * 12;
-      const totalDeductionsAnnual = totalDeductionsMonthly * 12;
-
-      const totalMonthly = totalEarningsMonthly + totalDeductionsMonthly;
-      const totalAnnual = totalEarningsAnnual + totalDeductionsAnnual;
-
-      const netMonthly = totalEarningsMonthly - totalDeductionsMonthly;
-      const netAnnual = totalEarningsAnnual - totalDeductionsAnnual;
-
-      // --- Build final payload ---
-      const payload = {
-        employee_id: formData.employee_id,
-        per_annum_sal: parseFloat(formData.annual_ctc) || 0,
-        basic_per: parseFloat(formData.basic_salary_percent) || 0,
-        basic_amount:
-          calculatedValues["Basic Salary"]?.monthly?.toFixed(2) || 0,
-        deduction: totalDeductionsMonthly.toFixed(2),
-        addition: totalEarningsMonthly.toFixed(2),
-
-        // ✅ NEW FIELDS ADDED HERE
-        total_monthly: totalMonthly.toFixed(2),
-        total_annual: totalAnnual.toFixed(2),
-        net_monthly: netMonthly.toFixed(2),
-        net_annual: netAnnual.toFixed(2),
-
-        status: "paid",
-        sal_pay_id: 1, // Replace with selected payment method if needed
-        paid_date: new Date().toISOString().split("T")[0],
-        year: new Date().getFullYear(),
-        month: new Date().toLocaleString("default", { month: "long" }),
-        salary_components: componentPayload,
-      };
-
-      console.log("➡️ Sending payload to backend:", payload);
-
-      const res = await api.post(
-        "/api/v1/admin/employeeSalary/employee-salary",
-        payload
-      );
-
-      if (res.data.success) {
-        toast.success("Salary saved successfully!");
-        handleClose();
-      } else {
-        toast.error("Failed to save salary");
-      }
+      console.log("Saving salary:", formData, calculatedValues);
+      toast.success("Salary saved successfully!");
+      handleClose();
     } catch (err) {
-      console.error("❌ Error saving salary:", err);
-      toast.error("Something went wrong while saving salary");
+      toast.error("Failed to save salary");
     } finally {
       setLoading(false);
     }
   };
 
   const values = calculateComponentValues();
+
+  // Separate Earnings and Deductions
   const earnings = Object.entries(values).filter(
     ([_, val]) => val.type === "Earnings"
   );
@@ -494,52 +400,40 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
           {/* EARNINGS */}
           <Card className="p-3 mb-4 shadow-sm">
             <h5 className="text-success mb-3">Earnings</h5>
-            {earnings.map(([compName, comp]) => {
-              const compMeta = componentsData.find(
-                (c) => c.salary_components === compName
-              );
-              const isPercentBased =
-                compMeta?.value_type === "CTC Percent" ||
-                compMeta?.value_type === "Basic Percent";
-              return (
-                <Row className="mb-3" key={compName}>
-                  <Col md={4}>
-                    <Form.Label>{compName}</Form.Label>
-                    {isPercentBased ? (
-                      <Form.Control
-                        type="number"
-                        value={getComponentValue(compName)}
-                        onChange={(e) =>
-                          handleComponentPercentChange(compName, e.target.value)
-                        }
-                      />
-                    ) : (
-                      <Form.Control
-                        type="text"
-                        value={`₹${getComponentValue(compName)}`}
-                        readOnly
-                      />
-                    )}
-                  </Col>
-                  <Col md={4}>
-                    <Form.Label>Monthly</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={comp.monthly?.toFixed(2) || 0}
-                      readOnly
-                    />
-                  </Col>
-                  <Col md={4}>
-                    <Form.Label>Annual</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={comp.annual?.toFixed(2) || 0}
-                      readOnly
-                    />
-                  </Col>
-                </Row>
-              );
-            })}
+            {earnings.map(([compName, comp]) => (
+              <Row className="mb-3" key={compName}>
+                <Col md={4}>
+                  <Form.Label>{compName}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={
+                      componentsData
+                        .find((c) => c.salary_components === compName)
+                        ?.value_type.includes("Percent")
+                        ? `${getComponentValue(compName)}%`
+                        : `₹${getComponentValue(compName)}`
+                    }
+                    readOnly
+                  />
+                </Col>
+                <Col md={4}>
+                  <Form.Label>Monthly</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={comp.monthly?.toFixed(2) || 0}
+                    readOnly
+                  />
+                </Col>
+                <Col md={4}>
+                  <Form.Label>Annual</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={comp.annual?.toFixed(2) || 0}
+                    readOnly
+                  />
+                </Col>
+              </Row>
+            ))}
           </Card>
 
           {/* DEDUCTIONS */}
@@ -582,7 +476,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
             ))}
           </Card>
 
-          {/* TOTAL & NET PAY */}
+          {/* TOTAL CTC */}
           <Card className="p-3 bg-light shadow-sm">
             <Row>
               <Col md={6}>
@@ -596,7 +490,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
               </Col>
             </Row>
           </Card>
-
+          {/* NET PAY */}
           <Card className="p-3 mb-4 bg-success bg-opacity-10 shadow-sm border-success">
             <Row>
               <Col md={6}>
@@ -606,8 +500,8 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
                 <h5>
                   ₹
                   {(
-                    earnings.reduce((s, [_, v]) => s + v.monthly, 0) -
-                    deductions.reduce((s, [_, v]) => s + v.monthly, 0)
+                    earnings.reduce((sum, [_, val]) => sum + val.monthly, 0) -
+                    deductions.reduce((sum, [_, val]) => sum + val.monthly, 0)
                   ).toFixed(2)}
                 </h5>
               </Col>
@@ -615,8 +509,8 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
                 <h5>
                   ₹
                   {(
-                    earnings.reduce((s, [_, v]) => s + v.annual, 0) -
-                    deductions.reduce((s, [_, v]) => s + v.annual, 0)
+                    earnings.reduce((sum, [_, val]) => sum + val.annual, 0) -
+                    deductions.reduce((sum, [_, val]) => sum + val.annual, 0)
                   ).toFixed(2)}
                 </h5>
               </Col>
