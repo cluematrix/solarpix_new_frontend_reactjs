@@ -100,7 +100,7 @@ const SrNoList = () => {
         <Row>
           <Col>
             {loading ? (
-              <div className="text-center py-5">
+              <div className="loader-div">
                 <Spinner animation="border" />
               </div>
             ) : (
@@ -111,7 +111,7 @@ const SrNoList = () => {
                       <tr>
                         <th>Sr. No.</th>
                         <th>Branch</th>
-                        <th>Inv Category</th>
+                        <th>Category</th>
                         <th>Material</th>
                         <th>Serial No</th>
                         <th>Status</th>

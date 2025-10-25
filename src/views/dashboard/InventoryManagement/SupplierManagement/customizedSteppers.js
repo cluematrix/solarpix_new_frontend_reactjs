@@ -229,7 +229,7 @@ export default function CustomizedSteppers({
         </Button>
         {activeStep === steps.length - 1 ? (
           <Button
-            variant="success"
+            variant="primary"
             type="submit"
             onClick={formik.handleSubmit}
             disabled={formik.isSubmitting}

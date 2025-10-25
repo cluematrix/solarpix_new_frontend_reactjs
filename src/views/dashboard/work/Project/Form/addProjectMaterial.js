@@ -14,7 +14,7 @@ import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import { Tooltip } from "@mui/material";
 import SrNoModal from "./SrNoModal"; // new modal component
 
-const AddProjectMaterial = ({ formik, metaData }) => {
+const AddProjectMaterial = ({ formik, metaData, formData }) => {
   const [transactions, setTransactions] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -102,6 +102,12 @@ const AddProjectMaterial = ({ formik, metaData }) => {
   console.log("item_details", formik.values.item_details);
   return (
     <Card className="p-3">
+      <Row
+        className=" mb-3 ps-1 text-dark"
+        style={{ backgroundColor: "#f3d90657" }}
+      >
+        You can’t edit material information here!
+      </Row>
       <Row className="mb-3 d-flex align-items-center justify-content-between">
         <Col md={4}>
           <Form.Check
@@ -179,8 +185,14 @@ const AddProjectMaterial = ({ formik, metaData }) => {
                               >
                                 <FormatListNumberedIcon
                                   color={hasSelected ? "primary" : "inherit"}
-                                  style={{ cursor: "pointer" }}
-                                  onClick={() => handleOpenSrNoModal(t)}
+                                  style={{
+                                    cursor: formData
+                                      ? "not-allowed"
+                                      : "pointer",
+                                  }}
+                                  onClick={() =>
+                                    formData ? null : handleOpenSrNoModal(t)
+                                  }
                                 />
                               </Tooltip>
                             </td>

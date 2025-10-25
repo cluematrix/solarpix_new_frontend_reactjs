@@ -11,9 +11,7 @@ import {
 import api from "../../../../api/axios";
 import { useFormik } from "formik";
 import CustomSelect from "../../../../components/Form/CustomSelect";
-import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import { useNavigate } from "react-router-dom";
-import { Tooltip } from "@mui/material";
 
 const initialValues = {
   clientId: "",
@@ -25,9 +23,6 @@ const CustomerStockList = () => {
   const [loading, setLoading] = useState(false);
 
   const [showAll, setShowAll] = useState(true); // Toggle state
-
-  // for navigation
-  const navigate = useNavigate();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,7 +121,7 @@ const CustomerStockList = () => {
       <Row>
         <Col>
           {loading ? (
-            <div className="text-center py-5">
+            <div className="loader-div">
               <Spinner animation="border" />
             </div>
           ) : (
@@ -137,6 +132,7 @@ const CustomerStockList = () => {
                     <tr>
                       <th>Sr. No.</th>
                       <th>Client</th>
+                      <th>Category</th>
                       <th>Material</th>
                       <th>Balance</th>
                       <th>Date</th>
@@ -150,6 +146,10 @@ const CustomerStockList = () => {
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
                           <td>{t.client?.name || "—"}</td>
+                          <td>
+                            {t.material?.stockName?.InventoryCat?.category ||
+                              "—"}
+                          </td>
                           <td>{t.material?.material || "—"}</td>
                           <td>{t.balance_after || t.balance}</td>
                           <td>

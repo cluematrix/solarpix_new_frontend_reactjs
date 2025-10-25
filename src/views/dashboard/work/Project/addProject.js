@@ -403,6 +403,7 @@ const AddProject = ({ setShowMembersModal, selectedMemberNames }) => {
             handleDynamicChangeMseb={handleDynamicChangeMseb}
             handleDynamicChangeNm={handleDynamicChangeNm}
             handleDynamicChangeNp={handleDynamicChangeNp}
+            formData={formData}
           />
         </Card.Body>
       </Card>

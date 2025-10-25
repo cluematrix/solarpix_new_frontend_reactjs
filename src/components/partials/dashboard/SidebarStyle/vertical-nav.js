@@ -1143,7 +1143,7 @@ const VerticalNav = memo((props) => {
             <i className="icon">
               <MdReceiptLong fontSize="medium" />
             </i>
-            <span className="item-name sidebar-font-size">Warehouse</span>
+            <span className="item-name sidebar-font-size">Inventory</span>
             <i className="right-icon">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1167,6 +1167,27 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
+                    location.pathname === "/central-warehouse-list"
+                      ? "active"
+                      : ""
+                  } nav-link`}
+                  to="/central-warehouse-list"
+                >
+                  <i className="icon">
+                    <MdStore fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <MdStore fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Central Stock
+                  </span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
                     location.pathname === "/BranchStockList" ? "active" : ""
                   } nav-link`}
                   to="/BranchStockList"
@@ -1178,7 +1199,9 @@ const VerticalNav = memo((props) => {
                     {" "}
                     <MdWarehouse fontSize="small" />
                   </i>
-                  <span className="item-name sidebar-font-size">Warehouse</span>
+                  <span className="item-name sidebar-font-size">
+                    Warehouse Stock
+                  </span>
                 </Link>
               </li>
               <li className="nav-item">
@@ -1197,26 +1220,82 @@ const VerticalNav = memo((props) => {
                     {" "}
                     <MdPeopleAlt fontSize="small" />
                   </i>
-                  <span className="item-name sidebar-font-size">Customer</span>
+                  <span className="item-name sidebar-font-size">
+                    Customer Stock
+                  </span>
+                </Link>
+              </li>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
+
+        {/* Work */}
+        <Accordion.Item
+          as="li"
+          className={`${activeMenu === "0" ? "active" : ""}`}
+          eventKey="sidebar-auth2"
+          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+          onClick={() => setActive("auth")}
+        >
+          <CustomToggle
+            eventKey="sidebar-auth2"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <i className="icon">
+              <WorkIcon fontSize="small" />
+            </i>
+            <span className="item-name sidebar-font-size">Work</span>
+            <i className="right-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="sidebar-auth2">
+            <ul className="sub-nav">
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/project-list" ? "active" : ""
+                  } nav-link`}
+                  to="/project-list"
+                >
+                  <i className="icon">
+                    <ListAltIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <ListAltIcon fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">Projects</span>
                 </Link>
               </li>
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/store-list" ? "active" : ""
+                    location.pathname === "/task-list" ? "active" : ""
                   } nav-link`}
-                  to="/store-list"
+                  to="/task-list"
                 >
                   <i className="icon">
-                    <MdStore fontSize="small" />
+                    <TaskIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon">
                     {" "}
-                    <MdStore fontSize="small" />
+                    <TaskIcon fontSize="small" />
                   </i>
-                  <span className="item-name sidebar-font-size">
-                    Store Room
-                  </span>
+                  <span className="item-name sidebar-font-size">Tasks</span>
                 </Link>
               </li>
             </ul>
@@ -1477,79 +1556,6 @@ const VerticalNav = memo((props) => {
                   <span className="item-name sidebar-font-size">
                     Employee Salary
                   </span>
-                </Link>
-              </li>
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
-
-        {/* Work */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-auth2"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
-            eventKey="sidebar-auth2"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
-          >
-            <i className="icon">
-              <WorkIcon fontSize="small" />
-            </i>
-            <span className="item-name sidebar-font-size">Work</span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-auth2">
-            <ul className="sub-nav">
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/project-list" ? "active" : ""
-                  } nav-link`}
-                  to="/project-list"
-                >
-                  <i className="icon">
-                    <ListAltIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <ListAltIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">Projects</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/task-list" ? "active" : ""
-                  } nav-link`}
-                  to="/task-list"
-                >
-                  <i className="icon">
-                    <TaskIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <TaskIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Tasks</span>
                 </Link>
               </li>
             </ul>

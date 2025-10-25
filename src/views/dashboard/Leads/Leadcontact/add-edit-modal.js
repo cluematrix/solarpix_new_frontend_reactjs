@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Button, Row, Col, InputGroup } from "react-bootstrap";
 import api from "../../../../api/axios";
+import { salutationData } from "../../../../mockData";
 
 const AddEditModal = ({
   show,
@@ -100,6 +101,33 @@ const AddEditModal = ({
                 </div>
               </Form.Group>
             </Col>
+            <Col>
+              <Form.Group>
+                <Form.Label>Gender</Form.Label>
+                <div>
+                  <Form.Check
+                    inline
+                    label="Male"
+                    id="Male"
+                    type="radio"
+                    name="gender"
+                    value="Male"
+                    checked={formData.gender === "Male"}
+                    onChange={handleChange}
+                  />
+                  <Form.Check
+                    inline
+                    label="Female"
+                    id="Female"
+                    type="radio"
+                    name="gender"
+                    value="Female"
+                    checked={formData.gender === "Female"}
+                    onChange={handleChange}
+                  />
+                </div>
+              </Form.Group>
+            </Col>
           </Row>
 
           <Row className="mb-3">
@@ -113,11 +141,14 @@ const AddEditModal = ({
                       value={formData.salutation}
                       onChange={handleChange}
                     >
-                      <option value="">--</option>
-                      <option value="Mr.">Mr.</option>
-                      <option value="Mrs.">Mrs.</option>
-                      <option value="Ms.">Ms.</option>
-                      <option value="Dr.">Dr.</option>
+                      <option disabled value="">
+                        --
+                      </option>
+                      {salutationData?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.salutation}
+                        </option>
+                      ))}
                     </Form.Select>
                   </Form.Group>
                 </Col>

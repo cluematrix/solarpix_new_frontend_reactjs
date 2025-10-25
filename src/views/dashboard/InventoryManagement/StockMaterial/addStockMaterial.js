@@ -60,8 +60,8 @@ const AddStockMaterial = () => {
         material: selectedStock ? selectedStock.name : "",
       };
 
-      if (submissionValues.branch_id) delete submissionValues.client_id;
-      if (submissionValues.client_id) delete submissionValues.branch_id;
+      if (!values.purchase_info_vendor_id)
+        delete submissionValues.purchase_info_vendor_id;
 
       if (id) {
         api
@@ -522,9 +522,9 @@ const AddStockMaterial = () => {
             <Button
               variant="primary"
               onClick={handleSaveNewItem}
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {loading ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </Modal.Footer>
         </Modal>

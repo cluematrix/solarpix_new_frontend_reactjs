@@ -44,6 +44,7 @@ import NetMeteringFieldList from "../work/NetMetering/NetMeteringFieldList";
 import NodalPointList from "../work/NodalPoint/NodalPointList";
 import InventoryCategoriesList from "../InventoryManagement/InventoryCategories/InventoryCategoriesList";
 import InventoryTypeList from "../InventoryManagement/InventoryType/InventoryTypeList";
+import SubsidyList from "../../Subsidy/SubsidyList";
 import SalaryComponentList from "../Employees/Leaves/leaves-list";
 import SalaryComponentListR from "../Employees/SalaryComponents/SalaryComponentListR";
 import SalaryTDSList from "../Employees/SalaryTDS/SalaryTDSList";
@@ -346,6 +347,11 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
+            {activeSidebar === "Subsidy" && activeTab === 0 && (
+              <>
+                <SubsidyList />
+              </>
+            )}
             {activeSidebar === "Payroll" && activeTab === 0 && (
               <>
                 <SalaryComponentListR />

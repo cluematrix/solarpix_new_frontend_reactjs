@@ -1,9 +1,9 @@
 export const salutationData = [
-  { value: "1", salutation: "Mr" },
-  { value: "2", salutation: "Mrs" },
-  { value: "3", salutation: "Dr" },
+  { value: "1", salutation: "Mr." },
+  { value: "2", salutation: "Mrs." },
+  { value: "3", salutation: "Dr." },
   { value: "4", salutation: "Sir" },
-  { value: "5", salutation: "Mam" },
+  { value: "5", salutation: "Mam." },
 ];
 
 export const maritialStatusData = [
@@ -67,6 +67,7 @@ export const sidebarItems = [
   "Branch",
   "Company",
   "Bank",
+  "Subsidy",
   "Payroll",
 ];
 
@@ -99,6 +100,7 @@ export const tabConfig = {
   Branch: ["Branch"],
   Company: ["Details"],
   Bank: ["Details"],
+  Subsidy: ["Subsidy"],
   Payroll: [
     "Salary Components",
     "Salary Groups",

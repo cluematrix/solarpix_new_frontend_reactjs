@@ -1,25 +1,51 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Table, Spinner, Pagination } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Table,
+  Spinner,
+  Pagination,
+  Form,
+} from "react-bootstrap";
 import api from "../../../../api/axios";
-import { useLocation } from "react-router-dom";
+import { useFormik } from "formik";
+import CustomSelect from "../../../../components/Form/CustomSelect";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import { useNavigate } from "react-router-dom";
+import { Tooltip } from "@mui/material";
 
-const BranchStockHisList = () => {
-  const location = useLocation();
-  const { branch_id } = location.state;
-  const { stock_material_id } = location.state;
+const initialValues = {
+  clientId: "",
+};
+
+const CenterStockList = () => {
   const [transactions, setTransactions] = useState([]);
+  const [client, setClient] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [showAll, setShowAll] = useState(true); // Toggle state
+
+  // for navigation
+  const navigate = useNavigate();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Fetch all or branch-specific transactions
-  const fetchTransactionsById = async (page = 1) => {
+  const formik = useFormik({
+    initialValues,
+  });
+
+  const { values, handleBlur, handleChange } = formik;
+
+  // 🔹 Fetch all or client-specific transactions
+  const fetchTransactions = async (page = 1) => {
     try {
       setLoading(true);
-      let url = `/api/v1/admin/stockTransaction/${branch_id}/${stock_material_id}/pagination?page=${page}&limit=${itemsPerPage}`;
+
+      let url = `/api/v1/admin/stockTransaction/branch/total-stock/pagination?page=${page}&limit=${itemsPerPage}`;
 
       const res = await api.get(url);
       setTransactions(res.data?.data || []);
@@ -37,50 +63,78 @@ const BranchStockHisList = () => {
     }
   };
 
-  // Load all transactions initially
+  // 🔹 Fetch active client
+  const fetchClient = async () => {
+    try {
+      const res = await api.get(`/api/v1/admin/client/active`);
+      setClient(res.data.data || []);
+    } catch (err) {
+      console.error("Error fetching client:", err);
+      setClient([]);
+    }
+  };
+
+  // 🔹 Load client on mount
   useEffect(() => {
-    fetchTransactionsById(currentPage);
+    fetchClient();
+  }, []);
+
+  // 🔹 Load all transactions initially
+  useEffect(() => {
+    fetchTransactions(currentPage);
   }, [currentPage]);
 
-  // Calculate available balance
-  const availableBalance = transactions.reduce((acc, t) => {
-    const credit = t.Credit || 0;
-    const debit = t.Debit || 0;
-    return acc + credit - debit;
-  }, 0);
-
-  // console section
+  // When toggle or client changes → reload
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchTransactions(1);
+  }, [showAll, values.clientId]);
 
   return (
     <Card className="p-3">
+      {/* <Row className="mb-3 d-flex align-items-center justify-content-between">
+        <Col md={4}>
+          <Form.Check
+            type="switch"
+            id="toggle-all"
+            label={showAll ? "Showing All Transactions" : "Filter by Client"}
+            checked={showAll}
+            onChange={(e) => setShowAll(e.target.checked)}
+          />
+        </Col>
+
+        {!showAll && (
+          <Col md={4}>
+            <CustomSelect
+              // label="Select Client"
+              name="clientId"
+              value={values.clientId}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              options={client}
+              placeholder="-- Select Client --"
+              lableName="name"
+              lableKey="id"
+            />
+          </Col>
+        )}
+      </Row> */}
+
       <Row>
         <Col>
           {loading ? (
-            <div className="loader-div">
+            <div className="text-center py-5">
               <Spinner animation="border" />
             </div>
           ) : (
             <>
-              {/* Show available balance */}
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Stock Transactions</h5>
-                <h6 className="mb-0 text-primary">
-                  Available Balance: <strong>{availableBalance}</strong>
-                </h6>
-              </div>
-
               <div className="table-responsive">
                 <Table hover responsive className="table">
                   <thead className="table-light">
                     <tr>
                       <th>Sr. No.</th>
-                      <th>Branch</th>
                       <th>Category</th>
-                      <th>Material</th>
-                      <th>Debit</th>
-                      <th>Credit</th>
                       <th>Balance</th>
-                      <th>Date</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -90,18 +144,8 @@ const BranchStockHisList = () => {
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td>{t.branch?.branch_name || "—"}</td>
-                          <td>
-                            {t.material?.stockName?.InventoryCat?.category ||
-                              "—"}
-                          </td>
-                          <td>{t.material?.material || "—"}</td>
-                          <td>{t.Debit || 0}</td>
-                          <td>{t.Credit || 0}</td>
-                          <td>{t.balance_after || 0}</td>
-                          <td>
-                            {new Date(t.createdAt).toLocaleDateString("en-IN")}
-                          </td>
+                          <td>{t.inventory_category || "—"}</td>
+                          <td>{t?.total_balance}</td>
                         </tr>
                       ))
                     ) : (
@@ -114,7 +158,6 @@ const BranchStockHisList = () => {
                   </tbody>
                 </Table>
               </div>
-
               {/* Pagination */}
               {totalPages > 1 && (
                 <Pagination className="justify-content-center mt-3">
@@ -145,4 +188,4 @@ const BranchStockHisList = () => {
   );
 };
 
-export default BranchStockHisList;
+export default CenterStockList;

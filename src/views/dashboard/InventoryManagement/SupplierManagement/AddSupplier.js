@@ -23,12 +23,12 @@ const AddSupplier = () => {
     phone: "",
     GST_treatment_id: "",
     source_of_supply: "",
-    pan: "",
+    PAN: "",
     opening_balance: "",
     payment_term_id: "",
     TDS_id: "",
     document: null,
-    gst: "",
+    GST: "",
     billing_city: "",
     billing_state: "",
     billing_address: "",
@@ -42,7 +42,7 @@ const AddSupplier = () => {
     account_holder_name: "",
     bank_name: "",
     account_number: "",
-    ifsc_code: "",
+    IFSC_no: "",
     remark: "",
     ...formData,
   };
@@ -52,7 +52,7 @@ const AddSupplier = () => {
   const [metaData, setMetaData] = useState({
     paymentTerm: [],
     gstTreatment: [],
-    tds: [],
+    TDS: [],
   });
 
   const validationSchemas = [
@@ -73,17 +73,18 @@ const AddSupplier = () => {
     Yup.object().shape({
       GST_treatment_id: Yup.string().required("GST Treatment is required"),
       source_of_supply: Yup.string().required("Source of supply is required"),
-      pan: Yup.string().required("PAN is required"),
+      PAN: Yup.string().required("PAN is required"),
       opening_balance: Yup.number()
         .typeError("Opening balance must be a number")
         .positive("Opening balance must be positive")
         .required("Opening balance is required"),
       payment_term_id: Yup.string().required("Payment term is required"),
       TDS_id: Yup.string().required("TDS is required"),
-      gst: Yup.string().required("GST is required"),
+      GST: Yup.string().required("GST is required"),
       document: Yup.mixed()
         .nullable()
         .test("fileType", "Only PDF files are allowed", (value) => {
+          if (typeof value === "string") return true; // for update string doc
           if (!value) return true;
           return ["application/pdf"].includes(value.type);
         })
@@ -114,8 +115,10 @@ const AddSupplier = () => {
         "Account holder name is required"
       ),
       bank_name: Yup.string().required("Bank name is required"),
-      account_number: Yup.string().required("Account number is required"),
-      ifsc_code: Yup.string().required("IFSC code is required"),
+      account_number: Yup.string()
+        .matches(/^\d{11}$/, "AC no must be 11 digits")
+        .required("Account number is required"),
+      IFSC_no: Yup.string().required("IFSC no is required"),
       remark: Yup.string(),
     }),
   ];
@@ -186,12 +189,12 @@ const AddSupplier = () => {
         const [paymentTermRes, gstTreatmentRes, tdsRes] = await Promise.all([
           api.get("/api/v1/admin/paymentTerm"),
           api.get("/api/v1/admin/gstTreatment"),
-          api.get("/api/v1/admin/tds"),
+          api.get("/api/v1/admin/TDS"),
         ]);
         setMetaData({
           paymentTerm: paymentTermRes.data.data || paymentTermRes.data,
           gstTreatment: gstTreatmentRes.data.data || gstTreatmentRes.data,
-          tds: tdsRes.data.data || tdsRes.data,
+          TDS: tdsRes.data.data || tdsRes.data,
         });
       } catch (error) {
         errorToast("Error loading data");
@@ -205,8 +208,8 @@ const AddSupplier = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
+      <div className="loader-div">
+        <Spinner animation="border" className="spinner" />
       </div>
     );
   }

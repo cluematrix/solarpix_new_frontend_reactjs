@@ -23,7 +23,7 @@ import { useLocation } from "react-router-dom";
 
 const AddCustomer = () => {
   const location = useLocation();
-  const leadId = location.state.leadId.leadId || location.state.leadId;
+  const leadId = location?.state?.leadId?.leadId || location?.state?.leadId;
   const asPerSalesOrder = location?.state?.asPerSalesOrder;
 
   console.log("leadDataCustomer", leadId);
@@ -216,12 +216,21 @@ const AddCustomer = () => {
   };
 
   const handleCopyBillingToShipping = (e) => {
-    setCopyBillingToShipping(e.target.checked);
-    if (e.target.checked) {
+    const checked = e.target.checked;
+    setCopyBillingToShipping(checked);
+
+    if (checked) {
+      // Copy billing - shipping
       setFieldValue("shipping_address", values.billing_address);
       setFieldValue("shipping_city", values.billing_city);
       setFieldValue("shipping_state", values.billing_state);
       setFieldValue("shipping_pincode", values.billing_pincode);
+    } else {
+      // Clear shipping fields when unchecked
+      setFieldValue("shipping_address", "");
+      setFieldValue("shipping_city", "");
+      setFieldValue("shipping_state", "");
+      setFieldValue("shipping_pincode", "");
     }
   };
 
@@ -234,6 +243,7 @@ const AddCustomer = () => {
         const res = await api.get(`/api/v1/admin/lead/${leadId}`);
         const data = res.data;
 
+        console.log("dataS", data.salutation);
         setFieldValue("name", data.name);
         setFieldValue("email", data.email || "");
         setFieldValue("salutation", data.salutation || "");
@@ -383,7 +393,7 @@ const AddCustomer = () => {
             </Col>
           </Row>
 
-          <Row className="mt-3">
+          <Row className="mt-5">
             {/* Billing Address - Left */}
             <Col md={6}>
               <CustomInput
@@ -441,13 +451,12 @@ const AddCustomer = () => {
             </Col>
 
             {/* Shipping Address - Right */}
-            <Col md={6}>
+            <Col md={6} style={{ marginTop: "-25px" }}>
               <FormCheck
                 type="checkbox"
                 label="Same as Billing Address"
                 checked={copyBillingToShipping}
                 onChange={handleCopyBillingToShipping}
-                className="mb-3"
               />
 
               <CustomInput
@@ -527,7 +536,7 @@ const AddCustomer = () => {
 
           <hr />
           <Card.Header className="p-0 pb-2">
-            <h5 className="mb-0">Dynamic Fields</h5>
+            <h5 className="mb-0">Documents</h5>
           </Card.Header>
 
           <Row className="mt-3 mb-4">

@@ -192,6 +192,7 @@ export default function CustomizedSteppers({
   handleDynamicChangeMseb,
   handleDynamicChangeNm,
   handleDynamicChangeNp,
+  formData,
 }) {
   // Stepper
   const steps = [
@@ -211,7 +212,13 @@ export default function CustomizedSteppers({
       case 0:
         return <AddProjectInfo formik={formik} metaData={metaData} />;
       case 1:
-        return <AddProjectMaterial formik={formik} metaData={metaData} />;
+        return (
+          <AddProjectMaterial
+            formik={formik}
+            metaData={metaData}
+            formData={formData}
+          />
+        );
       case 2:
         return (
           <AddProjectMseb

@@ -116,6 +116,7 @@ const AddEditModal = ({
               value={formData.message}
               onChange={handleChange}
               required
+              className="text-dark"
             />
           </Form.Group>
 

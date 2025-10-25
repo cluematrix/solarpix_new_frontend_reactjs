@@ -137,6 +137,7 @@ const DealList = () => {
   }
 
   console.log("selectedDeal", selectedDeal);
+  console.log("dealList", dealList);
   return (
     <>
       <Row className="mt-4">
@@ -195,15 +196,17 @@ const DealList = () => {
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td>{deal.lead?.name || "---"}</td>
+                          <td>
+                            {deal.lead?.salutation || "---"}{" "}
+                            {deal.lead?.name || "---"}
+                          </td>
                           <td>{deal.senderBy?.name || "---"}</td>
 
                           <td>{deal?.total || "---"}</td>
 
-                          <td>
+                          <td style={{ width: "195px" }}>
                             <Form.Select
                               size="sm"
-                              className="w-100"
                               value={deal.deal_stage_id || ""}
                               style={{
                                 cursor:
