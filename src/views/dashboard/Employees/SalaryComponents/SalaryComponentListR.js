@@ -122,7 +122,7 @@ const SalaryComponentListR = () => {
     );
     if (!confirmDelete) return;
     try {
-      await api.delete(`/api/v1/admin/salaryComponent/${id}`);
+      await api.delete(`/api/v1/admin/addSalaryComponent/${id}`);
       successToast("Salary component deleted successfully");
       setComponentList(componentList.filter((item) => item.id !== id));
     } catch (error) {
