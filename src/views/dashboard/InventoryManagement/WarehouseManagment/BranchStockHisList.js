@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Table, Spinner, Pagination } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Table,
+  Spinner,
+  Pagination,
+  Button,
+} from "react-bootstrap";
 import api from "../../../../api/axios";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { MdKeyboardBackspace } from "react-icons/md";
 
 const BranchStockHisList = () => {
   const location = useLocation();
@@ -9,6 +18,7 @@ const BranchStockHisList = () => {
   const { stock_material_id } = location.state;
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,10 +67,19 @@ const BranchStockHisList = () => {
         <Col>
           {loading ? (
             <div className="loader-div">
-              <Spinner animation="border" />
+              <Spinner animation="border" className="spinner" />
             </div>
           ) : (
             <>
+              <div style={{ textAlign: "start", marginBottom: "10px" }}>
+                <Button
+                  style={{ padding: "2px 10px" }}
+                  variant="primary"
+                  onClick={() => navigate(-1)}
+                >
+                  <MdKeyboardBackspace fontSize="20px" />
+                </Button>
+              </div>
               {/* Show available balance */}
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="mb-0">Stock Transactions</h5>
