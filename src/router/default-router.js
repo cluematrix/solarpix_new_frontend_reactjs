@@ -122,6 +122,7 @@ import BranchStockHisList from "../views/dashboard/InventoryManagement/Warehouse
 import CustomerStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockList";
 import SrNoList from "../views/dashboard/InventoryManagement/WarehouseManagment/SrNoList";
 import AttedenceList from "../views/dashboard/EmployeeManagment/Attedence/AttedenceList";
+import EmployeeSalaryList from "../views/dashboard/Employees/EmployeeSalary/EmployeeSalaryList";
 import CenterStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CentralStockList";
 // employee profile 01 Sep
 
@@ -253,6 +254,11 @@ export const DefaultRouter = [
       {
         path: "/add-employee",
         element: <AddEmployee />,
+      },
+
+      {
+        path: "/EmployeeSalary",
+        element: <EmployeeSalaryList />,
       },
       {
         path: "update-employee/:id", //13 Aug

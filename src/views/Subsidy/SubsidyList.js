@@ -242,56 +242,48 @@ const SubsidyList = () => {
                 <div className="text-center py-5">No Subsidy Available</div>
               ) : (
                 <div className="px-3 pb-3">
-                  <h6 className="fw-semibold mb-3">{subsidy.title}</h6>
                   <Table hover responsive className="table">
                     <thead>
                       <tr className="table-gray">
                         <th>Sr. No.</th>
-                        <th>Subsidy</th>
+                        <th>Subsidy Details</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {subsidy?.subsidyFields.length === 0 ? (
-                        <tr>
-                          <td colSpan="3" className="text-center">
-                            No subsidy available
-                          </td>
-                        </tr>
-                      ) : (
-                        subsidy?.subsidyFields?.map((field, idx) => (
-                          <tr key={idx}>
-                            <td>{idx + 1}</td>
-                            <td>
-                              {field.label} : {field.value}
-                            </td>
-                            <td>
-                              {" "}
-                              <div className="d-flex">
-                                <VisibilityIcon
-                                  onClick={() => handleView()}
-                                  color="info"
-                                  style={{ cursor: "pointer" }}
-                                />
-                                {permissions.edit && (
-                                  <CreateTwoToneIcon
-                                    onClick={() => handleEdit()}
-                                    color="primary"
-                                    style={{ cursor: "pointer" }}
-                                  />
-                                )}
-                                {permissions.del && (
-                                  <DeleteRoundedIcon
-                                    onClick={() => setShowDelete(true)}
-                                    color="error"
-                                    style={{ cursor: "pointer" }}
-                                  />
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                      <tr>
+                        <td>1</td>
+                        <td>
+                          {subsidy?.subsidyFields?.map((field, idx) => (
+                            <div key={idx}>
+                              <strong>{field.label}:</strong> {field.value}
+                            </div>
+                          ))}
+                        </td>
+                        <td>
+                          <div className="d-flex">
+                            <VisibilityIcon
+                              onClick={() => handleView(subsidy)}
+                              color="info"
+                              style={{ cursor: "pointer" }}
+                            />
+                            {permissions?.edit && (
+                              <CreateTwoToneIcon
+                                onClick={() => handleEdit(subsidy)}
+                                color="primary"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
+                            {permissions?.del && (
+                              <DeleteRoundedIcon
+                                onClick={() => setShowDelete(true)}
+                                color="error"
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                     </tbody>
                   </Table>
                 </div>

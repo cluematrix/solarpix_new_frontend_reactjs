@@ -1,3 +1,5 @@
+// modify by sufyan on 25 Oct 2025
+
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -165,15 +167,22 @@ const LeadFollowupList = () => {
   const handleEdit = (index) => {
     const f = followups[index];
 
-    // Convert DB datetime (e.g., 2025-09-22 06:17:21) into "2025-09-22T06:17"
-    const formattedDateTime = f.followup_date
-      ? new Date(f.followup_date).toISOString().slice(0, 16)
-      : "";
+    // Convert ISO UTC time to local time in "yyyy-MM-ddTHH:mm" format
+    const formatDateTimeLocal = (isoString) => {
+      if (!isoString) return "";
+      const date = new Date(isoString);
+      const localISO = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60000
+      )
+        .toISOString()
+        .slice(0, 16); // "yyyy-MM-ddTHH:mm"
+      return localISO;
+    };
 
     setFormData({
       lead_id: f.lead_id?.id || f.lead_id || "",
       message: f.message || "",
-      followup_date: formattedDateTime, // fixed here
+      followup_date: formatDateTimeLocal(f.followup_date),
       schedule_by_id: f.schedule_by_id || "",
     });
 
@@ -262,7 +271,10 @@ const LeadFollowupList = () => {
       <Row className="mt-2">
         <Col sm="12">
           <Card>
-            <Card.Header className="d-flex justify-content-between">
+            <Card.Header
+              style={{ padding: "15px 15px 0px 15px" }}
+              className="d-flex justify-content-between"
+            >
               <h5 className="card-title fw-lighter">Follow Ups</h5>
               <Button
                 className="btn-primary"
@@ -277,8 +289,8 @@ const LeadFollowupList = () => {
 
             <Card.Body className="px-0">
               {loading ? (
-                <div className="text-center py-3">
-                  <Spinner animation="border" />
+                <div className="loader-div">
+                  <Spinner animation="border" className="spinner" />
                 </div>
               ) : (
                 <>
@@ -290,7 +302,7 @@ const LeadFollowupList = () => {
                           <th>Lead Name</th>
                           <th>Message</th>
                           <th>Date</th>
-                          <th>Time</th> {/* <-- added */}
+                          <th>Time</th>
                           <th>Outcome</th>
                           <th>Action</th>
                         </tr>
@@ -314,12 +326,13 @@ const LeadFollowupList = () => {
                                 <td>{indexOfFirstItem + idx + 1}</td>
                                 <td>
                                   {item?.lead?.salutation}{" "}
-                                  {item.lead_id?.name ||
-                                    leads.find((l) => l.id === item.lead_id)
-                                      ?.name ||
-                                    "—"}
+                                  {item.lead?.name || "—"}
                                 </td>
-                                <td>{item.message}</td>
+                                <td>
+                                  {item.message?.length > 15
+                                    ? item.message.slice(0, 15) + "..."
+                                    : item.message}
+                                </td>
 
                                 {/* Show Date */}
                                 <td>
@@ -337,8 +350,11 @@ const LeadFollowupList = () => {
                                       })
                                     : "—"}
                                 </td>
-
-                                <td>{item.out_comes || "—"}</td>
+                                <td>
+                                  {item.out_comes?.length > 15
+                                    ? item.out_comes.slice(0, 15) + "..."
+                                    : item.out_comes}
+                                </td>
                                 <td>
                                   <VisibilityIcon
                                     color="info"
@@ -441,7 +457,7 @@ const LeadFollowupList = () => {
         modalTitle="Delete Follow Up"
         modalMessage={
           deleteIndex !== null
-            ? `Are you sure you want to delete Follow Up "${followups[deleteIndex].message}"?`
+            ? `Are you sure you want to delete Follow Up "${followups[deleteIndex].lead?.name}"?`
             : ""
         }
       />
@@ -488,6 +504,7 @@ const LeadFollowupList = () => {
               onChange={(e) =>
                 setOutcomeData({ ...outcomeData, out_comes: e.target.value })
               }
+              style={{ color: "black" }}
             />
           </Form.Group>
         </Modal.Body>
