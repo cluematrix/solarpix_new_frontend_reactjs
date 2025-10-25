@@ -17,7 +17,7 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 
-// ✅ validation
+// validation
 const validationSchema = Yup.object().shape({
   employee_id: Yup.string().required("Employee is required"),
   warehouse_name: Yup.string().required("Warehouse name is required"),

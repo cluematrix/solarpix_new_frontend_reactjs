@@ -11,7 +11,6 @@ import { useFormik } from "formik";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import AddItemModal from "./AddItemModal";
-import { defaultNotes } from "../../../../mockData";
 
 const AddDealsQt = () => {
   const { id } = useParams();
@@ -19,6 +18,7 @@ const AddDealsQt = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [subsidy, setSubsidy] = useState([]);
   const [metaData, setMetaData] = useState({
     leadData: [],
     employeeData: [],
@@ -44,7 +44,7 @@ const AddDealsQt = () => {
     Qt_date: new Date().toISOString().split("T")[0],
     expiry_date: "",
     companyBank_id: "",
-    notes_customer: defaultNotes,
+    notes_customer: "",
     quotation_no: "",
   };
 
@@ -157,7 +157,7 @@ const AddDealsQt = () => {
         setFieldValue("Qt_date", deal.Qt_date?.split("T")[0] || "");
         setFieldValue("expiry_date", deal.expiry_date?.split("T")[0] || "");
         setFieldValue("companyBank_id", deal.companyBank_id || "");
-        setFieldValue("notes_customer", deal.notes_customer || defaultNotes);
+        setFieldValue("notes_customer", deal.notes_customer || "");
         setFieldValue("quotation_no", deal.quotation_no || "");
 
         if (deal.item_details) {
@@ -286,6 +286,34 @@ const AddDealsQt = () => {
       setFieldValue("quotation_no", values.quotation_no);
     }
   }, [id]);
+
+  // fetch subsidy
+  useEffect(() => {
+    const fetchSubsidy = async () => {
+      try {
+        const res = await api.get("/api/v1/admin/subsidy/getAllSubsidy");
+        if (res.data?.data && Array.isArray(res.data.data.subsidyFields)) {
+          const fields = res.data.data.subsidyFields;
+
+          // Format fields into a readable string
+          const formattedText = fields
+            .map((f) => `${f.label} = ${f.value}`)
+            .join("\n");
+
+          // Set the formatted text into Formik's textarea field
+          formik.setFieldValue("notes_customer", formattedText);
+        } else {
+          formik.setFieldValue("notes_customer", "");
+        }
+      } catch (error) {
+        console.error("Error fetching subsidy:", error);
+        formik.setFieldValue("notes_customer", "");
+      }
+    };
+
+    fetchSubsidy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (

@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Table, Spinner, Pagination } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Table,
+  Spinner,
+  Pagination,
+  Button,
+} from "react-bootstrap";
 import api from "../../../../api/axios";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import EditModalSrNo from "./EditModalSrNo";
+import { MdKeyboardBackspace } from "react-icons/md";
 
 const SrNoList = () => {
   const location = useLocation();
@@ -14,6 +23,7 @@ const SrNoList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingBtn, setLoadingBtn] = useState(false);
+  const navigate = useNavigate();
 
   // for edit
   const [roleName, setRoleName] = useState("");
@@ -101,10 +111,23 @@ const SrNoList = () => {
           <Col>
             {loading ? (
               <div className="loader-div">
-                <Spinner animation="border" />
+                <Spinner animation="border" className="spinner" />
               </div>
             ) : (
               <>
+                <div style={{ textAlign: "start", marginBottom: "10px" }}>
+                  <Button
+                    style={{ padding: "2px 10px" }}
+                    variant="primary"
+                    onClick={() => navigate(-1)}
+                  >
+                    <MdKeyboardBackspace fontSize="20px" />
+                  </Button>
+                </div>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="mb-0">Serial Number</h5>
+                </div>
+
                 <div className="table-responsive">
                   <Table hover responsive className="table">
                     <thead className="table-light">

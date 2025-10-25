@@ -112,7 +112,7 @@ const AttendanceList = () => {
   const fetchDefaultHolidays = async () => {
     try {
       const res = await api.get("/api/v1/admin/defaultHoliday/active");
-      setDefaultHolidays(res.data.data || []);
+      setDefaultHolidays(res.data.data || res.data || []);
     } catch (err) {
       console.error("Error fetching default holidays:", err);
       toast.error("Failed to fetch default holidays");

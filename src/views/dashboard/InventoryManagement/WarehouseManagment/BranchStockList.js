@@ -14,7 +14,8 @@ import CustomSelect from "../../../../components/Form/CustomSelect";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import { useNavigate } from "react-router-dom";
 import { Tooltip } from "@mui/material";
-import PaidIcon from "@mui/icons-material/Paid";
+import HistoryIcon from "@mui/icons-material/History";
+
 const initialValues = {
   branchId: "",
 };
@@ -126,8 +127,8 @@ const BranchStockList = () => {
       <Row>
         <Col>
           {loading ? (
-            <div className="text-center py-5">
-              <Spinner animation="border" />
+            <div className="loader-div">
+              <Spinner animation="border" className="spinner" />
             </div>
           ) : (
             <>
@@ -164,9 +165,8 @@ const BranchStockList = () => {
                           <td>
                             {" "}
                             <Tooltip title="History" arrow>
-                              <PaidIcon
+                              <HistoryIcon
                                 variant="outline-secondary"
-                                size="sm"
                                 style={{
                                   cursor: "pointer",
                                   marginRight: "5px",
