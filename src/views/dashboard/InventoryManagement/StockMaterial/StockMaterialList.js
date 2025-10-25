@@ -257,9 +257,8 @@ const StockMaterialList = () => {
                       currentData.map((item, idx) => (
                         <tr key={item.id || item._id}>
                           <td>{idx + 1}</td>
-                          <td>{item.material}</td>
+                          <td>{item?.stockName?.name}</td>
                           <td>{item?.stockName?.InventoryCat?.category}</td>
-                          {/* <td>{item.balance}</td> */}
                           <td style={{ minWidth: "90px" }}>
                             <span
                               className={`status-dot ${
@@ -318,29 +317,6 @@ const StockMaterialList = () => {
                                 />
                               )}
                             </Tooltip>
-
-                            {/* <Tooltip title="History" arrow>
-                              <FormatListNumberedIcon
-                                variant="outline-secondary"
-                                size="sm"
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
-                                onClick={() =>
-                                  navigate(
-                                    `/stock-management-list-history/${item.id}`
-                                  )
-                                }
-                              />
-                            </Tooltip> */}
-
-                            {/* <PictureAsPdfIcon
-                              color="error"
-                              size="sm"
-                              style={{ marginLeft: "5px" }}
-                              onClick={() => {
-                                setQuotationItem(item);
-                                setShowQuotation(true);
-                              }}
-                            /> */}
                           </td>
                         </tr>
                       ))

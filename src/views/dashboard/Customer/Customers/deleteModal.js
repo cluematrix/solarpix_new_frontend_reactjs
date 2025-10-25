@@ -7,8 +7,8 @@ const DeleteModal = ({
   onConfirm,
   modalTitle,
   modalMessage,
+  loadingDlt,
 }) => {
-  console.log("modalMessage", modalMessage);
   return (
     <Modal centered show={show} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -17,7 +17,7 @@ const DeleteModal = ({
       <Modal.Body>{modalMessage}</Modal.Body>
       <Modal.Footer>
         <Button variant="danger" onClick={onConfirm}>
-          Delete
+          {loadingDlt ? "Deleting..." : "Delete"}
         </Button>
       </Modal.Footer>
     </Modal>

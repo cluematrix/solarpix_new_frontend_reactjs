@@ -75,7 +75,7 @@ const Holiday = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🔄 Fetch Holidays
+  // Fetch Holidays
   const fetchHolidays = () => {
     api
       .get("/api/v1/admin/holiday")
@@ -94,10 +94,10 @@ const Holiday = () => {
     fetchHolidays();
   }, []);
 
-  // ✅ Add or Update Holiday
+  // Add or Update Holiday
   const handleAddOrUpdate = () => {
     if (!formData.date.trim() || !formData.occasion.trim()) {
-      toast.warning("Date and Occasion are required");
+      toast.error("Date and Occasion are required");
       return;
     }
 
@@ -137,7 +137,7 @@ const Holiday = () => {
     setShowAddEdit(true);
   };
 
-  // ✅ Delete Holiday
+  // Delete Holiday
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
     api

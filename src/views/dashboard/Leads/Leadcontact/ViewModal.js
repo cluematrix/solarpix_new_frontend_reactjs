@@ -60,6 +60,13 @@ const ViewModal = ({ show, handleClose, lead }) => {
 
           <Row className="mb-2">
             <Col xs={5} className="fw-semibold text-muted">
+              Gender:
+            </Col>
+            <Col xs={7}>{lead.gender || "—"}</Col>
+          </Row>
+
+          <Row className="mb-2">
+            <Col xs={5} className="fw-semibold text-muted">
               Lead Source:
             </Col>
             <Col xs={7}>

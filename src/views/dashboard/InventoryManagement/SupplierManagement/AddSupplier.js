@@ -58,12 +58,16 @@ const AddSupplier = () => {
   const validationSchemas = [
     // Step 0: Basic Details
     Yup.object().shape({
+      salutation: Yup.string().required("Salutation is required"),
       name: Yup.string().required("Name is required"),
       company_name: Yup.string().required("Company name is required"),
       display_name: Yup.string().required("Display name is required"),
       email: Yup.string()
-        .email("Invalid email format")
-        .required("Email is required"),
+        .email("Invalid email address")
+        .matches(
+          /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/,
+          "Please enter a valid email address"
+        ),
       phone: Yup.string()
         .matches(/^\d{10}$/, "Phone must be 10 digits")
         .required("Phone is required"),
@@ -73,14 +77,26 @@ const AddSupplier = () => {
     Yup.object().shape({
       GST_treatment_id: Yup.string().required("GST Treatment is required"),
       source_of_supply: Yup.string().required("Source of supply is required"),
-      PAN: Yup.string().required("PAN is required"),
+      PAN: Yup.string()
+        .required("PAN is required")
+        .matches(
+          /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+          "Invalid PAN format (e.g. ABCDE1234F)"
+        )
+        .uppercase(),
       opening_balance: Yup.number()
         .typeError("Opening balance must be a number")
         .positive("Opening balance must be positive")
         .required("Opening balance is required"),
       payment_term_id: Yup.string().required("Payment term is required"),
       TDS_id: Yup.string().required("TDS is required"),
-      GST: Yup.string().required("GST is required"),
+      GST: Yup.string()
+        .required("GST is required")
+        .matches(
+          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+          "Invalid GST format (e.g. 22ABCDE1234F1Z5)"
+        )
+        .uppercase(),
       document: Yup.mixed()
         .nullable()
         .test("fileType", "Only PDF files are allowed", (value) => {
@@ -96,14 +112,18 @@ const AddSupplier = () => {
       billing_city: Yup.string().required("Billing City is required"),
       billing_state: Yup.string().required("Billing State is required"),
       billing_address: Yup.string().required("Billing Address is required"),
-      billing_pincode: Yup.string().required("Billing Pincode is required"),
+      billing_pincode: Yup.string()
+        .required("Billing pin code is required")
+        .matches(/^\d{6}$/, "Pin Code should be 6 digits"),
       billing_phone: Yup.string()
         .matches(/^\d{10}$/, "Billing phone must be 10 digits")
         .required("Billing phone is required"),
       shipping_city: Yup.string().required("Shipping City is required"),
       shipping_state: Yup.string().required("Shipping State is required"),
       shipping_address: Yup.string().required("Shipping Address is required"),
-      shipping_pincode: Yup.string().required("Shipping Pincode is required"),
+      shipping_pincode: Yup.string()
+        .required("Shipping Pin code is required")
+        .matches(/^\d{6}$/, "Pin Code should be 6 digits"),
       shipping_phone: Yup.string()
         .matches(/^\d{10}$/, "Shipping phone must be 10 digits")
         .required("Shipping phone is required"),
@@ -118,8 +138,13 @@ const AddSupplier = () => {
       account_number: Yup.string()
         .matches(/^\d{11}$/, "AC no must be 11 digits")
         .required("Account number is required"),
-      IFSC_no: Yup.string().required("IFSC no is required"),
-      remark: Yup.string(),
+      IFSC_no: Yup.string()
+        .required("IFSC number is required")
+        .matches(
+          /^[A-Z]{4}0[A-Z0-9]{6}$/,
+          "Invalid IFSC format (e.g. SBIN0001234)"
+        )
+        .uppercase(),
     }),
   ];
 
@@ -139,13 +164,28 @@ const AddSupplier = () => {
         }
       });
 
-      let res;
       if (id) {
-        res = await api.put(`/api/v1/admin/supplierManagement/${id}`, formData);
-        successToast(res.data.message || "Supplier updated successfully");
+        await api
+          .put(`/api/v1/admin/supplierManagement/${id}`, formData)
+          .then(() => {
+            successToast("Supplier updated successfully");
+          })
+          .catch((error) => {
+            errorToast(
+              error.response?.data?.message || "Failed to add supplier"
+            );
+          });
       } else {
-        res = await api.post("/api/v1/admin/supplierManagement", formData);
-        successToast(res.data.message || "Supplier added successfully");
+        await api
+          .post("/api/v1/admin/supplierManagement", formData)
+          .then(() => {
+            successToast("Supplier added successfully");
+          })
+          .catch((error) => {
+            errorToast(
+              error.response?.data?.message || "Failed to add supplier"
+            );
+          });
       }
 
       resetForm();
