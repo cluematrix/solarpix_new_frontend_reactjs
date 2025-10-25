@@ -17,7 +17,6 @@ const AddSalesOrder = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
   const [metaData, setMetaData] = useState({
     leadData: [],
     employeeData: [],
@@ -44,7 +43,7 @@ const AddSalesOrder = () => {
     sales_order_date: new Date().toISOString().split("T")[0],
     expected_shipment_date: "",
     companyBank_id: "",
-    notes_customer: defaultNotes,
+    notes_customer: "",
     reference: "",
     payment_terms_id: "",
   };
@@ -285,6 +284,34 @@ const AddSalesOrder = () => {
           : prev.deductionAmount,
     }));
   }, [selectedItemsData]);
+
+  // fetch subsidy
+  useEffect(() => {
+    const fetchSubsidy = async () => {
+      try {
+        const res = await api.get("/api/v1/admin/subsidy/getAllSubsidy");
+        if (res.data?.data && Array.isArray(res.data.data.subsidyFields)) {
+          const fields = res.data.data.subsidyFields;
+
+          // Format fields into a readable string
+          const formattedText = fields
+            .map((f) => `${f.label} = ${f.value}`)
+            .join("\n");
+
+          // Set the formatted text into Formik's textarea field
+          formik.setFieldValue("notes_customer", formattedText);
+        } else {
+          formik.setFieldValue("notes_customer", "");
+        }
+      } catch (error) {
+        console.error("Error fetching subsidy:", error);
+        formik.setFieldValue("notes_customer", "");
+      }
+    };
+
+    fetchSubsidy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   //  Loader while checking permissions
   if (loading) {

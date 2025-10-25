@@ -1,4 +1,6 @@
-// ✅ File: LeadsList.jsx
+// File: LeadsList.jsx
+// modify by sufyan on 24/10/25
+
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -200,6 +202,7 @@ const LeadsList = () => {
 
   // 🔹 Save or Update Lead
   const handleAddOrUpdateLead = async (data) => {
+    console.log("workingput");
     const payload = {
       customer_type: data.customerType,
       name: data.name,
@@ -298,6 +301,7 @@ const LeadsList = () => {
       priority: lead.priority || "",
       requirement_lead_id: lead.requirement_lead_id || "",
       unit_id: lead.unit_id || "",
+      gender: lead.gender || "",
     });
     setEditIndex(index);
     setShowAddEdit(true);
@@ -311,7 +315,7 @@ const LeadsList = () => {
 
   useEffect(() => {
     fetchDropdowns();
-    fetchLeadStatus(); // ✅ separate function for lead status
+    fetchLeadStatus(); // separate function for lead status
     fetchLeads(currentPage);
   }, [currentPage]);
 
@@ -342,7 +346,7 @@ const LeadsList = () => {
           <Card>
             <Card.Header
               className="d-flex justify-content-between"
-              style={{ padding: "15px" }}
+              style={{ padding: "15px 15px 0px 15px" }}
             >
               <h5 className="card-title fw-lighter">Leads Contact</h5>
               {permissions.add && (
@@ -360,8 +364,8 @@ const LeadsList = () => {
 
             <Card.Body className="px-0">
               {loading ? (
-                <div className="text-center py-3">
-                  <Spinner animation="border" />
+                <div className="loader-div">
+                  <Spinner animation="border" className="spinner" />
                 </div>
               ) : (
                 <div className="table-responsive">
@@ -369,7 +373,7 @@ const LeadsList = () => {
                     <thead>
                       <tr className="table-gray centered">
                         <th>Sr. No.</th>
-                        <th>Name</th>
+                        <th>Lead Name</th>
                         <th>Company Name</th>
                         <th>Priority</th>
                         <th>Status</th>

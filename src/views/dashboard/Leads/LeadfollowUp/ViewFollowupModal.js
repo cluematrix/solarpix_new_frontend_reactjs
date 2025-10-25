@@ -2,18 +2,8 @@
 import React from "react";
 import { Modal, Row, Col } from "react-bootstrap";
 
-const ViewFollowupModal = ({
-  show,
-  handleClose,
-  followup,
-  leads,
-  employees,
-}) => {
+const ViewFollowupModal = ({ show, handleClose, followup }) => {
   if (!followup) return null;
-
-  const leadName = leads.find((l) => l.id === followup.lead_id)?.name || "—";
-  const scheduledByName =
-    employees.find((e) => e.id === followup.schedule_by_id)?.name || "—";
 
   return (
     <Modal
@@ -25,7 +15,7 @@ const ViewFollowupModal = ({
     >
       <Modal.Header closeButton>
         <Modal.Title className="fw-lighter  fs-5">
-          Follow-up Details
+          Follow Up Details
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -34,7 +24,7 @@ const ViewFollowupModal = ({
             <Col xs={5} className="fw-semibold text-muted">
               Lead Name:
             </Col>
-            <Col xs={7}>{leadName}</Col>
+            <Col xs={7}>{followup?.lead?.name}</Col>
           </Row>
 
           <Row className="mb-2">
@@ -46,7 +36,7 @@ const ViewFollowupModal = ({
 
           <Row className="mb-2">
             <Col xs={5} className="fw-semibold text-muted">
-              Follow-up Date:
+              Follow Up Date:
             </Col>
             <Col xs={7}>
               {followup.followup_date
@@ -59,7 +49,7 @@ const ViewFollowupModal = ({
             <Col xs={5} className="fw-semibold text-muted">
               Scheduled By:
             </Col>
-            <Col xs={7}>{scheduledByName}</Col>
+            <Col xs={7}>{followup?.scheduledBy?.name}</Col>
           </Row>
 
           <Row className="mb-2">
