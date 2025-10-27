@@ -125,7 +125,7 @@ const BranchList = () => {
   // Add or Update branch
   const handleAddOrUpdate = () => {
     if (!formData.branch_name.trim()) {
-      toast.warning("Branch Name is required");
+      toast.error("Warehouse Name is required");
       return;
     }
 
@@ -145,13 +145,15 @@ const BranchList = () => {
     request
       .then(() => {
         toast.success(
-          editId ? "Branch updated successfully" : "Branch added successfully"
+          editId
+            ? "Warehouse updated successfully"
+            : "Warehouse added successfully"
         );
         fetchBranches();
         resetForm();
       })
       .catch((err) => {
-        console.error("Branch save error:", err);
+        console.error("Warehouse save error:", err);
         toast.error("Failed to save branch");
       });
   };
@@ -175,7 +177,7 @@ const BranchList = () => {
     api
       .delete(`/api/v1/admin/branch/${deleteId}`)
       .then(() => {
-        toast.success("Branch deleted successfully");
+        toast.success("Warehouse deleted successfully");
         fetchBranches();
         setShowDelete(false);
       })
@@ -221,7 +223,7 @@ const BranchList = () => {
         <Col sm="12">
           <Card>
             <Card.Header className="d-flex justify-content-between">
-              <h5 className="card-title fw-lighter">Branch</h5>
+              <h5 className="card-title fw-lighter">Warehouse</h5>
               {permissions.add && (
                 <Button
                   className="btn-primary"
@@ -238,7 +240,7 @@ const BranchList = () => {
                   <thead>
                     <tr className="table-gray">
                       <th>Sr. No.</th>
-                      <th>Branch Name</th>
+                      <th>Warehouse Name</th>
                       <th>City</th>
                       <th>State</th>
                       <th>Country</th>
@@ -268,11 +270,9 @@ const BranchList = () => {
                               id={`active-switch-${item.id}`}
                               checked={item.isActive}
                               onChange={() => handleToggleActive(item.id)}
-                              className="me-3"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
                                 onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
@@ -308,7 +308,7 @@ const BranchList = () => {
         formData={formData}
         setFormData={setFormData}
         onSave={handleAddOrUpdate}
-        modalTitle={editId ? "Update Branch" : "Add New Branch"}
+        modalTitle={editId ? "Update Warehouse" : "Add New Warehouse"}
         buttonLabel={editId ? "Update" : "Save"}
       />
 
@@ -321,7 +321,7 @@ const BranchList = () => {
           setDeleteId(null);
         }}
         onConfirm={handleDeleteConfirm}
-        modalTitle="Delete Branch"
+        modalTitle="Delete Warehouse"
         modalMessage={
           deleteIndex !== null && branchList[deleteIndex]
             ? `Are you sure you want to delete "${branchList[deleteIndex].branch_name}"?`

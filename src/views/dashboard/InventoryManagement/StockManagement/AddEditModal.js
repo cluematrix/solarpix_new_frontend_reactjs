@@ -461,7 +461,7 @@ const AddEditModal = ({
               variant="primary"
               type="submit"
             >
-              {formik.isSubmitting ? "Loading..." : "Save"}
+              {formik.isSubmitting ? "Saving..." : "Save"}
             </Button>
           </Modal.Footer>
         </Form>

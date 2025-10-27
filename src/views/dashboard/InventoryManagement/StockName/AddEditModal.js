@@ -1,7 +1,7 @@
 // AddEditModal.js
 import React, { useState } from "react";
 import { Modal, Form, Button, Spinner } from "react-bootstrap";
-import api from "../../../../api/axios"; // ✅ Import your axios instance
+import api from "../../../../api/axios"; // Import your axios instance
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 
@@ -23,12 +23,14 @@ const AddEditModal = ({
   modalTitle,
   buttonLabel,
   loading,
+  setErrors,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addMode, setAddMode] = useState(""); // "category" or "type"
   const [newValue, setNewValue] = useState("");
   const [saving, setSaving] = useState(false);
 
+  console.log("errors", errors);
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave();
@@ -51,7 +53,7 @@ const AddEditModal = ({
     setSaving(true);
     try {
       if (addMode === "category") {
-        // ✅ API CALL for Category
+        // API CALL for Category
         const res = await api.post("/api/v1/admin/inventoryCategory", {
           category: newValue,
         });
@@ -61,7 +63,7 @@ const AddEditModal = ({
         setInventoryCategories((prev) => [...prev, newCat]);
         setSelectedCategory(newCat.id);
       } else if (addMode === "type") {
-        // ✅ API CALL for Type
+        // API CALL for Type
         const res = await api.post("/api/v1/admin/inventoryType", {
           type: newValue,
         });
@@ -99,8 +101,10 @@ const AddEditModal = ({
                 onChange={(e) => {
                   if (e.target.value === "add_new") {
                     handleAddNew("category");
+                    setErrors((prev) => ({ ...prev, category: "" }));
                   } else {
                     setSelectedCategory(e.target.value);
+                    setErrors((prev) => ({ ...prev, category: "" }));
                   }
                 }}
               >
@@ -112,10 +116,13 @@ const AddEditModal = ({
                 ))}
                 {/* <option value="add_new">➕ Add New Category</option> */}
               </Form.Select>
+              {errors?.category && (
+                <p className="errors-text">{errors?.category}</p>
+              )}
             </Form.Group>
 
             {/* Inventory Type */}
-            <Form.Group className="mb-3">
+            {/* <Form.Group className="mb-3">
               <Form.Label>Inventory Type</Form.Label>
               <Form.Select
                 value={selectedType}
@@ -133,21 +140,43 @@ const AddEditModal = ({
                     {type.type}
                   </option>
                 ))}
-                {/* <option value="add_new">➕ Add New Type</option> */}
               </Form.Select>
-            </Form.Group>
+            </Form.Group> */}
 
             {/* Item Name */}
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Item Name</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter Item Name"
                 value={stockName}
-                onChange={(e) => setStockName(e.target.value)}
+                onChange={(e) => {
+                  setStockName(e.target.value);
+                  setErrors((prev) => ({ ...prev, stockName: "" }));
+                }}
               />
-              {errors && (
+              {/* {errors && (
                 <p className="errors-text text-danger mt-1">{errors}</p>
+              )} */}
+              {errors?.stockName && (
+                <p className="errors-text">{errors?.stockName}</p>
+              )}
+            </Form.Group>
+
+            {/* Item Name */}
+            <Form.Group>
+              <Form.Label>Inv Type Code</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter Inv type code"
+                value={selectedType}
+                onChange={(e) => {
+                  setSelectedType(e.target.value);
+                  setErrors((prev) => ({ ...prev, inv_type: "" }));
+                }}
+              />
+              {errors?.inv_type && (
+                <p className="errors-text">{errors?.inv_type}</p>
               )}
             </Form.Group>
           </Modal.Body>

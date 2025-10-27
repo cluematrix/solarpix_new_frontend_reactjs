@@ -33,11 +33,11 @@ const AddEditModal = ({
         <Modal.Body>
           <Row>
             <Col md={12} className="mb-3">
-              <Form.Label>Branch Name</Form.Label>
+              <Form.Label>Warehouse Name</Form.Label>
               <Form.Control
                 type="text"
                 name="branch_name"
-                placeholder="Enter Branch Name"
+                placeholder="Enter Warehouse Name"
                 value={formData.branch_name}
                 onChange={handleChange}
                 required
@@ -102,9 +102,6 @@ const AddEditModal = ({
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
           <Button variant="primary" type="submit">
             {buttonLabel}
           </Button>

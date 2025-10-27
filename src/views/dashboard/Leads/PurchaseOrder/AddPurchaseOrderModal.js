@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Col, Modal, Row, Table, Button, Form } from "react-bootstrap";
+import { Col, Modal, Row, Table, Button, Form, Spinner } from "react-bootstrap";
 import api from "../../../../api/axios";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import { successToast } from "../../../../components/Toast/successToast";
@@ -272,7 +272,9 @@ const AddPurchaseOrderModal = ({
             {/* LEFT: Categories */}
             <Col md={4}>
               {loadingCat ? (
-                <p>Loading...</p>
+                <div className="loader-div">
+                  <Spinner animation="border" className="spinner" />
+                </div>
               ) : (
                 <div className="table-responsive">
                   <Table hover bordered>
@@ -498,7 +500,7 @@ const AddPurchaseOrderModal = ({
                   variant="primary"
                   disabled={serialModal.serials.some((s) => !s.trim())}
                   onClick={() => {
-                    // ✅ Save serials permanently to that item
+                    // Save serials permanently to that item
                     setAllItems((prev) =>
                       prev.map((item) =>
                         item.id === serialModal.item.id

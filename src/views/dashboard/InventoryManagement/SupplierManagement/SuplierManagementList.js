@@ -19,6 +19,7 @@ import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ViewModal from "./ViewModal";
+import HistoryIcon from "@mui/icons-material/History";
 
 const SupplierManagementList = () => {
   const [userlist, setUserlist] = useState([]);
@@ -298,6 +299,21 @@ const SupplierManagementList = () => {
                                 style={{ cursor: "pointer" }}
                               />
                             )}
+
+                            <HistoryIcon
+                              variant="outline-secondary"
+                              style={{
+                                cursor: "pointer",
+                                marginRight: "5px",
+                              }}
+                              onClick={() =>
+                                navigate(`/supplier-stock-history/${item.id}`, {
+                                  state: {
+                                    supplier_id: item.id,
+                                  },
+                                })
+                              }
+                            />
                           </td>
                         </tr>
                       ))

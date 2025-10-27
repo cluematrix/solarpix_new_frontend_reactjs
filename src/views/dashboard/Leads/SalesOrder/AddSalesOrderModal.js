@@ -221,8 +221,7 @@ const AddSalesOrderModal = ({ show, handleClose, onSave, existingData }) => {
           <Col md={4}>
             {loadingCat ? (
               <div className="loader-div">
-                {/* <Spinner animation="border" className="spinner" /> */}
-                <p>Loading...</p>
+                <Spinner animation="border" className="spinner" />
               </div>
             ) : (
               <div className="table-responsive">

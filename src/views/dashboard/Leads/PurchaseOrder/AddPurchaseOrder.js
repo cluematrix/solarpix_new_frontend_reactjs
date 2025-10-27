@@ -65,7 +65,7 @@ const AddPurchaseOrder = () => {
 
     branch_id: Yup.string().when("type", {
       is: "Warehouse",
-      then: (schema) => schema.required("Branch is required"),
+      then: (schema) => schema.required("Warehouse is required"),
       otherwise: (schema) => schema.notRequired(),
     }),
 

@@ -351,9 +351,7 @@ const DealList = () => {
           <Modal.Title>Quotation Confirmation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>
-            Do you want to negotiate the quotation and update it with a new one?
-          </p>
+          <p>Do you want to update this quotation with new changes?</p>
         </Modal.Body>
         <Modal.Footer>
           <Button

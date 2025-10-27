@@ -296,7 +296,7 @@ const EmployeeProfile = ({ empProfileId }) => {
                     <td className="ps-0">{emp?.ifsc_code || "--"}</td>
                   </tr>
                   <tr>
-                    <td className="ps-0">Branch Name</td>
+                    <td className="ps-0">Warehouse Name</td>
                     <td className="ps-0">{emp?.branch_name || "--"}</td>
                   </tr>
                 </tbody>

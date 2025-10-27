@@ -1465,7 +1465,7 @@ const AddStockMaterial = () => {
 
           <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? "Loading..." : "Save"}
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </div>
         </Form>

@@ -91,7 +91,7 @@ const AddEditModal = ({
           </Modal.Body>
           <Modal.Footer>
             <Button disabled={loading} variant="primary" type="submit">
-              {loading ? "Loading..." : "Save"}
+              {loading ? "Saving..." : "Save"}
             </Button>
           </Modal.Footer>
         </Form>

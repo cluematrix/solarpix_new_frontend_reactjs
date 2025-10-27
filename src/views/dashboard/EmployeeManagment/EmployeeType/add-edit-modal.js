@@ -31,7 +31,7 @@ const AddEditModal = ({
       </Modal.Body>
       <Modal.Footer>
         <Button disabled={loadingBtn} variant="primary" onClick={onSave}>
-          {loadingBtn ? "Loading..." : buttonLabel}
+          {loadingBtn ? "Saving..." : buttonLabel}
         </Button>
       </Modal.Footer>
     </Modal>

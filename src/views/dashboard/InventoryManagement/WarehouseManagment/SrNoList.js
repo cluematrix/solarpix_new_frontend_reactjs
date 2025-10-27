@@ -133,7 +133,7 @@ const SrNoList = () => {
                     <thead className="table-light">
                       <tr>
                         <th>Sr. No.</th>
-                        <th>Branch</th>
+                        <th>Warehouse</th>
                         <th>Category</th>
                         <th>Material</th>
                         <th>Serial No</th>
