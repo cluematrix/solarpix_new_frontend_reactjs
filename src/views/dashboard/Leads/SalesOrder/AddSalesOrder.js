@@ -834,6 +834,7 @@ const AddSalesOrder = () => {
                   touched={touched.notes_customer}
                   errors={errors.notes_customer}
                   row={4}
+                  required
                 />
               </Col>
             </Row>

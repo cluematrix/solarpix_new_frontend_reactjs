@@ -11,7 +11,7 @@ import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import AddPurchaseOrderModal from "./AddPurchaseOrderModal";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
-import { defaultNotes, personType } from "../../../../mockData";
+import { personType } from "../../../../mockData";
 import * as Yup from "yup";
 
 const AddPurchaseOrder = () => {
@@ -42,7 +42,7 @@ const AddPurchaseOrder = () => {
   const initialValues = {
     date: new Date().toISOString().split("T")[0],
     delivery_date: "",
-    notes_customer: defaultNotes,
+    notes_customer: "",
     reference: "",
     payment_terms_id: "",
     type: "Warehouse",
@@ -348,6 +348,34 @@ const AddPurchaseOrder = () => {
       ? `${String(year).slice(-2)}-${String(year + 1).slice(-2)}`
       : `${String(year - 1).slice(-2)}-${String(year).slice(-2)}`;
   };
+
+  // fetch subsidy
+  useEffect(() => {
+    const fetchSubsidy = async () => {
+      try {
+        const res = await api.get("/api/v1/admin/subsidy/getAllSubsidy");
+        if (res.data?.data && Array.isArray(res.data.data.subsidyFields)) {
+          const fields = res.data.data.subsidyFields;
+
+          // Format fields into a readable string
+          const formattedText = fields
+            .map((f) => `${f.label} = ${f.value}`)
+            .join("\n");
+
+          // Set the formatted text into Formik's textarea field
+          formik.setFieldValue("notes_customer", formattedText);
+        } else {
+          formik.setFieldValue("notes_customer", "");
+        }
+      } catch (error) {
+        console.error("Error fetching subsidy:", error);
+        formik.setFieldValue("notes_customer", "");
+      }
+    };
+
+    fetchSubsidy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const initQuotation = async () => {
@@ -895,6 +923,7 @@ const AddPurchaseOrder = () => {
                   touched={touched.notes_customer}
                   errors={errors.notes_customer}
                   row={4}
+                  required
                 />
               </Col>
             </Row>

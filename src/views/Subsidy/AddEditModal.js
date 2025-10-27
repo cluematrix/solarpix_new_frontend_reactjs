@@ -129,9 +129,6 @@ const AddEditModal = ({
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose} disabled={loading}>
-            Cancel
-          </Button>
           <Button disabled={loading} variant="primary" type="submit">
             {loading ? "Saving..." : "Save"}
           </Button>

@@ -18,7 +18,7 @@ const CustomerProfile = () => {
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch Single Customer by ID
+  // Fetch Single Customer by ID
   const fetchCustomerById = async () => {
     try {
       setLoading(true);
@@ -44,7 +44,7 @@ const CustomerProfile = () => {
     }
   }, [id]);
 
-  // ✅ Render dynamic field (Text / Image / PDF)
+  // Render dynamic field (Text / Image / PDF)
   const renderDynamicFieldValue = (field) => {
     if (!field) return "--";
 
@@ -113,7 +113,12 @@ const CustomerProfile = () => {
     );
   }
 
-  // ✅ Render UI
+  console.log(
+    "photo",
+    customer?.dynamicFields?.map((item) => item[0]?.file_url)
+  );
+
+  // Render UI
   return (
     <Container fluid className="p-0">
       {/* --- Customer Header --- */}
@@ -122,12 +127,17 @@ const CustomerProfile = () => {
           <Card className="mb-4">
             <Card.Body className="d-flex align-items-center flex-wrap">
               <Image
-                src={customer.photo || "https://via.placeholder.com/80"}
+                src={
+                  customer.photo ||
+                  customer.dynamic_fields?.Photo?.file_url ||
+                  "https://via.placeholder.com/80"
+                }
                 roundedCircle
                 width={100}
                 height={100}
                 className="me-3"
               />
+
               <div>
                 <h5 className="mb-1">
                   {customer.salutation ? `${customer.salutation} ` : ""}

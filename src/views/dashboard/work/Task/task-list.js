@@ -1,19 +1,29 @@
 // Created by: Rishiraj | Permission-integrated Task List | 23 Oct 2025
 
 import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Button, Table, Spinner, Form } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Table,
+  Spinner,
+  Form,
+  Pagination,
+} from "react-bootstrap";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddEditTaskModal from "./add-edit-modal";
 import DeleteModal from "./delete-modal";
 import api from "../../../../api/axios";
-import avatarPic from "../../../../assets/images/avatars/avatar-pic.jpg";
 import { successToast } from "../../../../components/Toast/successToast";
 import { errorToast } from "../../../../components/Toast/errorToast";
-import { statusOptions } from "../../../../mockData";
+import { statusOptions, taskTypeOptions } from "../../../../mockData";
 import { useNavigate, useLocation } from "react-router-dom";
 import ViewTaskModal from "./ViewTaskModal";
+import { useFormik } from "formik";
+import CustomSelect from "../../../../components/Form/CustomSelect";
 
 const TaskList = () => {
   const [taskList, setTaskList] = useState([]);
@@ -32,6 +42,11 @@ const TaskList = () => {
   const [deleteTask, setDeleteTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   // Form data
   const [formData, setFormData] = useState({
     title: "",
@@ -47,7 +62,17 @@ const TaskList = () => {
     project_id: "",
   });
 
-  // 🧠 Fetch role-based permissions
+  const initialValues = {
+    task_type: "",
+  };
+
+  const formik = useFormik({
+    initialValues,
+  });
+
+  const { values, handleBlur, handleChange } = formik;
+
+  //  Fetch role-based permissions
   const FETCHPERMISSION = async () => {
     setPermLoading(true);
     try {
@@ -98,25 +123,36 @@ const TaskList = () => {
     }
   };
 
-  // 🧩 Fetch tasks with permission filtering
-  const fetchTasks = async () => {
+  //  Fetch tasks with permission filtering
+  const fetchTasks = async (page = 1) => {
     try {
       setLoading(true);
       const roleId = String(sessionStorage.getItem("roleId"));
       const empId = String(sessionStorage.getItem("employee_id"));
 
-      const res = await api.get("/api/v1/admin/task");
+      let url = `/api/v1/admin/task/pagination?page=${page}&limit=${itemsPerPage}`;
+      if (values.task_type) {
+        url = `/api/v1/admin/task/${values.task_type}/pagination?page=${page}&limit=${itemsPerPage}`;
+      }
+
+      const res = await api.get(url);
       const allTasks = res.data?.data || [];
 
-      // 👑 Super Admin — sees all
+      // Extract pagination info
+      const pagination = res.data?.pagination;
+      if (pagination) {
+        setTotalPages(pagination.totalPages || 1);
+      }
+
+      // Super Admin — sees all
       if (roleId === "1") {
         setTaskList(allTasks);
       }
-      // 🌍 If any_one = true → show all
+      //  If any_one = true → show all
       else if (permissions?.any_one) {
         setTaskList(allTasks);
       }
-      // 👤 Otherwise, show only own tasks
+      // Otherwise, show only own tasks
       else {
         const filtered = allTasks.filter(
           (task) => String(task.assign_by) === empId
@@ -140,9 +176,9 @@ const TaskList = () => {
   // Then fetch tasks when permissions are ready
   useEffect(() => {
     if (!permLoading && permissions?.view) {
-      fetchTasks();
+      fetchTasks(currentPage);
     }
-  }, [permLoading, permissions]);
+  }, [permLoading, permissions, currentPage, values.task_type]);
 
   // Add/Edit task handler
   const handleAddOrUpdateTask = async (data) => {
@@ -236,7 +272,7 @@ const TaskList = () => {
     );
   }
 
-  // 🚫 No view permission
+  //  No view permission
   if (!permissions?.view) {
     return (
       <div
@@ -248,41 +284,53 @@ const TaskList = () => {
     );
   }
 
-  // ✅ Main render
+  //  Main render
   return (
     <>
       <Row className="mt-4">
         <Col sm="12">
           <Card>
-            <Card.Header
-              className="d-flex justify-content-between"
-              style={{ padding: "15px" }}
-            >
+            <Card.Header className="d-flex justify-content-between">
               <h5 className="card-title fw-lighter">Tasks</h5>
-              {permissions?.add && (
-                <Button
-                  className="btn-primary"
-                  onClick={() => {
-                    setFormData({
-                      title: "",
-                      description: "",
-                      priority: "Medium",
-                      task_type: "",
-                      start_date: "",
-                      end_date: "",
-                      assign_by: "",
-                      assign_to: [],
-                      task_category_id: "",
-                      status: "Incomplete",
-                      project_id: "",
-                    });
-                    setEditTask(null);
-                    setShowAddEdit(true);
-                  }}
-                >
-                  + New
-                </Button>
-              )}
+              <div className="d-flex gap-3">
+                <CustomSelect
+                  // label="Select Warehouse"
+                  name="task_type"
+                  value={values.task_type}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={taskTypeOptions}
+                  placeholder="--Select Task Type--"
+                  lableName="name"
+                  lableKey="name"
+                />
+                {permissions?.add && (
+                  <>
+                    <Button
+                      className="btn-primary"
+                      onClick={() => {
+                        setFormData({
+                          title: "",
+                          description: "",
+                          priority: "Medium",
+                          task_type: "",
+                          start_date: "",
+                          end_date: "",
+                          assign_by: "",
+                          assign_to: [],
+                          task_category_id: "",
+                          status: "Incomplete",
+                          project_id: "",
+                        });
+                        setEditTask(null);
+                        setShowAddEdit(true);
+                      }}
+                    >
+                      + New
+                    </Button>
+                  </>
+                )}
+              </div>
             </Card.Header>
             <Card.Body className="px-0 pt-3">
               {loading ? (
@@ -290,77 +338,101 @@ const TaskList = () => {
                   <Spinner animation="border" />
                 </div>
               ) : (
-                <div className="table-responsive">
-                  <Table hover responsive>
-                    <thead>
-                      <tr className="table-gray">
-                        <th>Sr. No.</th>
-                        <th>Title</th>
-                        <th>Project</th>
-                        <th>Task Type</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {taskList.length === 0 ? (
-                        <tr>
-                          <td colSpan="6" className="text-center">
-                            No tasks available
-                          </td>
+                <>
+                  <div className="table-responsive">
+                    <Table hover responsive>
+                      <thead>
+                        <tr className="table-gray">
+                          <th>Sr. No.</th>
+                          <th>Title</th>
+                          <th>Project</th>
+                          <th>Task Type</th>
+                          <th>Status</th>
+                          <th>Action</th>
                         </tr>
-                      ) : (
-                        taskList.map((task, idx) => (
-                          <tr key={task.id}>
-                            <td>{idx + 1}</td>
-                            <td>{task.title}</td>
-                            <td>{task.project?.project_name || "-"}</td>
-                            <td>{task.task_type || "-"}</td>
-                            <td>
-                              <Form.Select
-                                size="sm"
-                                value={task.status}
-                                onChange={(e) =>
-                                  handleUpdateStatus(task, e.target.value)
-                                }
-                              >
-                                {statusOptions.map((s) => (
-                                  <option key={s.name} value={s.name}>
-                                    {s.icon} {s.name}
-                                  </option>
-                                ))}
-                              </Form.Select>
-                            </td>
-                            <td>
-                              <VisibilityIcon
-                                color="primary"
-                                style={{ cursor: "pointer" }}
-                                onClick={() => setSelectedTask(task)}
-                              />
-                              {permissions?.edit && (
-                                <CreateTwoToneIcon
-                                  color="primary"
-                                  onClick={() => handleEdit(task)}
-                                  style={{ cursor: "pointer" }}
-                                />
-                              )}
-                              {permissions?.del && (
-                                <DeleteRoundedIcon
-                                  color="error"
-                                  onClick={() => {
-                                    setDeleteTask(task);
-                                    setShowDelete(true);
-                                  }}
-                                  style={{ cursor: "pointer" }}
-                                />
-                              )}
+                      </thead>
+                      <tbody>
+                        {taskList.length === 0 ? (
+                          <tr>
+                            <td colSpan="6" className="text-center">
+                              No tasks available
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
+                        ) : (
+                          taskList.map((task, idx) => (
+                            <tr key={task.id}>
+                              <td>{idx + 1}</td>
+                              <td>{task.title}</td>
+                              <td>{task.project?.project_name || "-"}</td>
+                              <td>{task.task_type || "-"}</td>
+                              <td>
+                                <Form.Select
+                                  size="sm"
+                                  value={task.status}
+                                  onChange={(e) =>
+                                    handleUpdateStatus(task, e.target.value)
+                                  }
+                                >
+                                  {statusOptions.map((s) => (
+                                    <option key={s.name} value={s.name}>
+                                      {s.icon} {s.name}
+                                    </option>
+                                  ))}
+                                </Form.Select>
+                              </td>
+                              <td>
+                                <VisibilityIcon
+                                  color="primary"
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => setSelectedTask(task)}
+                                />
+                                {permissions?.edit && (
+                                  <CreateTwoToneIcon
+                                    color="primary"
+                                    onClick={() => handleEdit(task)}
+                                    style={{ cursor: "pointer" }}
+                                  />
+                                )}
+                                {permissions?.del && (
+                                  <DeleteRoundedIcon
+                                    color="error"
+                                    onClick={() => {
+                                      setDeleteTask(task);
+                                      setShowDelete(true);
+                                    }}
+                                    style={{ cursor: "pointer" }}
+                                  />
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </div>
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <Pagination className="justify-content-center mt-3">
+                      <Pagination.First
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                      />
+                      {[...Array(totalPages)].map((_, i) => (
+                        <Pagination.Item
+                          key={i + 1}
+                          active={i + 1 === currentPage}
+                          onClick={() => setCurrentPage(i + 1)}
+                        >
+                          {i + 1}
+                        </Pagination.Item>
+                      ))}
+                      <Pagination.Last
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                      />
+                    </Pagination>
+                  )}
+                </>
               )}
             </Card.Body>
           </Card>

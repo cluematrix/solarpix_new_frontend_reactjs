@@ -121,8 +121,9 @@ export const requiredTypes = [
 ];
 
 export const typeOfData = [
-  { id: "4", name: "image" },
-  { id: "5", name: "pdf" },
+  { id: "3", name: "text" },
+  { id: "1", name: "image" },
+  { id: "2", name: "pdf" },
 ];
 
 export const accountTypes = [
@@ -133,6 +134,15 @@ export const accountTypes = [
 export const personType = [
   { id: "1", name: "Warehouse" },
   { id: "2", name: "Customer" },
+];
+
+export const taskTypeOptions = [
+  { id: "1", name: "Survey" },
+  { id: "2", name: "Procurement" },
+  { id: "3", name: "Installation" },
+  { id: "4", name: "Testing" },
+  { id: "5", name: "Inspection" },
+  { id: "6", name: "Docs" },
 ];
 
 // Default text for new quotations
