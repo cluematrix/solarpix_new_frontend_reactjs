@@ -30,6 +30,7 @@ const RolePermissionList = () => {
     "leaves-list",
     "payroll",
     "Attendance",
+    "EmployeeSalary",
   ];
 
   // fetch roles
