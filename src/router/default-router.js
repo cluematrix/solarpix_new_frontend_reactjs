@@ -126,6 +126,7 @@ import EmployeeSalaryList from "../views/dashboard/Employees/EmployeeSalary/Empl
 import CenterStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CentralStockList";
 import SupplierStockHisList from "../views/dashboard/InventoryManagement/SupplierManagement/SupplierStockHisList";
 import EmployeePayrollList from "../views/dashboard/Employees/EmployeePayroll/EmployeePayrollList";
+import Index2 from "../views/dashboard/index2";
 // employee profile 01 Sep
 
 export const DefaultRouter = [
@@ -141,6 +142,11 @@ export const DefaultRouter = [
       {
         path: "/dashboard",
         element: <Index />,
+      },
+
+      {
+        path: "/dashboard2",
+        element: <Index2 />,
       },
       {
         path: "dashboard/special-pages/billing",
