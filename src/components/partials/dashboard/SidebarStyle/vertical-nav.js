@@ -1445,9 +1445,9 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/Payroll" ? "active" : ""
+                    location.pathname === "/EmployeePayrollList" ? "active" : ""
                   } nav-link`}
-                  to="/Payroll"
+                  to="/EmployeePayrollList"
                 >
                   <i className="icon">
                     <PaymentsIcon fontSize="small" />
