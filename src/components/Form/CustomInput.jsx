@@ -19,7 +19,7 @@ const CustomInput = ({
   readOnly = false,
   disabled = false,
   title,
-  Icon, // ✅ Icon prop accept karega (React component)
+  Icon, //  Icon prop accept karega (React component)
   iconPosition = "left", // optional: "left" or "right"
   nameIcon,
 }) => {
@@ -31,7 +31,7 @@ const CustomInput = ({
         </Form.Label>
       )}
 
-      {/* ✅ Wrap input in InputGroup */}
+      {/*  Wrap input in InputGroup */}
       <InputGroup>
         {/* Left Icon */}
         {Icon && iconPosition === "left" && (
@@ -84,7 +84,7 @@ const CustomInput = ({
       </InputGroup>
 
       {touched && errors && (
-        <div className="text-danger" style={{ fontSize: "11px" }}>
+        <div className="errors-text " style={{ fontSize: "11px" }}>
           {errors}
         </div>
       )}

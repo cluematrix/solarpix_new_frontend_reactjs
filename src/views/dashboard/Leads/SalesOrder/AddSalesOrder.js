@@ -10,7 +10,7 @@ import { useFormik } from "formik";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import AddSalesOrderModal from "./AddSalesOrderModal";
-import { defaultNotes } from "../../../../mockData";
+import * as Yup from "yup";
 
 const AddSalesOrder = () => {
   const { id } = useParams();
@@ -48,8 +48,31 @@ const AddSalesOrder = () => {
     payment_terms_id: "",
   };
 
+  const salesOrderValidationSchema = Yup.object().shape({
+    assign_to_emp_id: Yup.string().required("Assigned Employee is required"),
+
+    lead_id: Yup.string().required("Lead is required"),
+
+    sales_order_date: Yup.date()
+      .required("Sales Order Date is required")
+      .max(new Date(), "Sales Order Date cannot be in the future"),
+
+    expected_shipment_date: Yup.date()
+      .nullable()
+      .min(
+        Yup.ref("sales_order_date"),
+        "Expected Shipment Date cannot be before Sales Order Date"
+      )
+      .required("Expected Shipment Date is required"),
+
+    companyBank_id: Yup.string().required("Company Bank selection is required"),
+
+    payment_terms_id: Yup.string().required("Payment Terms are required"),
+  });
+
   const formik = useFormik({
     initialValues,
+    validationSchema: salesOrderValidationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
       if (!selectedItemsData)
@@ -481,6 +504,7 @@ const AddSalesOrder = () => {
                   touched={touched.expected_shipment_date}
                   errors={errors.expected_shipment_date}
                   min={!id && new Date().toISOString().split("T")[0]}
+                  required
                 />
               </Col>
             </Row>
@@ -810,6 +834,7 @@ const AddSalesOrder = () => {
                   touched={touched.notes_customer}
                   errors={errors.notes_customer}
                   row={4}
+                  required
                 />
               </Col>
             </Row>

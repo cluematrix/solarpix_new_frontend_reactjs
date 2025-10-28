@@ -36,7 +36,7 @@ const EditModalSrNo = ({
         </Modal.Body>
         <Modal.Footer>
           <Button variant="primary" type="submit" disabled={loadingBtn}>
-            {loadingBtn ? "Loading..." : buttonLabel}
+            {loadingBtn ? "Saving..." : buttonLabel}
           </Button>
         </Modal.Footer>
       </Form>

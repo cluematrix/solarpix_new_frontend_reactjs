@@ -68,11 +68,15 @@ const AddCustomer = () => {
     billing_address: Yup.string().required("Billing Address is required"),
     billing_city: Yup.string().required("Billing City is required"),
     billing_state: Yup.string().required("Billing State is required"),
-    billing_pincode: Yup.string().required("Billing Pincode is required"),
+    billing_pincode: Yup.string()
+      .required("Billing pin code is required")
+      .matches(/^\d{6}$/, "Enter valid 6-digit pin code"),
     shipping_address: Yup.string().required("Shipping Address is required"),
     shipping_city: Yup.string().required("Shipping City is required"),
     shipping_state: Yup.string().required("Shipping State is required"),
-    shipping_pincode: Yup.string().required("Shipping Pincode is required"),
+    shipping_pincode: Yup.string()
+      .required("Shipping pin code is required")
+      .matches(/^\d{6}$/, "Enter valid 6-digit pin code"),
     contact: Yup.string()
       .required("Mobile number is required")
       .matches(/^[0-9]{10}$/, "Enter a valid 10-digit mobile number"),
@@ -253,6 +257,7 @@ const AddCustomer = () => {
         setFieldValue("billing_state", data.state || "");
         setFieldValue("billing_pincode", data.pincode || "");
         setFieldValue("as_per_sales_order", data.asPerSalesOrder || "");
+        setFieldValue("gender", data.gender || "");
         setFieldValue("lead_id", leadId || "");
       } catch (err) {
         console.error("Error fetching stock material:", err);

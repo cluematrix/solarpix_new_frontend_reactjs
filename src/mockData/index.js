@@ -64,7 +64,7 @@ export const sidebarItems = [
   "Project",
   "Employee",
   "Holiday",
-  "Branch",
+  "Warehouse",
   "Company",
   "Bank",
   "Subsidy",
@@ -84,7 +84,7 @@ export const tabConfig = {
     "Intra Tax",
   ],
   Account: ["Type"],
-  Inventory: ["Reason", "Inventory Category", "Inventory Type"],
+  Inventory: ["Reason", "Inventory Category"],
   Task: ["Type"],
   Project: [
     "Category",
@@ -97,7 +97,7 @@ export const tabConfig = {
   ],
   Employee: ["Employee Type", "Department", "Designation", "Office Time"],
   Holiday: ["Default Holiday"],
-  Branch: ["Branch"],
+  Warehouse: ["Warehouse"],
   Company: ["Details"],
   Bank: ["Details"],
   Subsidy: ["Subsidy"],
@@ -121,8 +121,9 @@ export const requiredTypes = [
 ];
 
 export const typeOfData = [
-  { id: "4", name: "image" },
-  { id: "5", name: "pdf" },
+  { id: "3", name: "text" },
+  { id: "1", name: "image" },
+  { id: "2", name: "pdf" },
 ];
 
 export const accountTypes = [
@@ -133,6 +134,15 @@ export const accountTypes = [
 export const personType = [
   { id: "1", name: "Warehouse" },
   { id: "2", name: "Customer" },
+];
+
+export const taskTypeOptions = [
+  { id: "1", name: "Survey" },
+  { id: "2", name: "Procurement" },
+  { id: "3", name: "Installation" },
+  { id: "4", name: "Testing" },
+  { id: "5", name: "Inspection" },
+  { id: "6", name: "Docs" },
 ];
 
 // Default text for new quotations

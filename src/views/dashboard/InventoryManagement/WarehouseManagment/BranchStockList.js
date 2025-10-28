@@ -101,7 +101,7 @@ const BranchStockList = () => {
           <Form.Check
             type="switch"
             id="toggle-all"
-            label={showAll ? "Showing All Transactions" : "Filter by Branch"}
+            label={showAll ? "Showing All Transactions" : "Filter by Warehouse"}
             checked={showAll}
             onChange={(e) => setShowAll(e.target.checked)}
           />
@@ -110,13 +110,13 @@ const BranchStockList = () => {
         {!showAll && (
           <Col md={4}>
             <CustomSelect
-              // label="Select Branch"
+              // label="Select Warehouse"
               name="branchId"
               value={values.branchId}
               onChange={handleChange}
               onBlur={handleBlur}
               options={branches}
-              placeholder="-- Select Branch --"
+              placeholder="--"
               lableName="branch_name"
               lableKey="id"
             />
@@ -137,7 +137,7 @@ const BranchStockList = () => {
                   <thead className="table-light">
                     <tr>
                       <th>Sr. No.</th>
-                      <th>Branch</th>
+                      <th>Warehouse</th>
                       <th>Category</th>
                       <th>Material</th>
                       <th>Balance</th>

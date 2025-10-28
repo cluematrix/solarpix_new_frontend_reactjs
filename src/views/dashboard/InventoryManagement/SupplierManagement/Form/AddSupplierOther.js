@@ -119,6 +119,7 @@ const AddSupplierOther = ({ formik, metaData }) => {
             placeholder="Enter GST"
             touched={formik.touched.GST}
             errors={formik.errors.GST}
+            required
           />
         </Col>
         <Col md={4} className="d-flex align-items-center">

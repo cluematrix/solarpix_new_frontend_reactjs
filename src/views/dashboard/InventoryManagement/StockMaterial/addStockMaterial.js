@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Button, Row, Col, Card, Modal, Spinner } from "react-bootstrap";
 import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
-import { useFormik } from "formik";
+import { ErrorMessage, useFormik } from "formik";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import { successToast } from "../../../../components/Toast/successToast";
 import api from "../../../../api/axios";
@@ -10,6 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
 import { typeOfMaterial } from "../../../../mockData";
 import CustomCheckbox from "../../../../components/Form/CustomCheckbox";
+import * as Yup from "yup";
 
 const AddStockMaterial = () => {
   const [stockNames, setStockNames] = useState([]);
@@ -48,8 +49,43 @@ const AddStockMaterial = () => {
     unit_id: "",
   };
 
+  const validationSchema = Yup.object().shape({
+    type: Yup.string().required("Type is required"),
+    stock_name_id: Yup.string().required("Stock name is required"),
+    brand_id: Yup.string().required("Brand is required"),
+
+    hsc_code: Yup.string().when("type", {
+      is: "Goods",
+      then: (schema) => schema.required("HSN code is required for Goods"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+    sac: Yup.string().when("type", {
+      is: "Purchase",
+      then: (schema) => schema.required("SAC code is required for Purchase"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+    type_sales_info: Yup.boolean(),
+    type_purchase_info: Yup.boolean(),
+
+    sales_info_selling_price: Yup.number()
+      .typeError("Selling price must be a number")
+      .required("Selling price is required"),
+
+    purchase_info_cost_price: Yup.number()
+      .typeError("Cost price must be a number")
+      .required("Cost price is required"),
+
+    purchase_info_vendor_id: Yup.string().required("Vendor is required"),
+    unit_id: Yup.string().required("Unit is required"),
+
+    serialNumbers: Yup.array().of(Yup.string()),
+  });
+
   const formik = useFormik({
     initialValues,
+    validationSchema,
     onSubmit: (values) => {
       const selectedStock = stockNames.find(
         (stock) => stock.id === Number(values.stock_name_id)
@@ -265,6 +301,7 @@ const AddStockMaterial = () => {
     );
   }
 
+  console.log("errors", errors);
   return (
     <Card>
       <Card.Header>
@@ -315,7 +352,6 @@ const AddStockMaterial = () => {
                 <Form.Select
                   name="brand_id"
                   value={values.brand_id}
-                  required
                   onChange={(e) => {
                     if (e.target.value === "add-new") {
                       handleAddNewOption("brand");
@@ -324,6 +360,7 @@ const AddStockMaterial = () => {
                     }
                   }}
                   onBlur={handleBlur}
+                  isInvalid={touched.brand_id && !!errors.brand_id}
                 >
                   <option value="">
                     {brandNames.length ? "--" : "No brands available"}
@@ -341,10 +378,15 @@ const AddStockMaterial = () => {
                   </option>
                 </Form.Select>
                 {touched.brand_id && errors.brand_id && (
-                  <Form.Text className="text-danger">
+                  <Form.Text className="errors-text ">
                     {errors.brand_id}
                   </Form.Text>
                 )}
+                {/* <ErrorMessage
+                  name="brand_id"
+                  component="div"
+                  className="text-danger small errors-text"
+                /> */}
               </Form.Group>
             </Col>
             <Col md={4}>
@@ -356,6 +398,9 @@ const AddStockMaterial = () => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Enter HSN Code"
+                  touched={touched.hsc_code}
+                  errors={errors.hsc_code}
+                  required={true}
                 />
               ) : (
                 <CustomInput
@@ -365,6 +410,9 @@ const AddStockMaterial = () => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Enter SAC Code"
+                  touched={touched.sac}
+                  errors={errors.sac}
+                  required={true}
                 />
               )}
             </Col>
@@ -378,7 +426,6 @@ const AddStockMaterial = () => {
                 <Form.Select
                   name="unit_id"
                   value={values.unit_id}
-                  required
                   onChange={(e) => {
                     if (e.target.value === "add-new") {
                       handleAddNewOption("unit");
@@ -387,6 +434,7 @@ const AddStockMaterial = () => {
                     }
                   }}
                   onBlur={handleBlur}
+                  isInvalid={touched.unit_id && !!errors.unit_id}
                 >
                   <option value="">--</option>
                   {metaData.unitData.map((unit) => (
@@ -402,10 +450,15 @@ const AddStockMaterial = () => {
                   </option>
                 </Form.Select>
                 {touched.unit_id && errors.unit_id && (
-                  <Form.Text className="text-danger">
+                  <Form.Text className="errors-text ">
                     {errors.unit_id}
                   </Form.Text>
                 )}
+                {/* <ErrorMessage
+                  name="unit_id"
+                  component="div"
+                  className="text-danger small errors-text"
+                /> */}
               </Form.Group>
             </Col>
           </Row>
@@ -421,6 +474,7 @@ const AddStockMaterial = () => {
                 onBlur={handleBlur}
                 error={errors.type_sales_info}
                 touched={touched.type_sales_info}
+                required
               />
               <CustomInput
                 label="Selling Price (1 Qty)"
@@ -447,6 +501,7 @@ const AddStockMaterial = () => {
                 onBlur={handleBlur}
                 error={errors.type_purchase_info}
                 touched={touched.type_purchase_info}
+                required
               />
               <CustomInput
                 label="Cost Price (1 Qty)"
@@ -477,13 +532,14 @@ const AddStockMaterial = () => {
                 lableKey="id"
                 disabled={!values.type_purchase_info}
                 readOnly={!values.type_purchase_info}
+                required
               />
             </Col>
           </Row>
 
           <div className="mt-4 text-end">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? "Loading..." : "Save"}
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </div>
         </Form>

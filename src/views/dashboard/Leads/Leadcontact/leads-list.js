@@ -76,7 +76,7 @@ const LeadsList = () => {
     gender: "Male",
   });
 
-  // 🔹 Fetch Permissions
+  // Fetch Permissions
   const fetchPermissions = async () => {
     try {
       const res = await api.get("/api/v1/admin/rolePermission");
@@ -111,7 +111,7 @@ const LeadsList = () => {
     }
   };
 
-  // 🔹 Fetch Lead Dropdowns (Except Status)
+  // Fetch Lead Dropdowns (Except Status)
   const fetchDropdowns = async () => {
     try {
       const [leadRes, empRes, cliRes] = await Promise.all([
@@ -128,7 +128,7 @@ const LeadsList = () => {
     }
   };
 
-  // 🔹 Fetch Lead Status Separately
+  // Fetch Lead Status Separately
   const fetchLeadStatus = async () => {
     try {
       const res = await api.get("/api/v1/admin/leadStatus/active");
@@ -144,7 +144,7 @@ const LeadsList = () => {
     }
   };
 
-  // 🔹 Fetch Leads with Pagination
+  // Fetch Leads with Pagination
   const fetchLeads = async (page = 1) => {
     try {
       setLoading(true);
@@ -163,12 +163,7 @@ const LeadsList = () => {
     }
   };
 
-  // 🔹 Convert Lead to Customer
-  const handleConvertToCustomer = (lead) => {
-    navigate("/add-customer", { state: { leadData: lead } });
-  };
-
-  // 🔹 Reset Form
+  // Reset Form
   const resetForm = () => {
     setFormData({
       customerType: "Individual",
@@ -200,7 +195,7 @@ const LeadsList = () => {
     setEditIndex(null);
   };
 
-  // 🔹 Save or Update Lead
+  // Save or Update Lead
   const handleAddOrUpdateLead = async (data) => {
     console.log("workingput");
     const payload = {
@@ -252,7 +247,7 @@ const LeadsList = () => {
     }
   };
 
-  // 🔹 Delete Lead
+  // Delete Lead
   const handleDeleteConfirm = async () => {
     if (deleteIndex !== null) {
       try {
@@ -271,7 +266,7 @@ const LeadsList = () => {
     setDeleteIndex(null);
   };
 
-  // 🔹 Edit Lead
+  // Edit Lead
   const handleEdit = (index) => {
     const lead = leadList[index];
     setFormData({
@@ -307,7 +302,7 @@ const LeadsList = () => {
     setShowAddEdit(true);
   };
 
-  // 🔹 Lifecycle Calls
+  // Lifecycle Calls
   useEffect(() => {
     setLoading(true);
     fetchPermissions();
@@ -319,7 +314,7 @@ const LeadsList = () => {
     fetchLeads(currentPage);
   }, [currentPage]);
 
-  // 🔹 Loader
+  // Loader
   if (loading && !permissions) {
     return (
       <div className="loader-div">
@@ -490,7 +485,7 @@ const LeadsList = () => {
                                 }}
                               >
                                 <option disabled value="">
-                                  -- Select Status --
+                                  --
                                 </option>
                                 {leadStatus?.map((option) => (
                                   <option key={option.id} value={option.id}>

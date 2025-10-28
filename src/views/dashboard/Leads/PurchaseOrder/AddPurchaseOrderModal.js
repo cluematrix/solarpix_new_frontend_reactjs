@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Col, Modal, Row, Table, Button, Form } from "react-bootstrap";
+import { Col, Modal, Row, Table, Button, Form, Spinner } from "react-bootstrap";
 import api from "../../../../api/axios";
 import { errorToast } from "../../../../components/Toast/errorToast";
 import { successToast } from "../../../../components/Toast/successToast";
@@ -18,6 +18,13 @@ const AddPurchaseOrderModal = ({
 
   // Serial modal state
   const [serialModal, setSerialModal] = useState({
+    show: false,
+    item: null,
+    serials: [],
+  });
+
+  // Serial modal state
+  const [serialModalView, setSerialModalView] = useState({
     show: false,
     item: null,
     serials: [],
@@ -174,17 +181,20 @@ const AddPurchaseOrderModal = ({
     );
   };
 
-  // Open serial modal
   const openSerialModal = (item) => {
     const serials = Array.from(
       { length: item.quantity },
-      (_, i) => item.serialNumbers[i] || ""
+      (_, i) => item.serialNumbers?.[i] || ""
     );
-    setSerialModal({
-      show: true,
-      item,
-      serials,
-    });
+    setSerialModal({ show: true, item, serials });
+  };
+
+  const openSerialModalView = (item) => {
+    const serials = Array.from(
+      { length: item.quantity },
+      (_, i) => item.serialNumbers?.[i] || ""
+    );
+    setSerialModalView({ show: true, item, serials });
   };
 
   // Handle serial change
@@ -272,7 +282,9 @@ const AddPurchaseOrderModal = ({
             {/* LEFT: Categories */}
             <Col md={4}>
               {loadingCat ? (
-                <p>Loading...</p>
+                <div className="loader-div">
+                  <Spinner animation="border" className="spinner" />
+                </div>
               ) : (
                 <div className="table-responsive">
                   <Table hover bordered>
@@ -409,9 +421,10 @@ const AddPurchaseOrderModal = ({
                                   </td>
                                   <td>{item.total.toFixed(2)}</td>
                                   <td>
-                                    {(item.selected &&
-                                      formik.values.branch_id) ||
-                                    (formik.values.client_id &&
+                                    {item.selected &&
+                                    item.quantity > 0 &&
+                                    (formik.values.branch_id ||
+                                      formik.values.client_id ||
                                       formik.values.supplier_id) ? (
                                       <Button
                                         variant={
@@ -422,7 +435,7 @@ const AddPurchaseOrderModal = ({
                                         size="sm"
                                         onClick={() => openSerialModal(item)}
                                       >
-                                        {item.serialAdded ? "View" : "+ Serial"}
+                                        {item.serialAdded ? "Edit" : "+ Serial"}
                                       </Button>
                                     ) : (
                                       <Button
@@ -433,6 +446,20 @@ const AddPurchaseOrderModal = ({
                                         + Serials
                                       </Button>
                                     )}
+
+                                    {item.serialAdded &&
+                                      item.serialNumbers?.length > 0 && (
+                                        <Button
+                                          variant="secondary"
+                                          size="sm"
+                                          className="ms-2"
+                                          onClick={() =>
+                                            openSerialModalView(item)
+                                          }
+                                        >
+                                          View
+                                        </Button>
+                                      )}
                                   </td>
                                 </tr>
                               ))}
@@ -465,13 +492,13 @@ const AddPurchaseOrderModal = ({
         </Modal.Body>
       </Modal>
 
-      {/* Serial Entry Modal */}
+      {/* Serial Entry Modal for edit and add*/}
       <Modal
         show={serialModal.show}
         onHide={() => setSerialModal({ show: false, item: null, serials: [] })}
         centered
         backdrop="static"
-        style={{ zIndex: "9999" }}
+        style={{ zIndex: 9999 }}
       >
         <Modal.Header closeButton>
           <Modal.Title>
@@ -479,9 +506,10 @@ const AddPurchaseOrderModal = ({
             {serialModal.item?.material || ""}
           </Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
           {serialModal.item && (
-            <div>
+            <>
               {serialModal.serials.map((s, idx) => (
                 <Form.Group key={idx} className="mb-2">
                   <Form.Label>Serial {idx + 1}</Form.Label>
@@ -511,14 +539,55 @@ const AddPurchaseOrderModal = ({
                       )
                     );
 
-                    // Close serial modal
+                    // ✅ Close serial modal
                     setSerialModal({ show: false, item: null, serials: [] });
                   }}
                 >
                   Save
                 </Button>
               </div>
-            </div>
+            </>
+          )}
+        </Modal.Body>
+      </Modal>
+
+      {/* view */}
+      <Modal
+        show={serialModalView.show}
+        onHide={() =>
+          setSerialModalView({ show: false, item: null, serials: [] })
+        }
+        centered
+        backdrop="static"
+        style={{ zIndex: 9999 }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            View Serials for {serialModalView.item?.material || ""}
+          </Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {serialModalView.item && (
+            <>
+              {serialModalView.serials.map((s, idx) => (
+                <Form.Group key={idx} className="mb-2">
+                  <Form.Label>Serial {idx + 1}</Form.Label>
+                  <Form.Control type="text" value={s} disabled />
+                </Form.Group>
+              ))}
+
+              <div className="text-end mt-3">
+                <Button
+                  variant="dark"
+                  onClick={() =>
+                    setSerialModalView({ show: false, item: null, serials: [] })
+                  }
+                >
+                  Close
+                </Button>
+              </div>
+            </>
           )}
         </Modal.Body>
       </Modal>

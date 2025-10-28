@@ -138,7 +138,10 @@ const UpdateQuotationNew = () => {
 
           // Step 2: If customer flow, stop here and go to customer page
           if (isCustomer) {
-            successToast("Quotation finalized and deal marked as Won");
+            successToast(
+              "Quotation finalized successfully. Please create the customer to mark it as Won."
+            );
+
             navigate("/add-customer", {
               state: { leadId: leadId, asPerSalesOrder: asPerSalesOrder },
             });
@@ -437,7 +440,7 @@ const UpdateQuotationNew = () => {
                   touched={touched.Qt_date}
                   errors={errors.Qt_date}
                   required
-                  min={new Date().toISOString().split("T")[0]}
+                  // min={new Date().toISOString().split("T")[0]}
                 />
               </Col>
               <Col md={4}>

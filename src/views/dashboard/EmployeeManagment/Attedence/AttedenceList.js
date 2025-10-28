@@ -1,3 +1,5 @@
+// created by rishi and modified by sufyan on 27 oct 2025
+
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col, Button, Form, Table, Spinner } from "react-bootstrap";
 import { ToastContainer, toast, Slide } from "react-toastify";
@@ -72,7 +74,7 @@ const AttendanceList = () => {
     FETCHPERMISSION();
   }, [pathname]);
 
-  // 🟢 Fetch Active Employees
+  //  Fetch Active Employees
   const fetchEmployees = async () => {
     try {
       const res = await api.get("/api/v1/admin/employee/active");
@@ -82,13 +84,13 @@ const AttendanceList = () => {
       const sessionRoleId = parseInt(sessionStorage.getItem("roleId"));
 
       if (sessionRoleId === 1) {
-        // 🟢 Admin (Role ID 1): show all employees
+        //  Admin (Role ID 1): show all employees
         setEmployees(empList);
       } else if (permissions && permissions.any_one === true) {
-        // 🟡 Non-admin but "any_one" is true → show all employees
+        //  Non-admin but "any_one" is true → show all employees
         setEmployees(empList);
       } else {
-        // 🔴 Non-admin and "any_one" is false → show only own record
+        //  Non-admin and "any_one" is false → show only own record
         const filtered = empList.filter((emp) => emp.id === sessionEmpId);
         setEmployees(filtered);
         setSelectedEmp(sessionEmpId);
@@ -141,7 +143,7 @@ const AttendanceList = () => {
     }
   }, [permissions]);
 
-  // 🗓️ Utility to get all dates of month
+  // Utility to get all dates of month
   const getAllDatesOfMonth = (month, year) => {
     const dates = [];
     const lastDay = new Date(year, month, 0).getDate();
@@ -153,7 +155,7 @@ const AttendanceList = () => {
     return dates;
   };
 
-  // 🟢 Fetch Attendance
+  // Fetch Attendance
   const fetchAttendance = async () => {
     if (!selectedEmp) {
       toast.warning("Please select an employee");
@@ -282,7 +284,13 @@ const AttendanceList = () => {
     }
   };
 
-  // 🌀 Show loader while permissions are fetched
+  useEffect(() => {
+    if (selectedEmp) {
+      fetchAttendance();
+    }
+  }, [selectedEmp]);
+
+  // Show loader while permissions are fetched
   if (loading && !permissions) {
     return (
       <div className="loader-div">
@@ -291,7 +299,7 @@ const AttendanceList = () => {
     );
   }
 
-  // 🚫 No View Permission
+  // No View Permission
   if (!permissions?.view) {
     return (
       <div
@@ -367,7 +375,7 @@ const AttendanceList = () => {
                   </Form.Group>
                 </Col>
 
-                <Col
+                {/* <Col
                   xs={12}
                   md={2}
                   className="d-flex align-items-end justify-content-end mb-2"
@@ -379,14 +387,12 @@ const AttendanceList = () => {
                       onClick={fetchAttendance}
                       disabled={loading}
                     >
-                      {loading ? (
-                        <Spinner animation="border" size="sm" />
-                      ) : (
+                      {loading ? "Loading..." : (
                         "Load"
                       )}
                     </Button>
                   )}
-                </Col>
+                </Col> */}
               </Row>
 
               {/* Legend */}
@@ -410,56 +416,67 @@ const AttendanceList = () => {
               </Row>
 
               {/* Attendance Table */}
-              {attendanceData.length > 0 && (
-                <div className="table-responsive mt-3">
-                  <Table
-                    bordered
-                    hover
-                    size="sm"
-                    className="align-middle text-center"
-                  >
-                    <thead className="table-light">
-                      <tr>
-                        <th>Employee</th>
-                        {attendanceData[0].attendance
-                          .filter(
-                            (d) => new Date(d.date).getMonth() === month - 1
-                          )
-                          .sort((a, b) => new Date(a.date) - new Date(b.date))
-                          .map((d, idx) => (
-                            <th key={idx} title={d.date}>
-                              {new Date(d.date).getDate()}
-                            </th>
-                          ))}
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {attendanceData.map((emp) => (
-                        <tr key={emp.id}>
-                          <td className="text-start">
-                            <strong>{emp.name}</strong>
-                            <br />
-                            <small className="text-muted">{emp.empCode}</small>
-                          </td>
-                          {emp.attendance
+
+              {loading ? (
+                <div className="loader-div">
+                  <Spinner animation="border" className="spinner" />
+                </div>
+              ) : (
+                attendanceData.length > 0 && (
+                  <div className="table-responsive mt-3">
+                    <Table
+                      bordered
+                      hover
+                      size="sm"
+                      className="align-middle text-center"
+                    >
+                      <thead className="table-light">
+                        <tr>
+                          <th>Employee</th>
+                          {attendanceData[0].attendance
                             .filter(
                               (d) => new Date(d.date).getMonth() === month - 1
                             )
                             .sort((a, b) => new Date(a.date) - new Date(b.date))
                             .map((d, idx) => (
-                              <td key={idx}>
-                                {renderStatusIcon(d.status, d.occasion)}
-                              </td>
+                              <th key={idx} title={d.date}>
+                                {new Date(d.date).getDate()}
+                              </th>
                             ))}
-                          <td>
-                            {emp.present_days} / {emp.total_days}
-                          </td>
+                          <th>Total</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {attendanceData.map((emp) => (
+                          <tr key={emp.id}>
+                            <td className="text-start">
+                              <strong>{emp.name}</strong>
+                              <br />
+                              <small className="text-muted">
+                                {emp.empCode}
+                              </small>
+                            </td>
+                            {emp.attendance
+                              .filter(
+                                (d) => new Date(d.date).getMonth() === month - 1
+                              )
+                              .sort(
+                                (a, b) => new Date(a.date) - new Date(b.date)
+                              )
+                              .map((d, idx) => (
+                                <td key={idx}>
+                                  {renderStatusIcon(d.status, d.occasion)}
+                                </td>
+                              ))}
+                            <td>
+                              {emp.present_days} / {emp.total_days}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                )
               )}
 
               {!loading && attendanceData.length === 0 && (

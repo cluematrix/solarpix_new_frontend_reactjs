@@ -28,7 +28,7 @@ const StockNameList = () => {
   const [stockName, setStockName] = useState("");
 
   const [editId, setEditId] = useState(null);
-  const [errors, setErrors] = useState(null);
+  const [errors, setErrors] = useState({});
   const [loadingBtn, setLoadingBtn] = useState(false);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -89,23 +89,34 @@ const StockNameList = () => {
 
   // Add or update stock
   const handleAddOrUpdateStock = async () => {
+    let newErrors = {};
+
     if (!stockName.trim()) {
-      setErrors("Stock name is required");
-      return;
+      newErrors.stockName = "Stock name is required";
     }
+
     if (!selectedCategory) {
-      setErrors("Please select inventory category");
-      return;
+      newErrors.category = "Please select inventory category";
     }
+
     if (!selectedType) {
-      setErrors("Please select inventory type");
+      newErrors.inv_type = "Please select inventory type";
+    }
+
+    // If any error, stop submission
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
+    // No errors — proceed
+    console.log("Form submitted successfully");
+
     const payload = {
       name: stockName,
+      // inv_cat_id: selectedCategory,
       inv_cat_id: selectedCategory,
-      inv_type_id: selectedType,
+      inv_type: selectedType,
     };
 
     setLoadingBtn(true);
@@ -210,7 +221,7 @@ const StockNameList = () => {
                           <td>{indexOfFirst + idx + 1}</td>
                           <td>{item.name}</td>
                           <td>{item.InventoryCat?.category || "-"}</td>
-                          <td>{item.InventoryType?.type || "-"}</td>
+                          <td>{item.inv_type || "-"}</td>
                           <td>
                             <CreateTwoToneIcon
                               onClick={() => handleEdit(item)}
@@ -259,9 +270,9 @@ const StockNameList = () => {
         stockName={stockName}
         setStockName={setStockName}
         inventoryCategories={inventoryCategories}
-        setInventoryCategories={setInventoryCategories} // ✅ Added
+        setInventoryCategories={setInventoryCategories} // Added
         inventoryTypes={inventoryTypes}
-        setInventoryTypes={setInventoryTypes} // ✅ Added
+        setInventoryTypes={setInventoryTypes} // Added
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         selectedType={selectedType}
@@ -271,6 +282,7 @@ const StockNameList = () => {
         modalTitle={editId ? "Edit Item Name" : "Add Item Name"}
         buttonLabel={editId ? "Update" : "Save"}
         loading={loadingBtn}
+        setErrors={setErrors}
       />
 
       {/* Delete Confirmation Modal */}

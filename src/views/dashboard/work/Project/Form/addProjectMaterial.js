@@ -100,20 +100,24 @@ const AddProjectMaterial = ({ formik, metaData, formData }) => {
 
   console.log("selectedSrNosMap", selectedSrNosMap);
   console.log("item_details", formik.values.item_details);
+  console.log("formData", formData);
+
   return (
     <Card className="p-3">
-      <Row
-        className=" mb-3 ps-1 text-dark"
-        style={{ backgroundColor: "#f3d90657" }}
-      >
-        You can’t edit material information here!
-      </Row>
+      {formData?.id && (
+        <Row
+          className=" mb-3 ps-1 text-dark"
+          style={{ backgroundColor: "#f3d90657" }}
+        >
+          You can’t edit material information here!
+        </Row>
+      )}
       <Row className="mb-3 d-flex align-items-center justify-content-between">
         <Col md={4}>
           <Form.Check
             type="switch"
             id="toggle-all"
-            label={showAll ? "Showing All Stock" : "Filter by Branch"}
+            label={showAll ? "Showing All Stock" : "Filter by Warehouse"}
             checked={showAll}
             onChange={(e) => setShowAll(e.target.checked)}
           />
@@ -127,7 +131,7 @@ const AddProjectMaterial = ({ formik, metaData, formData }) => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               options={branches}
-              placeholder="-- Select Branch --"
+              placeholder="--"
               lableName="branch_name"
               lableKey="id"
             />
@@ -148,7 +152,7 @@ const AddProjectMaterial = ({ formik, metaData, formData }) => {
                   <thead className="table-light">
                     <tr>
                       <th>Sr. No.</th>
-                      <th>Branch</th>
+                      <th>Warehouse</th>
                       <th>Material</th>
                       <th>Balance</th>
                       <th>Date</th>
@@ -186,12 +190,12 @@ const AddProjectMaterial = ({ formik, metaData, formData }) => {
                                 <FormatListNumberedIcon
                                   color={hasSelected ? "primary" : "inherit"}
                                   style={{
-                                    cursor: formData
+                                    cursor: formData?.id
                                       ? "not-allowed"
                                       : "pointer",
                                   }}
                                   onClick={() =>
-                                    formData ? null : handleOpenSrNoModal(t)
+                                    formData?.id ? null : handleOpenSrNoModal(t)
                                   }
                                 />
                               </Tooltip>

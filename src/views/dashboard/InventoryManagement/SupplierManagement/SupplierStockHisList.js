@@ -12,10 +12,9 @@ import api from "../../../../api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MdKeyboardBackspace } from "react-icons/md";
 
-const BranchStockHisList = () => {
+const SupplierStockHisList = () => {
   const location = useLocation();
-  const { branch_id } = location.state;
-  const { stock_material_id } = location.state;
+  const { supplier_id } = location.state;
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -29,10 +28,10 @@ const BranchStockHisList = () => {
   const fetchTransactionsById = async (page = 1) => {
     try {
       setLoading(true);
-      let url = `/api/v1/admin/stockTransaction/${branch_id}/${stock_material_id}/pagination?page=${page}&limit=${itemsPerPage}`;
+      let url = `/api/v1/admin/purchaseOrder/supplier-history/${supplier_id}?page=${page}&limit=${itemsPerPage}`;
 
       const res = await api.get(url);
-      setTransactions(res.data?.data || []);
+      setTransactions(res?.data?.data?.purchaseOrders || []);
 
       // Extract pagination info
       const pagination = res.data?.pagination;
@@ -52,15 +51,8 @@ const BranchStockHisList = () => {
     fetchTransactionsById(currentPage);
   }, [currentPage]);
 
-  // Calculate available balance
-  const availableBalance = transactions.reduce((acc, t) => {
-    const credit = t.Credit || 0;
-    const debit = t.Debit || 0;
-    return acc + credit - debit;
-  }, 0);
-
   // console section
-
+  console.log("transactions", transactions);
   return (
     <Card className="p-3">
       <Row>
@@ -82,10 +74,7 @@ const BranchStockHisList = () => {
               </div>
               {/* Show available balance */}
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Stock Transactions</h5>
-                <h6 className="mb-0 text-primary">
-                  Available Balance: <strong>{availableBalance}</strong>
-                </h6>
+                <h5 className="mb-0">Supplier Stock</h5>
               </div>
 
               <div className="table-responsive">
@@ -93,13 +82,9 @@ const BranchStockHisList = () => {
                   <thead className="table-light">
                     <tr>
                       <th>Sr. No.</th>
+                      <th>Supplier</th>
                       <th>Warehouse</th>
-                      <th>Category</th>
-                      <th>Material</th>
-                      <th>Debit</th>
-                      <th>Credit</th>
-                      <th>Balance</th>
-                      <th>Date</th>
+                      <th>Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -109,18 +94,9 @@ const BranchStockHisList = () => {
                           <td>
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          <td>{t.branch?.branch_name || "—"}</td>
-                          <td>
-                            {t.material?.stockName?.InventoryCat?.category ||
-                              "—"}
-                          </td>
-                          <td>{t.material?.material || "—"}</td>
-                          <td>{t.Debit || 0}</td>
-                          <td>{t.Credit || 0}</td>
-                          <td>{t.balance_after || 0}</td>
-                          <td>
-                            {new Date(t.createdAt).toLocaleDateString("en-IN")}
-                          </td>
+                          <td>{t?.supplierManagement?.name || "—"}</td>
+                          <td>{t?.branch?.branch_name || "—"}</td>
+                          <td>{t?.total || "—"}</td>
                         </tr>
                       ))
                     ) : (
@@ -164,4 +140,4 @@ const BranchStockHisList = () => {
   );
 };
 
-export default BranchStockHisList;
+export default SupplierStockHisList;

@@ -92,7 +92,7 @@ const UpdateEmployee = () => {
       .required("Account number is required")
       .matches(/^[0-9]+$/, "Account number must be numeric"),
     ifsc_code: Yup.string().required("IFSC code is required"),
-    branch_name: Yup.string().required("Branch name is required"),
+    branch_name: Yup.string().required("Warehouse name is required"),
   });
 
   useEffect(() => {
@@ -587,7 +587,7 @@ const UpdateEmployee = () => {
           <Row className="mt-3">
             <Col md={4}>
               <CustomInput
-                label="Branch Name"
+                label="Warehouse Name"
                 name="branch_name"
                 value={values.branch_name}
                 onChange={handleChange}

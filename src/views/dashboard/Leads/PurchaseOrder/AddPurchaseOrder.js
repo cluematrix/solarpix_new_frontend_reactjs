@@ -11,7 +11,8 @@ import CustomSelect from "../../../../components/Form/CustomSelect";
 import CustomInput from "../../../../components/Form/CustomInput";
 import AddPurchaseOrderModal from "./AddPurchaseOrderModal";
 import CustomRadioGroup from "../../../../components/Form/CustomRadioGroup";
-import { defaultNotes, personType } from "../../../../mockData";
+import { personType } from "../../../../mockData";
+import * as Yup from "yup";
 
 const AddPurchaseOrder = () => {
   const { id } = useParams();
@@ -30,8 +31,6 @@ const AddPurchaseOrder = () => {
 
   const [selectedItemsData, setSelectedItemsData] = useState(null); // modal data
 
-  console.log("selectedItemsData", selectedItemsData);
-
   const [subTotals, setSubTotals] = useState({
     subTotal: 0,
     taxType: "TDS",
@@ -43,7 +42,7 @@ const AddPurchaseOrder = () => {
   const initialValues = {
     date: new Date().toISOString().split("T")[0],
     delivery_date: "",
-    notes_customer: defaultNotes,
+    notes_customer: "",
     reference: "",
     payment_terms_id: "",
     type: "Warehouse",
@@ -52,9 +51,35 @@ const AddPurchaseOrder = () => {
     branch_id: null,
   };
 
+  const validationSchema = Yup.object().shape({
+    date: Yup.string().required("Date is required"),
+    delivery_date: Yup.string().required("Delivery date is required"),
+    notes_customer: Yup.string().required(
+      "Customer notes or subsidy is required"
+    ),
+    payment_terms_id: Yup.string().required("Payment terms is required"),
+    supplier_id: Yup.string().required("Supplier is required"),
+    type: Yup.string()
+      .oneOf(["Warehouse", "Customer"])
+      .required("Type is required"),
+
+    branch_id: Yup.string().when("type", {
+      is: "Warehouse",
+      then: (schema) => schema.required("Warehouse is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+    client_id: Yup.string().when("type", {
+      is: "Customer",
+      then: (schema) => schema.required("Client is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  });
+
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
+    validationSchema: validationSchema,
     onSubmit: async (values) => {
       if (!selectedItemsData)
         return errorToast("Please add at least one item.");
@@ -324,6 +349,34 @@ const AddPurchaseOrder = () => {
       : `${String(year - 1).slice(-2)}-${String(year).slice(-2)}`;
   };
 
+  // fetch subsidy
+  useEffect(() => {
+    const fetchSubsidy = async () => {
+      try {
+        const res = await api.get("/api/v1/admin/subsidy/getAllSubsidy");
+        if (res.data?.data && Array.isArray(res.data.data.subsidyFields)) {
+          const fields = res.data.data.subsidyFields;
+
+          // Format fields into a readable string
+          const formattedText = fields
+            .map((f) => `${f.label} = ${f.value}`)
+            .join("\n");
+
+          // Set the formatted text into Formik's textarea field
+          formik.setFieldValue("notes_customer", formattedText);
+        } else {
+          formik.setFieldValue("notes_customer", "");
+        }
+      } catch (error) {
+        console.error("Error fetching subsidy:", error);
+        formik.setFieldValue("notes_customer", "");
+      }
+    };
+
+    fetchSubsidy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const initQuotation = async () => {
       try {
@@ -443,6 +496,7 @@ const AddPurchaseOrder = () => {
                   touched={touched.supplier_id}
                   lableName="name"
                   lableKey="id"
+                  required
                 />
               </Col>
               <Col md={4}>
@@ -558,6 +612,7 @@ const AddPurchaseOrder = () => {
                   touched={touched.delivery_date}
                   errors={errors.delivery_date}
                   min={new Date().toISOString().split("T")[0]}
+                  required
                 />
               </Col>
             </Row>
@@ -868,6 +923,7 @@ const AddPurchaseOrder = () => {
                   touched={touched.notes_customer}
                   errors={errors.notes_customer}
                   row={4}
+                  required
                 />
               </Col>
             </Row>

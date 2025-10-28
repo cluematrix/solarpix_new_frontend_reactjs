@@ -40,6 +40,15 @@ import {
   AccordionContext,
 } from "react-bootstrap";
 
+import CategoryIcon from "@mui/icons-material/Category";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import BeachAccessIcon from "@mui/icons-material/BeachAccess";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
+import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+
 //setting icon
 import SettingsIcon from "@mui/icons-material/Settings";
 
@@ -726,24 +735,6 @@ const VerticalNav = memo((props) => {
               <li className="nav-item">
                 <Link
                   className={`${
-                    location.pathname === "/purchase-order-list" ? "active" : ""
-                  } nav-link`}
-                  to="/purchase-order-list"
-                >
-                  <i className="icon">
-                    <IoBagHandleOutline fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <IoBagHandleOutline fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Purchase Order
-                  </span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
                     location.pathname === "/supplier-management-list"
                       ? "active"
                       : ""
@@ -757,6 +748,24 @@ const VerticalNav = memo((props) => {
                     <FaTruck fontSize="small" />
                   </i>
                   <span className="item-name sidebar-font-size">Supplier</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/purchase-order-list" ? "active" : ""
+                  } nav-link`}
+                  to="/purchase-order-list"
+                >
+                  <i className="icon">
+                    <IoBagHandleOutline fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <IoBagHandleOutline fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Purchase Order
+                  </span>
                 </Link>
               </li>
               <li className="nav-item">
@@ -1339,136 +1348,7 @@ const VerticalNav = memo((props) => {
           </CustomToggle>
           <Accordion.Collapse eventKey="sidebar-auth">
             <ul className="sub-nav">
-              {/* <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/shift-list" ? "active" : ""
-                  } nav-link`}
-                  to="/shift-list"
-                >
-                  <i className="icon">
-                    <BrowseGalleryIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <BrowseGalleryIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Office Time
-                  </span>
-                </Link>
-              </li> */}
-
-              {/* <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/EmployeeType" ? "active" : ""
-                  } nav-link`}
-                  to="/EmployeeType"
-                >
-                  <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Employee Type
-                  </span>
-                </Link>
-              </li> */}
-
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/LeaveType" ? "active" : ""
-                  } nav-link`}
-                  to="/LeaveType"
-                >
-                  <i className="icon">
-                    <TimeToLeaveIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <TimeToLeaveIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Leave Type
-                  </span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/holiday" ? "active" : ""
-                  } nav-link`}
-                  to="/holiday"
-                >
-                  <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Holiday</span>
-                </Link>
-              </li>
-
-              {/* <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/Default-Holiday" ? "active" : ""
-                  } nav-link`}
-                  to="/Default-Holiday"
-                >
-                  <i className="icon">
-                    <AccountTreeIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <AccountTreeIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Default Holiday
-                  </span>
-                </Link>
-              </li> */}
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/award-list" ? "active" : ""
-                  } nav-link`}
-                  to="/award-list"
-                >
-                  <i className="icon">
-                    <EmojiEventsIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <EmojiEventsIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">Award</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/Appreciation-list" ? "active" : ""
-                  } nav-link`}
-                  to="/Appreciation-list"
-                >
-                  <i className="icon">
-                    <BsAwardFill fontSize="large" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <BsAwardFill fontSize="large" />{" "}
-                    {/* <EmojiEventsIcon fontSize="small" />{" "} */}
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Appreciation
-                  </span>
-                </Link>
-              </li>
-
+              {/* Employee */}
               <li className="nav-item">
                 <Link
                   className={`${
@@ -1477,14 +1357,37 @@ const VerticalNav = memo((props) => {
                   to="/employee-list"
                 >
                   <i className="icon">
-                    <PersonAddIcon fontSize="small" />
+                    <PeopleAltIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon">
-                    <PersonAddIcon fontSize="small" />
+                    <PeopleAltIcon fontSize="small" />
                   </i>
                   <span className="item-name sidebar-font-size">Employee</span>
                 </Link>
               </li>
+
+              {/* Leave type */}
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/LeaveType" ? "active" : ""
+                  } nav-link`}
+                  to="/LeaveType"
+                >
+                  <i className="icon">
+                    <CategoryIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <CategoryIcon fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Leave Type
+                  </span>
+                </Link>
+              </li>
+
+              {/* Employee Leave */}
               <li className="nav-item">
                 <Link
                   className={`${
@@ -1493,10 +1396,10 @@ const VerticalNav = memo((props) => {
                   to="/leaves-list"
                 >
                   <i className="icon">
-                    <TimeToLeaveIcon fontSize="small" />
+                    <EventAvailableIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon">
-                    <TimeToLeaveIcon fontSize="small" />{" "}
+                    <EventAvailableIcon fontSize="small" />{" "}
                   </i>
                   <span className="item-name sidebar-font-size">
                     Employee Leave
@@ -1512,17 +1415,33 @@ const VerticalNav = memo((props) => {
                   to="/Attendance"
                 >
                   <i className="icon">
-                    <TimeToLeaveIcon fontSize="small" />
+                    <AccessTimeIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon">
-                    <TimeToLeaveIcon fontSize="small" />
+                    <AccessTimeIcon fontSize="small" />
                   </i>
                   <span className="item-name sidebar-font-size">
                     Attendance
                   </span>
                 </Link>
               </li>
-
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/holiday" ? "active" : ""
+                  } nav-link`}
+                  to="/holiday"
+                >
+                  <i className="icon">
+                    <BeachAccessIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    {" "}
+                    <BeachAccessIcon fontSize="small" />
+                  </i>
+                  <span className="item-name sidebar-font-size">Holiday</span>
+                </Link>
+              </li>
               <li className="nav-item">
                 <Link
                   className={`${
@@ -1531,10 +1450,10 @@ const VerticalNav = memo((props) => {
                   to="/Payroll"
                 >
                   <i className="icon">
-                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                    <PaymentsIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon">
-                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                    <PaymentsIcon fontSize="small" />
                   </i>
                   <span className="item-name sidebar-font-size">Payroll</span>
                 </Link>
@@ -1548,13 +1467,49 @@ const VerticalNav = memo((props) => {
                   to="/EmployeeSalary"
                 >
                   <i className="icon">
-                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                    <RequestQuoteIcon fontSize="small" />
                   </i>
                   <i className="sidenav-mini-icon">
-                    <AccountBalanceWalletSharpIcon fontSize="small" />
+                    <RequestQuoteIcon fontSize="small" />
                   </i>
                   <span className="item-name sidebar-font-size">
                     Employee Salary
+                  </span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/award-list" ? "active" : ""
+                  } nav-link`}
+                  to="/award-list"
+                >
+                  <i className="icon">
+                    <MilitaryTechIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <MilitaryTechIcon fontSize="small" />{" "}
+                  </i>
+                  <span className="item-name sidebar-font-size">Award</span>
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`${
+                    location.pathname === "/Appreciation-list" ? "active" : ""
+                  } nav-link`}
+                  to="/Appreciation-list"
+                >
+                  <i className="icon">
+                    <EmojiEventsIcon fontSize="small" />
+                  </i>
+                  <i className="sidenav-mini-icon">
+                    <EmojiEventsIcon fontSize="small" />{" "}
+                    {/* <EmojiEventsIcon fontSize="small" />{" "} */}
+                  </i>
+                  <span className="item-name sidebar-font-size">
+                    Appreciation
                   </span>
                 </Link>
               </li>

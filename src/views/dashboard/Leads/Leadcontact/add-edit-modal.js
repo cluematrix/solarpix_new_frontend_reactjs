@@ -149,32 +149,6 @@ const AddEditModal = ({
                       />
                     </Form.Group>
                   </Col>
-
-                  <Col>
-                    <Form.Group>
-                      <Form.Label>Gender</Form.Label>
-                      <div>
-                        {["Male", "Female"].map((g) => (
-                          <Form.Check
-                            inline
-                            key={g}
-                            label={g}
-                            type="radio"
-                            name="gender"
-                            value={g}
-                            checked={values.gender === g}
-                            onChange={handleChange}
-                            isInvalid={touched.gender && !!errors.gender}
-                          />
-                        ))}
-                      </div>
-                      <ErrorMessage
-                        name="gender"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
                 </Row>
 
                 {/* ================= Name / Email / Company ================= */}
@@ -276,31 +250,109 @@ const AddEditModal = ({
                       />
                     </Form.Group>
                   </Col>
+
+                  {values.customerType === "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Contact <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="contact"
+                            value={values.contact}
+                            onChange={handleChange}
+                            isInvalid={touched.contact && !!errors.contact}
+                            placeholder="Enter Contact Number"
+                          />
+                          <ErrorMessage
+                            name="contact"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>Gender</Form.Label>
+                          <div>
+                            {["Male", "Female"].map((g) => (
+                              <Form.Check
+                                inline
+                                key={g}
+                                label={g}
+                                type="radio"
+                                name="gender"
+                                value={g}
+                                checked={values.gender === g}
+                                onChange={handleChange}
+                                isInvalid={touched.gender && !!errors.gender}
+                              />
+                            ))}
+                          </div>
+                          <ErrorMessage
+                            name="gender"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
                 </Row>
 
-                {/* ================= Contact / Priority / Lead Source ================= */}
+                {/* ================= Contact / Gender / Priority / ================= */}
                 <Row className="mb-3">
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>
-                        Contact <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="contact"
-                        value={values.contact}
-                        onChange={handleChange}
-                        isInvalid={touched.contact && !!errors.contact}
-                        placeholder="Enter Contact Number"
-                      />
-                      <ErrorMessage
-                        name="contact"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
-
+                  {values.customerType !== "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Contact <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="contact"
+                            value={values.contact}
+                            onChange={handleChange}
+                            isInvalid={touched.contact && !!errors.contact}
+                            placeholder="Enter Contact Number"
+                          />
+                          <ErrorMessage
+                            name="contact"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>Gender</Form.Label>
+                          <div>
+                            {["Male", "Female"].map((g) => (
+                              <Form.Check
+                                inline
+                                key={g}
+                                label={g}
+                                type="radio"
+                                name="gender"
+                                value={g}
+                                checked={values.gender === g}
+                                onChange={handleChange}
+                                isInvalid={touched.gender && !!errors.gender}
+                              />
+                            ))}
+                          </div>
+                          <ErrorMessage
+                            name="gender"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
                   <Col md={4}>
                     <Form.Group>
                       <Form.Label>
@@ -325,71 +377,146 @@ const AddEditModal = ({
                     </Form.Group>
                   </Col>
 
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>
-                        Lead Source <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Select
-                        name="leadSource"
-                        value={values.leadSource}
-                        onChange={(e) =>
-                          e.target.value === "add_new"
-                            ? setShowLeadSourceModal(true)
-                            : handleChange(e)
-                        }
-                        isInvalid={touched.leadSource && !!errors.leadSource}
-                      >
-                        <option value="">--</option>
-                        {leadSources.map((src) => (
-                          <option key={src.id} value={src.id}>
-                            {src.lead_source}
-                          </option>
-                        ))}
-                        <option
-                          value="add_new"
-                          style={{ fontWeight: "bold", color: "#3a57e8" }}
-                        >
-                          {" "}
-                          + Add Lead{" "}
-                        </option>
-                      </Form.Select>
-                      <ErrorMessage
-                        name="leadSource"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
+                  {values.customerType === "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Lead Source <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Select
+                            name="leadSource"
+                            value={values.leadSource}
+                            onChange={(e) =>
+                              e.target.value === "add_new"
+                                ? setShowLeadSourceModal(true)
+                                : handleChange(e)
+                            }
+                            isInvalid={
+                              touched.leadSource && !!errors.leadSource
+                            }
+                          >
+                            <option value="">--</option>
+                            {leadSources.map((src) => (
+                              <option key={src.id} value={src.id}>
+                                {src.lead_source}
+                              </option>
+                            ))}
+                            <option
+                              value="add_new"
+                              style={{ fontWeight: "bold", color: "#3a57e8" }}
+                            >
+                              {" "}
+                              + Add Lead{" "}
+                            </option>
+                          </Form.Select>
+                          <ErrorMessage
+                            name="leadSource"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Added By <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Select
+                            name="addedBy"
+                            value={values.addedBy || ""}
+                            onChange={handleChange}
+                            isInvalid={touched.addedBy && !!errors.addedBy}
+                          >
+                            <option value="">--</option>
+                            {employees.map((emp) => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.name}
+                              </option>
+                            ))}
+                          </Form.Select>
+                          <ErrorMessage
+                            name="addedBy"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
                 </Row>
 
-                {/* ================= AddedBy / Requirement / Unit ================= */}
+                {/* ================= Lead Source / AddedBy / Requirement  ================= */}
                 <Row className="mb-3">
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>
-                        Added By <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Select
-                        name="addedBy"
-                        value={values.addedBy || ""}
-                        onChange={handleChange}
-                        isInvalid={touched.addedBy && !!errors.addedBy}
-                      >
-                        <option value="">--</option>
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name}
-                          </option>
-                        ))}
-                      </Form.Select>
-                      <ErrorMessage
-                        name="addedBy"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
+                  {values.customerType !== "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Lead Source <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Select
+                            name="leadSource"
+                            value={values.leadSource}
+                            onChange={(e) =>
+                              e.target.value === "add_new"
+                                ? setShowLeadSourceModal(true)
+                                : handleChange(e)
+                            }
+                            isInvalid={
+                              touched.leadSource && !!errors.leadSource
+                            }
+                          >
+                            <option value="">--</option>
+                            {leadSources.map((src) => (
+                              <option key={src.id} value={src.id}>
+                                {src.lead_source}
+                              </option>
+                            ))}
+                            <option
+                              value="add_new"
+                              style={{ fontWeight: "bold", color: "#3a57e8" }}
+                            >
+                              {" "}
+                              + Add Lead{" "}
+                            </option>
+                          </Form.Select>
+                          <ErrorMessage
+                            name="leadSource"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Added By <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Select
+                            name="addedBy"
+                            value={values.addedBy || ""}
+                            onChange={handleChange}
+                            isInvalid={touched.addedBy && !!errors.addedBy}
+                          >
+                            <option value="">--</option>
+                            {employees.map((emp) => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.name}
+                              </option>
+                            ))}
+                          </Form.Select>
+                          <ErrorMessage
+                            name="addedBy"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
 
                   <Col md={4}>
                     <Form.Group>
@@ -420,66 +547,134 @@ const AddEditModal = ({
                     </Form.Group>
                   </Col>
 
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>
-                        Unit <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Select
-                        name="unit_id"
-                        value={values.unit_id || ""}
-                        onChange={(e) => {
-                          handleChange(e);
-                          const selected = unitData.find(
-                            (u) => u.id.toString() === e.target.value
-                          );
-                          setStoreUnit(selected ? selected.unit : "");
-                        }}
-                        isInvalid={touched.unit_id && !!errors.unit_id}
-                      >
-                        <option value="">--</option>
-                        {unitData?.map((u) => (
-                          <option key={u.id} value={u.id}>
-                            {u.unit}
-                          </option>
-                        ))}
-                      </Form.Select>
-                      <ErrorMessage
-                        name="unit_id"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
+                  {values.customerType === "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Unit <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Select
+                            name="unit_id"
+                            value={values.unit_id || ""}
+                            onChange={(e) => {
+                              handleChange(e);
+                              const selected = unitData.find(
+                                (u) => u.id.toString() === e.target.value
+                              );
+                              setStoreUnit(selected ? selected.unit : "");
+                            }}
+                            isInvalid={touched.unit_id && !!errors.unit_id}
+                          >
+                            <option value="">--</option>
+                            {unitData?.map((u) => (
+                              <option key={u.id} value={u.id}>
+                                {u.unit}
+                              </option>
+                            ))}
+                          </Form.Select>
+                          <ErrorMessage
+                            name="unit_id"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Approx. Capacity{" "}
+                            <span className="text-danger">*</span>
+                          </Form.Label>
+                          <InputGroup>
+                            <Form.Control
+                              type="number"
+                              name="capacity"
+                              value={values.capacity}
+                              onChange={handleChange}
+                              isInvalid={touched.capacity && !!errors.capacity}
+                              placeholder="Enter Capacity"
+                            />
+                            {storeUnit && (
+                              <InputGroup.Text>{storeUnit}</InputGroup.Text>
+                            )}
+                          </InputGroup>
+                          <ErrorMessage
+                            name="capacity"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
                 </Row>
 
-                {/* ================= Capacity / State / City ================= */}
+                {/* ================= Unit / Capacity / State  ================= */}
                 <Row className="mb-3">
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>
-                        Approx. Capacity <span className="text-danger">*</span>
-                      </Form.Label>
-                      <InputGroup>
-                        <Form.Control
-                          type="number"
-                          name="capacity"
-                          value={values.capacity}
-                          onChange={handleChange}
-                          isInvalid={touched.capacity && !!errors.capacity}
-                          placeholder="Enter Capacity"
-                        />
-                        {storeUnit && (
-                          <InputGroup.Text>{storeUnit}</InputGroup.Text>
-                        )}
-                      </InputGroup>
-                      <ErrorMessage
-                        name="capacity"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
+                  {values.customerType !== "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Unit <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Select
+                            name="unit_id"
+                            value={values.unit_id || ""}
+                            onChange={(e) => {
+                              handleChange(e);
+                              const selected = unitData.find(
+                                (u) => u.id.toString() === e.target.value
+                              );
+                              setStoreUnit(selected ? selected.unit : "");
+                            }}
+                            isInvalid={touched.unit_id && !!errors.unit_id}
+                          >
+                            <option value="">--</option>
+                            {unitData?.map((u) => (
+                              <option key={u.id} value={u.id}>
+                                {u.unit}
+                              </option>
+                            ))}
+                          </Form.Select>
+                          <ErrorMessage
+                            name="unit_id"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Approx. Capacity{" "}
+                            <span className="text-danger">*</span>
+                          </Form.Label>
+                          <InputGroup>
+                            <Form.Control
+                              type="number"
+                              name="capacity"
+                              value={values.capacity}
+                              onChange={handleChange}
+                              isInvalid={touched.capacity && !!errors.capacity}
+                              placeholder="Enter Capacity"
+                            />
+                            {storeUnit && (
+                              <InputGroup.Text>{storeUnit}</InputGroup.Text>
+                            )}
+                          </InputGroup>
+                          <ErrorMessage
+                            name="capacity"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
 
                   <Col md={4}>
                     <Form.Group>
@@ -502,50 +697,98 @@ const AddEditModal = ({
                     </Form.Group>
                   </Col>
 
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>
-                        City <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="city"
-                        value={values.city}
-                        onChange={handleChange}
-                        isInvalid={touched.city && !!errors.city}
-                        placeholder="Enter City"
-                      />
-                      <ErrorMessage
-                        name="city"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
+                  {values.customerType === "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            City <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="city"
+                            value={values.city}
+                            onChange={handleChange}
+                            isInvalid={touched.city && !!errors.city}
+                            placeholder="Enter City"
+                          />
+                          <ErrorMessage
+                            name="city"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Pin Code <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="pincode"
+                            value={values.pincode}
+                            onChange={handleChange}
+                            isInvalid={touched.pincode && !!errors.pincode}
+                            placeholder="Enter Pincode"
+                          />
+                          <ErrorMessage
+                            name="pincode"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
                 </Row>
 
                 {/* ================= Pincode / Last Call ================= */}
                 <Row className="mb-3">
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>
-                        Pin Code <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="pincode"
-                        value={values.pincode}
-                        onChange={handleChange}
-                        isInvalid={touched.pincode && !!errors.pincode}
-                        placeholder="Enter Pincode"
-                      />
-                      <ErrorMessage
-                        name="pincode"
-                        component="div"
-                        className="text-danger small errors-text"
-                      />
-                    </Form.Group>
-                  </Col>
+                  {values.customerType !== "Business" && (
+                    <>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            City <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="city"
+                            value={values.city}
+                            onChange={handleChange}
+                            isInvalid={touched.city && !!errors.city}
+                            placeholder="Enter City"
+                          />
+                          <ErrorMessage
+                            name="city"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={4}>
+                        <Form.Group>
+                          <Form.Label>
+                            Pin Code <span className="text-danger">*</span>
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="pincode"
+                            value={values.pincode}
+                            onChange={handleChange}
+                            isInvalid={touched.pincode && !!errors.pincode}
+                            placeholder="Enter Pincode"
+                          />
+                          <ErrorMessage
+                            name="pincode"
+                            component="div"
+                            className="text-danger small errors-text"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </>
+                  )}
 
                   <Col md={4}>
                     <Form.Group>
@@ -675,7 +918,7 @@ const AddEditModal = ({
                         }
                       }}
                     >
-                      {loadingAPI ? "Loading..." : "Save"}
+                      {loadingAPI ? "Saving..." : "Save"}
                     </Button>
                   </Modal.Footer>
                 </Modal>

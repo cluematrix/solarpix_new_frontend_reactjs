@@ -305,7 +305,7 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
-            {activeSidebar === "Branch" && activeTab === 0 && (
+            {activeSidebar === "Warehouse" && activeTab === 0 && (
               <>
                 <BranchList />
               </>
@@ -329,11 +329,11 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
-            {activeSidebar === "Inventory" && activeTab === 2 && (
+            {/* {activeSidebar === "Inventory" && activeTab === 2 && (
               <>
                 <InventoryTypeList />
               </>
-            )}
+            )} */}
 
             {activeSidebar === "Company" && activeTab === 0 && (
               <>
@@ -352,6 +352,7 @@ export default function SettingsSidebarWithTabs() {
                 <SubsidyList />
               </>
             )}
+
             {activeSidebar === "Payroll" && activeTab === 0 && (
               <>
                 <SalaryComponentListR />
@@ -376,7 +377,7 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
-                {activeSidebar === "Payroll" && activeTab === 4 && (
+            {activeSidebar === "Payroll" && activeTab === 4 && (
               <>
                 <PFCappingList />
               </>

@@ -139,12 +139,15 @@ const InstallationStatusList = () => {
         .catch((err) => {
           console.error("Error updating status:", err);
           toast.error(
-            err.response?.data?.message || "Failed to update installation status"
+            err.response?.data?.message ||
+              "Failed to update installation status"
           );
         });
     } else {
       api
-        .post("/api/v1/admin/installationStatus", { installationStatus: statusName })
+        .post("/api/v1/admin/installationStatus", {
+          installationStatus: statusName,
+        })
         .then(() => {
           toast.success("Installation Status added successfully");
           fetchStatuses();
@@ -216,8 +219,11 @@ const InstallationStatusList = () => {
             <Card.Header className="d-flex justify-content-between">
               <h5 className="card-title fw-lighter">Installation Status</h5>
               {permissions.add && (
-                <Button className="btn-primary" onClick={() => setShowAddEdit(true)}>
-                  + New Status
+                <Button
+                  className="btn-primary"
+                  onClick={() => setShowAddEdit(true)}
+                >
+                  + New
                 </Button>
               )}
             </Card.Header>
@@ -254,11 +260,9 @@ const InstallationStatusList = () => {
                               onChange={() =>
                                 handleToggleActive(item.id, item.isActive)
                               }
-                              className="me-3"
                             />
                             {permissions.edit && (
                               <CreateTwoToneIcon
-                                className="me-2"
                                 onClick={() => handleEdit(idx)}
                                 color="primary"
                                 style={{ cursor: "pointer" }}
@@ -348,7 +352,11 @@ const InstallationStatusList = () => {
         }
       />
 
-      <ToastContainer position="top-right" autoClose={3000} transition={Slide} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        transition={Slide}
+      />
     </>
   );
 };
