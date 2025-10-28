@@ -54,7 +54,7 @@ const EmployeeSalaryList = () => {
         return;
       }
 
-      // Match permission by current route
+      // Match permission by current route rishi
       const matchedPermission = data.find(
         (perm) =>
           String(perm.role_id) === roleId &&
