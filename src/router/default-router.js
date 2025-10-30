@@ -125,6 +125,7 @@ import AttedenceList from "../views/dashboard/EmployeeManagment/Attedence/Attede
 import EmployeeSalaryList from "../views/dashboard/Employees/EmployeeSalary/EmployeeSalaryList";
 import CenterStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CentralStockList";
 import SupplierStockHisList from "../views/dashboard/InventoryManagement/SupplierManagement/SupplierStockHisList";
+import CustomerStockHisList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockHisList";
 // employee profile 01 Sep
 
 export const DefaultRouter = [
@@ -337,6 +338,10 @@ export const DefaultRouter = [
       {
         path: "/supplier-stock-history/:id",
         element: <SupplierStockHisList />,
+      },
+      {
+        path: "/customer-stock-history/:id",
+        element: <CustomerStockHisList />,
       },
 
       {

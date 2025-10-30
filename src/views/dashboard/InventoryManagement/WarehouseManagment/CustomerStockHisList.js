@@ -10,15 +10,13 @@ import {
   Modal,
 } from "react-bootstrap";
 import api from "../../../../api/axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { MdKeyboardBackspace } from "react-icons/md";
 import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
-// pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-const SupplierStockHisList = () => {
-  const location = useLocation();
-  const { supplier_id } = location?.state || "";
+const CustomerStockHisList = () => {
+  const { id } = useParams();
+
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -42,13 +40,15 @@ const SupplierStockHisList = () => {
     setShowModal(true);
   };
 
+  console.log("idCus", id);
+
   // Fetch supplier transactions
   const fetchTransactionsById = async (page = 1) => {
     try {
       setLoading(true);
-      const url = `/api/v1/admin/purchaseOrder/supplier-history/${supplier_id}?page=${page}&limit=${itemsPerPage}`;
+      const url = `/api/v1/admin/purchaseOrder/client/${id}/pagination?page=${page}&limit=${itemsPerPage}`;
       const res = await api.get(url);
-      setTransactions(res?.data?.data?.purchaseOrders || []);
+      setTransactions(res?.data?.data || []);
       const pagination = res.data?.pagination;
       if (pagination) setTotalPages(pagination.totalPages || 1);
     } catch (err) {
@@ -219,7 +219,7 @@ const SupplierStockHisList = () => {
                 </Button>
               </div>
 
-              <h5 className="mb-3">Supplier Stock History</h5>
+              <h5 className="mb-3">Customer Stock History</h5>
 
               {/* Table */}
               <div className="table-responsive">
@@ -371,4 +371,4 @@ const SupplierStockHisList = () => {
   );
 };
 
-export default SupplierStockHisList;
+export default CustomerStockHisList;

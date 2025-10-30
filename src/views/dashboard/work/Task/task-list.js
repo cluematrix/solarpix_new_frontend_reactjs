@@ -334,8 +334,8 @@ const TaskList = () => {
             </Card.Header>
             <Card.Body className="px-0 pt-3">
               {loading ? (
-                <div className="text-center my-4">
-                  <Spinner animation="border" />
+                <div className="loader-div">
+                  <Spinner animation="border" className="spinner" />
                 </div>
               ) : (
                 <>

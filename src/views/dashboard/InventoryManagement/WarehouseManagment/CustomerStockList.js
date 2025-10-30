@@ -11,6 +11,7 @@ import {
 import api from "../../../../api/axios";
 import { useFormik } from "formik";
 import CustomSelect from "../../../../components/Form/CustomSelect";
+import HistoryIcon from "@mui/icons-material/History";
 import { useNavigate } from "react-router-dom";
 
 const initialValues = {
@@ -22,6 +23,7 @@ const CustomerStockList = () => {
   const [client, setClient] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate(); // for routing
   const [showAll, setShowAll] = useState(true); // Toggle state
 
   // Pagination state
@@ -88,6 +90,7 @@ const CustomerStockList = () => {
     fetchTransactions(1);
   }, [showAll, values.clientId]);
 
+  console.log("transactions", transactions);
   return (
     <Card className="p-3">
       <Row className="mb-3 d-flex align-items-center justify-content-between">
@@ -136,27 +139,47 @@ const CustomerStockList = () => {
                       <th>Material</th>
                       <th>Balance</th>
                       <th>Date</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {transactions.length > 0 ? (
-                      transactions.map((t, index) => (
-                        <tr key={t.id}>
-                          <td>
-                            {(currentPage - 1) * itemsPerPage + index + 1}
-                          </td>
-                          <td>{t.client?.name || "—"}</td>
-                          <td>
-                            {t.material?.stockName?.InventoryCat?.category ||
-                              "—"}
-                          </td>
-                          <td>{t.material?.material || "—"}</td>
-                          <td>{t.balance_after || t.balance}</td>
-                          <td>
-                            {new Date(t.createdAt).toLocaleDateString("en-IN")}
-                          </td>
-                        </tr>
-                      ))
+                      transactions.map((t, index) => {
+                        console.log("t", t);
+                        return (
+                          <tr key={t.id}>
+                            <td>
+                              {(currentPage - 1) * itemsPerPage + index + 1}
+                            </td>
+                            <td>{t.client?.name || "—"}</td>
+                            <td>
+                              {t.material?.stockName?.InventoryCat?.category ||
+                                "—"}
+                            </td>
+                            <td>{t.material?.material || "—"}</td>
+                            <td>{t.balance_after || t.balance}</td>
+                            <td>
+                              {new Date(t.createdAt).toLocaleDateString(
+                                "en-IN"
+                              )}
+                            </td>
+                            <td>
+                              <HistoryIcon
+                                variant="outline-secondary"
+                                style={{
+                                  cursor: "pointer",
+                                  marginRight: "5px",
+                                }}
+                                onClick={() =>
+                                  navigate(
+                                    `/customer-stock-history/${t?.client?.id}`
+                                  )
+                                }
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="8" className="text-center">

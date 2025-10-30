@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Spinner, Card, Col, Row } from "react-bootstrap";
 import api from "../../../../api/axios";
 import { toast } from "react-toastify";
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 
 const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
   const [formData, setFormData] = useState({
@@ -446,7 +447,9 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
                     {basicOptions.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.value_type === "Fixed"
-                          ? `Fixed - ₹${b.component_value_monthly}/month`
+                          ? `Fixed - ${(<CurrencyRupeeIcon />)}${
+                              b.component_value_monthly
+                            }/month`
                           : `CTC Percent - ${b.component_value_monthly}%`}
                       </option>
                     ))}
@@ -516,7 +519,9 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
                     ) : (
                       <Form.Control
                         type="text"
-                        value={`₹${getComponentValue(compName)}`}
+                        value={`${(<CurrencyRupeeIcon />)}${getComponentValue(
+                          compName
+                        )}`}
                         readOnly
                       />
                     )}
