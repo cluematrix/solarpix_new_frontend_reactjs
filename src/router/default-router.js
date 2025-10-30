@@ -125,7 +125,12 @@ import AttedenceList from "../views/dashboard/EmployeeManagment/Attedence/Attede
 import EmployeeSalaryList from "../views/dashboard/Employees/EmployeeSalary/EmployeeSalaryList";
 import CenterStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CentralStockList";
 import SupplierStockHisList from "../views/dashboard/InventoryManagement/SupplierManagement/SupplierStockHisList";
+<<<<<<< HEAD
 import CustomerStockHisList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockHisList";
+=======
+import EmployeePayrollList from "../views/dashboard/Employees/EmployeePayroll/EmployeePayrollList";
+import Index2 from "../views/dashboard/index2";
+>>>>>>> 8828c08230739579ad8d3a6a2272fd8685f361ee
 // employee profile 01 Sep
 
 export const DefaultRouter = [
@@ -141,6 +146,11 @@ export const DefaultRouter = [
       {
         path: "/dashboard",
         element: <Index />,
+      },
+
+      {
+        path: "/dashboard2",
+        element: <Index2 />,
       },
       {
         path: "dashboard/special-pages/billing",
@@ -261,6 +271,10 @@ export const DefaultRouter = [
       {
         path: "/EmployeeSalary",
         element: <EmployeeSalaryList />,
+      },
+      {
+        path: "/EmployeePayrollList",
+        element: <EmployeePayrollList />,
       },
       {
         path: "update-employee/:id", //13 Aug

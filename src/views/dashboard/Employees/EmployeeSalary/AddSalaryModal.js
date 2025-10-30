@@ -19,6 +19,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
   const [pfCapping, setPfCapping] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({});
   const [componentOverrides, setComponentOverrides] = useState({});
+  const [employeeList, setEmployeeList] = useState([]);
 
   // Fetch salary components, TDS, and PF capping when modal opens
   useEffect(() => {
@@ -31,17 +32,11 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
         group.employees.some((emp) => emp.id === employee.id)
       );
 
-      const defaultBasic = componentsData.find(
-        (b) => b.salary_components === "Basic" && b.isActive
-      );
-
       setFormData({
         employee_id: employee.id,
         annual_ctc: "",
-        basic_salary_percent: defaultBasic
-          ? parseFloat(defaultBasic.component_value_monthly)
-          : 40,
-        selectedBasicId: defaultBasic ? defaultBasic.id : "",
+        basic_salary_percent: 40, // Default to 40% as per API response
+        selectedBasicId: "",
       });
 
       if (employeeGroup) {
@@ -54,7 +49,10 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
   useEffect(() => {
     if (componentsData.length > 0 && show) {
       const defaultBasic = componentsData.find(
-        (b) => b.salary_components === "Basic" && b.isActive
+        (b) =>
+          b.salary_components === "Basic" &&
+          b.isActive &&
+          b.value_type === "CTC Percent"
       );
 
       if (defaultBasic) {
@@ -95,6 +93,17 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     }
   };
 
+  // Fetch Active Salary Components
+  const fetchEmployeeSalary = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/employeeSalary/employee-salary");
+      setEmployeeList(res?.data?.data);
+    } catch (error) {
+      console.error("Error fetching salary components:", error);
+      toast.error("Failed to load salary components");
+    }
+  };
+
   // Fetch TDS Data
   const fetchTdsData = async () => {
     try {
@@ -129,13 +138,12 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
   // Get Component Value (uses override if present, otherwise default)
   const getComponentValue = (componentName) => {
     if (componentOverrides[componentName] !== undefined) {
-      return parseFloat(componentOverrides[componentName]);
+      return parseFloat(componentOverrides[componentName]) || 0;
     }
     const comp = componentsData.find(
       (c) => c.salary_components === componentName && c.isActive
     );
-    if (!comp) return 0;
-    return parseFloat(comp.component_value_monthly) || 0;
+    return comp ? parseFloat(comp.component_value_monthly) || 0 : 0;
   };
 
   // Calculate TDS based on annual CTC
@@ -145,8 +153,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
         ctc >= parseFloat(tds.annual_salary_from) &&
         ctc <= parseFloat(tds.annual_salary_upto)
     );
-    if (!tds) return 0;
-    return (ctc * parseFloat(tds.salary_percent)) / 100 / 12;
+    return tds ? (ctc * parseFloat(tds.salary_percent)) / 100 / 12 : 0;
   };
 
   // Main Calculation Logic
@@ -154,7 +161,6 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     const ctc = parseFloat(formData.annual_ctc) || 0;
     const basicPercent = parseFloat(formData.basic_salary_percent) || 0;
     const values = {};
-    let netPayAdjustment = 0;
 
     // BASIC CALCULATION
     const selectedBasic = componentsData.find(
@@ -165,7 +171,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
 
     if (selectedBasic) {
       if (selectedBasic.value_type === "Fixed") {
-        basicMonthly = parseFloat(formData.basic_salary_percent) || 0;
+        basicMonthly = parseFloat(selectedBasic.component_value_monthly) || 0;
         basicAnnual = basicMonthly * 12;
       } else if (selectedBasic.value_type === "CTC Percent") {
         basicAnnual = (ctc * basicPercent) / 100;
@@ -201,11 +207,10 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
       // PF Capping
       if (
         pfCapping &&
-        (comp.salary_components === "PF (Employee)" ||
-          comp.salary_components === "PF (Employer)")
+        (comp.salary_components === "PF" ||
+          comp.salary_components === "PF(Employer)")
       ) {
         if (value > 1800) {
-          netPayAdjustment += value - 1800;
           value = 1800;
         }
       }
@@ -228,10 +233,16 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
     return values;
   };
 
+  useEffect(() => {
+    fetchEmployeeSalary();
+  }, []);
+
   // Live Calculation Effect
   useEffect(() => {
     if (formData.annual_ctc) {
-      setCalculatedValues(calculateComponentValues());
+      const values = calculateComponentValues();
+      setCalculatedValues(values);
+      console.log("Calculated Values:", values);
     }
   }, [
     formData,
@@ -260,46 +271,54 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
   };
 
   // Save Salary Data
-  // const onSave = async () => {
-  //   try {
-  //     setLoading(true);
-  //     if (!formData.employee_id || !formData.annual_ctc) {
-  //       toast.warn("Please fill required fields");
-  //       return;
-  //     }
-  //     console.log("Saving salary:", formData, calculatedValues);
-  //     toast.success("Salary saved successfully!");
-  //     handleClose();
-  //   } catch (err) {
-  //     toast.error("Failed to save salary");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
+  // ✅ Save Salary Data
   const onSave = async () => {
     try {
       setLoading(true);
 
-      if (!formData.employee_id || !formData.annual_ctc) {
-        toast.warn("Please fill required fields");
+      if (
+        !formData.employee_id ||
+        !formData.annual_ctc ||
+        parseFloat(formData.annual_ctc) <= 0
+      ) {
+        toast.warn("Please fill required fields with valid values");
         return;
       }
 
-      // --- Prepare salary component breakdown ---
-      const componentPayload = Object.entries(calculatedValues).map(
+      // 🔹 Recalculate all component values
+      const liveCalculatedValues = calculateComponentValues();
+
+      // 🔹 Calculate earnings & deductions
+      const totalEarningsMonthly = Object.values(liveCalculatedValues)
+        .filter((v) => v.type === "Earnings")
+        .reduce((sum, v) => sum + (v.monthly || 0), 0);
+
+      const totalDeductionsMonthly = Object.values(liveCalculatedValues)
+        .filter((v) => v.type === "Deduction")
+        .reduce((sum, v) => sum + (v.monthly || 0), 0);
+
+      // 🔹 Annual totals
+      const totalEarningsAnnual = totalEarningsMonthly * 12;
+      const totalDeductionsAnnual = totalDeductionsMonthly * 12;
+
+      // ✅ Fix as per your requirements
+      const totalMonthly = parseFloat(formData.annual_ctc) / 12; // (25,000)
+      const totalAnnual = parseFloat(formData.annual_ctc); // (300,000)
+
+      const netMonthly = totalMonthly - totalDeductionsMonthly; // (25,000 - 2,950 = 22,050)
+      const netAnnual = netMonthly * 12; // (22,050 * 12 = 264,600)
+
+      // 🔹 Build component payload
+      const componentPayload = Object.entries(liveCalculatedValues).map(
         ([name, comp]) => {
           const matchedComp = componentsData.find(
             (c) => c.salary_components === name
           );
-
           return {
             component_id: matchedComp ? matchedComp.id : null,
             component_name: name,
             component_type:
-              comp.type?.toLowerCase() === "deduction"
-                ? "deduction"
-                : "earning",
+              comp.type.toLowerCase() === "deduction" ? "deduction" : "earning",
             component_percent:
               componentOverrides[name] ||
               matchedComp?.component_value_monthly ||
@@ -310,50 +329,30 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
         }
       );
 
-      // --- Calculate totals ---
-      const totalEarningsMonthly = Object.values(calculatedValues)
-        .filter((v) => v.type === "Earnings")
-        .reduce((sum, v) => sum + v.monthly, 0);
-
-      const totalDeductionsMonthly = Object.values(calculatedValues)
-        .filter((v) => v.type === "Deduction")
-        .reduce((sum, v) => sum + v.monthly, 0);
-
-      const totalEarningsAnnual = totalEarningsMonthly * 12;
-      const totalDeductionsAnnual = totalDeductionsMonthly * 12;
-
-      const totalMonthly = totalEarningsMonthly + totalDeductionsMonthly;
-      const totalAnnual = totalEarningsAnnual + totalDeductionsAnnual;
-
-      const netMonthly = totalEarningsMonthly - totalDeductionsMonthly;
-      const netAnnual = totalEarningsAnnual - totalDeductionsAnnual;
-
-      // --- Build final payload ---
+      // 🔹 Build final payload
       const payload = {
         employee_id: formData.employee_id,
         per_annum_sal: parseFloat(formData.annual_ctc) || 0,
         basic_per: parseFloat(formData.basic_salary_percent) || 0,
         basic_amount:
-          calculatedValues["Basic Salary"]?.monthly?.toFixed(2) || 0,
+          liveCalculatedValues["Basic Salary"]?.monthly?.toFixed(2) || 0,
         deduction: totalDeductionsMonthly.toFixed(2),
         addition: totalEarningsMonthly.toFixed(2),
-
-        // ✅ NEW FIELDS ADDED HERE
-        total_monthly: totalMonthly.toFixed(2),
-        total_annual: totalAnnual.toFixed(2),
-        net_monthly: netMonthly.toFixed(2),
-        net_annual: netAnnual.toFixed(2),
-
+        total_monthly: totalMonthly.toFixed(2), //  25,000
+        total_annual: totalAnnual.toFixed(2), //  300,000
+        net_monthly: netMonthly.toFixed(2), //  25,000 - 2,950 = 22,050
+        net_annual: netAnnual.toFixed(2), //  22,050 * 12 = 264,600
         status: "paid",
-        sal_pay_id: 1, // Replace with selected payment method if needed
+        sal_pay_id: 1,
         paid_date: new Date().toISOString().split("T")[0],
         year: new Date().getFullYear(),
         month: new Date().toLocaleString("default", { month: "long" }),
         salary_components: componentPayload,
       };
 
-      console.log("➡️ Sending payload to backend:", payload);
+      console.log("➡️ Final Payload Sent:", payload);
 
+      // 🔹 Send to backend
       const res = await api.post(
         "/api/v1/admin/employeeSalary/employee-salary",
         payload
@@ -361,9 +360,12 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
 
       if (res.data.success) {
         toast.success("Salary saved successfully!");
+        fetchEmployeeSalary();
         handleClose();
       } else {
-        toast.error("Failed to save salary");
+        toast.error(
+          `Failed to save salary: ${res.data.message || "Unknown error"}`
+        );
       }
     } catch (err) {
       console.error("❌ Error saving salary:", err);
@@ -380,6 +382,24 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
   const deductions = Object.entries(values).filter(
     ([_, val]) => val.type === "Deduction"
   );
+
+  console.log("deductionsww", deductions);
+
+  // 🔹 👉 ADD THIS BLOCK RIGHT BEFORE THE RETURN STATEMENT 👇
+  const totalMonthly = parseFloat(formData.annual_ctc || 0) / 12;
+  const totalAnnual = parseFloat(formData.annual_ctc || 0);
+
+  const totalEarningsMonthly = earnings.reduce(
+    (sum, [_, v]) => sum + (v.monthly || 0),
+    0
+  );
+  const totalDeductionsMonthly = deductions.reduce(
+    (sum, [_, v]) => sum + (v.monthly || 0),
+    0
+  );
+
+  const netMonthly = totalMonthly - totalDeductionsMonthly;
+  const netAnnual = netMonthly * 12;
 
   return (
     <Modal show={show} onHide={handleClose} size="xl" centered>
@@ -413,6 +433,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
                     placeholder="Enter Annual CTC"
                     value={formData.annual_ctc}
                     onChange={handleChange}
+                    required
                   />
                 </Form.Group>
               </Col>
@@ -498,6 +519,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
           <Card className="p-3 mb-4 shadow-sm">
             <h5 className="text-success mb-3">Earnings</h5>
             {earnings.map(([compName, comp]) => {
+              console.log("earningsss", earnings);
               const compMeta = componentsData.find(
                 (c) => c.salary_components === compName
               );
@@ -519,9 +541,13 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
                     ) : (
                       <Form.Control
                         type="text"
+<<<<<<< HEAD
                         value={`${(<CurrencyRupeeIcon />)}${getComponentValue(
                           compName
                         )}`}
+=======
+                        value={`₹${getComponentValue(compName).toFixed(2)}`}
+>>>>>>> 8828c08230739579ad8d3a6a2272fd8685f361ee
                         readOnly
                       />
                     )}
@@ -550,80 +576,81 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
           {/* DEDUCTIONS */}
           <Card className="p-3 mb-4 shadow-sm">
             <h5 className="text-danger mb-3">Deductions</h5>
-            {deductions.map(([compName, comp]) => (
-              <Row className="mb-3" key={compName}>
-                <Col md={4}>
-                  <Form.Label>{compName}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={
-                      compName === "TDS"
-                        ? `${(
-                            (comp.monthly * 12 * 100) /
-                            parseFloat(formData.annual_ctc || 1)
-                          ).toFixed(2)}%`
-                        : `₹${comp.monthly}`
-                    }
-                    readOnly
-                  />
-                </Col>
-                <Col md={4}>
-                  <Form.Label>Monthly</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={comp.monthly?.toFixed(2) || 0}
-                    readOnly
-                  />
-                </Col>
-                <Col md={4}>
-                  <Form.Label>Annual</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={comp.annual?.toFixed(2) || 0}
-                    readOnly
-                  />
-                </Col>
-              </Row>
-            ))}
+            {deductions.map(([compName, comp]) => {
+              console.log("compNamedd", compName);
+              console.log("compss", comp);
+              return (
+                <Row className="mb-3" key={compName}>
+                  <Col md={4}>
+                    <Form.Label>{compName}</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={
+                        compName === "TDS"
+                          ? `${(
+                              ((comp.monthly || 0) * 12 * 100) /
+                              parseFloat(formData.annual_ctc || 1)
+                            ).toFixed(2)}%`
+                          : `₹${(comp.monthly || 0).toFixed(2)}`
+                      }
+                      readOnly
+                    />
+                  </Col>
+                  <Col md={4}>
+                    <Form.Label>Monthly</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={comp.monthly?.toFixed(2) || 0}
+                      readOnly
+                    />
+                  </Col>
+                  <Col md={4}>
+                    <Form.Label>Annual</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={comp.annual?.toFixed(2) || 0}
+                      readOnly
+                    />
+                  </Col>
+                </Row>
+              );
+            })}
           </Card>
 
           {/* TOTAL & NET PAY */}
-          <Card className="p-3 bg-light shadow-sm">
-            <Row>
+          {/*  TOTAL & NET PAY SECTION */}
+          <Card className="p-3 mb-4 bg-light shadow-sm border-primary">
+            <Row className="align-items-center">
               <Col md={6}>
-                <h5 className="fw-bold">Total Cost To Company (CTC)</h5>
+                <h5 className="fw-bold text-primary mb-0">
+                  Total Cost To Company (CTC)
+                </h5>
               </Col>
-              <Col md={3}>
-                <h5>₹{(formData.annual_ctc / 12 || 0).toFixed(2)}</h5>
+              <Col md={3} className="text-end">
+                <h5 className="mb-0">₹{totalMonthly.toFixed(2)}</h5>
+                <small className="text-muted">Monthly</small>
               </Col>
-              <Col md={3}>
-                <h5>₹{parseFloat(formData.annual_ctc || 0).toFixed(2)}</h5>
+              <Col md={3} className="text-end">
+                <h5 className="mb-0">₹{totalAnnual.toFixed(2)}</h5>
+                <small className="text-muted">Annual</small>
               </Col>
             </Row>
           </Card>
 
           <Card className="p-3 mb-4 bg-success bg-opacity-10 shadow-sm border-success">
-            <Row>
+            <Row className="align-items-center">
               <Col md={6}>
-                <h5 className="fw-bold text-success">Net Pay</h5>
-              </Col>
-              <Col md={3}>
-                <h5>
-                  ₹
-                  {(
-                    earnings.reduce((s, [_, v]) => s + v.monthly, 0) -
-                    deductions.reduce((s, [_, v]) => s + v.monthly, 0)
-                  ).toFixed(2)}
+                <h5 className="fw-bold text-success mb-0">
+                  Net Pay (Take Home)
                 </h5>
               </Col>
-              <Col md={3}>
-                <h5>
-                  ₹
-                  {(
-                    earnings.reduce((s, [_, v]) => s + v.annual, 0) -
-                    deductions.reduce((s, [_, v]) => s + v.annual, 0)
-                  ).toFixed(2)}
-                </h5>
+              <Col md={3} className="text-end">
+                <h5 className="mb-0 text-success">₹{netMonthly.toFixed(2)}</h5>
+                <small className="text-muted">Monthly</small>
+              </Col>
+              <Col md={3} className="text-end">
+                <h5 className="mb-0 text-success">₹{netAnnual.toFixed(2)}</h5>
+                <small className="text-muted">Annual</small>
               </Col>
             </Row>
           </Card>
