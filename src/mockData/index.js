@@ -58,10 +58,8 @@ export const sidebarItems = [
   "Lead",
   "Customer",
   "Tax",
-  "Account",
   "Inventory",
   "Task",
-  "Project",
   "Employee",
   "Holiday",
   "Warehouse",
@@ -74,7 +72,7 @@ export const sidebarItems = [
 // Tabs config –
 export const tabConfig = {
   Lead: ["Source", "Requirement", "Unit", "Status"],
-  Customer: ["Categories", "Custom Field"],
+  Customer: ["Categories"],
   Tax: [
     "GST Treatment",
     "Tax Preference",
@@ -83,18 +81,8 @@ export const tabConfig = {
     "Inter Tax",
     "Intra Tax",
   ],
-  Account: ["Type"],
   Inventory: ["Reason", "Inventory Category"],
   Task: ["Type"],
-  Project: [
-    "Category",
-    "Document",
-    "MSEB",
-    "NM",
-    "NP",
-    "Billing Method",
-    "Installation Status",
-  ],
   Employee: ["Employee Type", "Department", "Designation", "Office Time"],
   Holiday: ["Default Holiday"],
   Warehouse: ["Warehouse"],

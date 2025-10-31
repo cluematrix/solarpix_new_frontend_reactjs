@@ -1,7 +1,0 @@
-/* Dimmed background effect for main modal when members modal is open */
-.dimmed {
-  opacity: 0.01 !important;
-  pointer-events: none !important;
-  transition: opacity 0.3s ease;
-  box-shadow: 20px 20px 20px 10px rgba(0,0,0,0.5);
-}

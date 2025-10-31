@@ -24,27 +24,13 @@ import AddEmployee from "../views/dashboard/Employees/AddEmployee/addEmployee"; 
 
 import LeavesList from "../views/dashboard/Employees/Leaves/leaves-list"; //12 Aug
 
-// Customer
-import CustomerList from "../views/dashboard/Customer/Customers/customerList";
-import ClientCategory from "../views/dashboard/Customer/CustomerCategory/ClientCategory";
-import ContractType from "../views/dashboard/Customer/ContractType/contracttype";
-import ClientSubCategory from "../views/dashboard/Customer/CustomerSubCategory/ClientSubCategory";
 // expense Category
 import ExpenseCategory from "../views/dashboard/Expense/ExpenseCategory/ExpenseCategory"; //26 Aug
 import Expensess from "../views/dashboard/Expense/Expenses/Expensess";
 // work
-import ProjectList from "../views/dashboard/work/Project/projectList"; //12 Aug
-import TaskList from "../views/dashboard/work/Task/task-list"; //12 Aug rusghu
-import TaskCategory from "../views/dashboard/work/TaskCategory/TaskCategory";
-import ProjectCategory from "../views/dashboard/work/ProjectCategory/ProjectCategory";
-import StockList from "../views/dashboard/work/Stock/stock-list";
 // Leads
 import LeadsList from "../views/dashboard/Leads/Leadcontact/leads-list"; //12 Aug
-import DealList from "../views/dashboard/Leads/Deals/deals-list";
-import LeadSourceList from "../views/dashboard/Leads/LeadSource/leadsSource-list";
-import DealStagesList from "../views/dashboard/Leads/DealStages/dealstages-list";
 import LeadFollowupList from "../views/dashboard/Leads/LeadfollowUp/leadfollowuplist"; //12 Sept
-import addDeals from "../views/dashboard/Leads/Deals/AddDeals";
 // import userProfileEdit from '../views/dashboard/app/user-privacy-setting';
 // widget
 import Widgetbasic from "../views/dashboard/widget/widgetbasic";
@@ -66,14 +52,7 @@ import TableData from "../views/dashboard/table/table-data";
 import Vector from "../views/dashboard/maps/vector";
 import Google from "../views/dashboard/maps/google";
 
-//extra
-// import PrivacyPolicy from '../views/dashboard/extra/privacy-policy';
-// import TermsofService from '../views/dashboard/extra/terms-of-service';
-
-//TransitionGroup
-// import { TransitionGroup, CSSTransition } from "react-transition-group";
 //Special Pages
-import Billing from "../views/dashboard/special-pages/billing";
 import Kanban from "../views/dashboard/special-pages/kanban";
 import Pricing from "../views/dashboard/special-pages/pricing";
 import Timeline from "../views/dashboard/special-pages/timeline";
@@ -85,52 +64,15 @@ import Default from "../layouts/dashboard/default";
 
 // employee 01 Sep
 import UpdateEmployee from "../views/dashboard/Employees/AddEmployee/updateEmployee";
-import EmpProfileTab from "../views/dashboard/Employees/EmployeeProfile/empProfileTab";
-import UpdateCustomer from "../views/dashboard/Customer/Customers/updateCustomer";
-import AddCustomer from "../views/dashboard/Customer/Customers/addCustomer";
-import CustomerProfile from "../views/dashboard/Customer/Customers/customerProfile";
 import NoticeBoard from "../views/dashboard/Notices/Notice/notice-list";
 import AppreciationList from "../views/dashboard/EmployeeManagment/Award/Appreciations/Appreciation-list";
 import RequirementList from "../views/dashboard/Leads/requirementType/requirement-list";
-import InventoryCategoriesList from "../views/dashboard/InventoryManagement/InventoryCategories/InventoryCategoriesList";
-import StockMaterialList from "../views/dashboard/InventoryManagement/StockMaterial/StockMaterialList";
-import SupplierManagementList from "../views/dashboard/InventoryManagement/SupplierManagement/SuplierManagementList";
-import PaymentTermList from "../views/dashboard/InventoryManagement/PaymentTerm/PaymentTermList";
-import StockParticularList from "../views/dashboard/InventoryManagement/StockParticulars/StockParticularsList";
-import BrandList from "../views/dashboard/InventoryManagement/BrandMaster/BrandList";
-import StockManagementList from "../views/dashboard/InventoryManagement/StockManagement/StockManagementlList";
 import SourceTrackList from "../views/dashboard/Leads/SourceTracking/SourceTrackList";
 import RateList from "../views/dashboard/Leads/Rates/RateList";
-import UpdateQuotationNew from "../views/dashboard/Leads/Deals/UpdateQuotationNew";
-import AddProject from "../views/dashboard/work/Project/addProject";
-import WarehouseList from "../views/dashboard/InventoryManagement/Warehouse/WarehouseList";
-import ProjectProfile from "../views/dashboard/work/Project/projectProfile";
 import SettingsSidebarWithTabs from "../views/dashboard/SettingPage/SettingsSidebarWithTabs";
-import UpdateStockMaterial from "../views/dashboard/InventoryManagement/StockMaterial/addStockMaterial";
-import InventoryTypeList from "../views/dashboard/InventoryManagement/InventoryType/InventoryTypeList";
-import AddSupplier from "../views/dashboard/InventoryManagement/SupplierManagement/AddSupplier";
-import SerialNumberTable from "../views/dashboard/InventoryManagement/StockMaterial/SerialNumberTable";
-import BranchStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/BranchStockList";
-import StockNameList from "../views/dashboard/InventoryManagement/StockName/StockNameList";
-import StockManagementHisTable from "../views/dashboard/InventoryManagement/StockMaterial/StockManagementHisTable";
-import AddDealsQt from "../views/dashboard/Leads/Deals/AddDealsQt";
-import SalesOrderList from "../views/dashboard/Leads/SalesOrder/SalesOrderList";
-import AddSalesOrder from "../views/dashboard/Leads/SalesOrder/AddSalesOrder";
-import PurchaseOrderList from "../views/dashboard/Leads/PurchaseOrder/PurchaseOrderList";
-import AddPurchaseOrder from "../views/dashboard/Leads/PurchaseOrder/AddPurchaseOrder";
-import BranchStockHisList from "../views/dashboard/InventoryManagement/WarehouseManagment/BranchStockHisList";
-import CustomerStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockList";
-import SrNoList from "../views/dashboard/InventoryManagement/WarehouseManagment/SrNoList";
 import AttedenceList from "../views/dashboard/EmployeeManagment/Attedence/AttedenceList";
 import EmployeeSalaryList from "../views/dashboard/Employees/EmployeeSalary/EmployeeSalaryList";
-import CenterStockList from "../views/dashboard/InventoryManagement/WarehouseManagment/CentralStockList";
-import SupplierStockHisList from "../views/dashboard/InventoryManagement/SupplierManagement/SupplierStockHisList";
-<<<<<<< HEAD
-import CustomerStockHisList from "../views/dashboard/InventoryManagement/WarehouseManagment/CustomerStockHisList";
-=======
 import EmployeePayrollList from "../views/dashboard/Employees/EmployeePayroll/EmployeePayrollList";
-import Index2 from "../views/dashboard/index2";
->>>>>>> 8828c08230739579ad8d3a6a2272fd8685f361ee
 // employee profile 01 Sep
 
 export const DefaultRouter = [
@@ -146,15 +88,6 @@ export const DefaultRouter = [
       {
         path: "/dashboard",
         element: <Index />,
-      },
-
-      {
-        path: "/dashboard2",
-        element: <Index2 />,
-      },
-      {
-        path: "dashboard/special-pages/billing",
-        element: <Billing />,
       },
 
       // setting page
@@ -280,155 +213,16 @@ export const DefaultRouter = [
         path: "update-employee/:id", //13 Aug
         element: <UpdateEmployee />,
       },
-      {
-        path: "view-employee/:id", //13 Aug
-        element: <EmpProfileTab />,
-      },
+
       {
         path: "/leaves-list",
         element: <LeavesList />,
       },
 
-      // inventory management created by sufyan on 16 sep
-
-      // inventory-categories
-      {
-        path: "inventory-categories-list",
-        element: <InventoryCategoriesList />,
-      },
-
-      // inventory type
-      {
-        path: "inventory-type-list",
-        element: <InventoryTypeList />,
-      },
-
-      {
-        path: "StockNameList",
-        element: <StockNameList />,
-      },
-      {
-        path: "stock-material-list",
-        element: <StockMaterialList />,
-      },
-      {
-        path: "add-stock-material-list", //30 Sep by sufyan
-        element: <UpdateStockMaterial />,
-      },
-      {
-        path: "update-stock-material-list/:id", //30 Sep by sufyan
-        element: <UpdateStockMaterial />,
-      },
-
-      { path: "serial-number-list/:id", element: <SerialNumberTable /> },
-
-      {
-        path: "BranchStockList",
-        element: <BranchStockList />,
-      },
-
-      {
-        path: "/branch-stock-list-history/:id",
-        element: <BranchStockHisList />,
-      },
-
-      {
-        path: "/branch-stock-srno-list/:id",
-        element: <SrNoList />,
-      },
-
-      {
-        path: "customer-management-list",
-        element: <CustomerStockList />,
-      },
-      {
-        path: "central-warehouse-list",
-        element: <CenterStockList />,
-      },
-      {
-        path: "supplier-management-list",
-        element: <SupplierManagementList />,
-      },
-      {
-        path: "/supplier-stock-history/:id",
-        element: <SupplierStockHisList />,
-      },
-      {
-        path: "/customer-stock-history/:id",
-        element: <CustomerStockHisList />,
-      },
-
-      {
-        path: "add-supplier",
-        element: <AddSupplier />,
-      },
-      {
-        path: "supplier-management/edit/:id",
-        element: <AddSupplier />,
-      },
-      {
-        path: "payment-terms-list",
-        element: <PaymentTermList />,
-      },
-      {
-        path: "stock-particulars-list",
-        element: <StockParticularList />,
-      },
-      {
-        path: "brand-list",
-        element: <BrandList />,
-      },
-      {
-        path: "stock-management-list",
-        element: <StockManagementList />,
-      },
-
-      {
-        path: "stock-management-list-history/:id",
-        element: <StockManagementHisTable />,
-      },
-
-      {
-        path: "/WarehouseList",
-        element: <WarehouseList />,
-      },
       // notice
       {
         path: "/notice-board",
         element: <NoticeBoard />,
-      },
-
-      {
-        path: "/CustomerList",
-        element: <CustomerList />,
-      },
-
-      {
-        path: "/CustomeProfile/:id",
-        element: <CustomerProfile />,
-      },
-
-      {
-        path: "/add-customer",
-        element: <AddCustomer />,
-      },
-      {
-        path: "update-customer/:id", //13 Aug
-        element: <UpdateCustomer />,
-      },
-
-      // {
-      //   path: "/clientCategory-list",
-      //   element: <ClientCategory />,
-      // },
-      {
-        path: "/clientSubCategory-list",
-        element: <ClientSubCategory />,
-      },
-
-      {
-        path: "/contractType-list",
-        element: <ContractType />,
       },
 
       {
@@ -441,42 +235,6 @@ export const DefaultRouter = [
         element: <Expensess />,
       },
 
-      // Work
-      {
-        path: "/project-list",
-        element: <ProjectList />,
-      },
-      {
-        path: "/project-list/view-project/:id",
-        element: <ProjectProfile />,
-      },
-      {
-        path: "/project-list/edit-project/:id",
-        element: <AddProject />,
-      },
-      {
-        path: "/add-project",
-        element: <AddProject />,
-      },
-      {
-        path: "/task-list",
-        element: <TaskList />,
-      },
-
-      {
-        path: "/taskcategory-list",
-        element: <TaskCategory />,
-      },
-
-      {
-        path: "/projectcategory-list",
-        element: <ProjectCategory />,
-      },
-
-      {
-        path: "/stock-list",
-        element: <StockList />,
-      },
       // leads
       {
         path: "/leads-list",
@@ -500,68 +258,6 @@ export const DefaultRouter = [
       {
         path: "/requirement-list",
         element: <RequirementList />,
-      },
-
-      // {
-      //   path: "/leadsSource-list",
-      //   element: <LeadSourceList />,
-      // },
-
-      {
-        path: "/dealstages-list",
-        element: <DealStagesList />,
-      },
-      {
-        path: "/deals-list",
-        element: <DealList />,
-      },
-
-      // {
-      //   path: "/AddDeals",
-      //   element: <AddDeals />,
-      // },
-      {
-        path: "/AddDeals",
-        element: <AddDealsQt />,
-      },
-      {
-        path: "/edit-deal/:id",
-        element: <AddDealsQt />,
-      },
-
-      {
-        path: "/UpdateQuotationNew/:id",
-        element: <UpdateQuotationNew />,
-      },
-
-      // sales order
-      {
-        path: "/sales-order-list",
-        element: <SalesOrderList />,
-      },
-      {
-        path: "/add-sales-orders",
-        element: <AddSalesOrder />,
-      },
-
-      {
-        path: "/edit-sales/:id",
-        element: <AddSalesOrder />,
-      },
-
-      // purchase order
-      {
-        path: "/purchase-order-list",
-        element: <PurchaseOrderList />,
-      },
-      {
-        path: "/add-purchase-orders",
-        element: <AddPurchaseOrder />,
-      },
-
-      {
-        path: "/edit-purchase/:id",
-        element: <AddPurchaseOrder />,
       },
 
       // Widget
@@ -624,50 +320,3 @@ export const DefaultRouter = [
     ],
   },
 ];
-// const DefaultRouter = () => {
-//     return (
-//         <TransitionGroup>
-//             <CSSTransition classNames="fadein" timeout={300}>
-//                 <Switch>
-//                     <Route path="/dashboard" exact component={Index} />
-//                     {/* user */}
-//                     <Route path="/dashboard/app/user-profile"     exact component={UserProfile} />
-//                     <Route path="/dashboard/app/user-add"         exact component={UserAdd}/>
-//                     <Route path="/dashboard/app/user-list"        exact component={UserList}/>
-//                     <Route path="/dashboard/app/user-privacy-setting" exact component={userProfileEdit}/>
-//                      {/* widget */}
-//                      <Route path="/dashboard/widget/widgetbasic"   exact component={Widgetbasic}/>
-//                      <Route path="/dashboard/widget/widgetcard"    exact component={Widgetcard}/>
-//                      <Route path="/dashboard/widget/widgetchart"   exact component={Widgetchart}/>
-//                      {/* icon */}
-//                      <Route path="/dashboard/icon/solid"           exact component={Solid}/>
-//                      <Route path="/dashboard/icon/outline"         exact component={Outline}/>
-//                      <Route path="/dashboard/icon/dual-tone"       exact component={DualTone}/>
-//                      {/* From */}
-//                      <Route path="/dashboard/form/form-element"    exact component={FormElement}/>
-//                      <Route path="/dashboard/form/form-validation" exact component={FormValidation}/>
-//                      <Route path="/dashboard/form/form-wizard"     exact component={FormWizard}/>
-//                      {/* table */}
-//                      <Route path="/dashboard/table/bootstrap-table" exact component={BootstrapTable}/>
-//                      <Route path="/dashboard/table/table-data"      exact component={TableData}/>
-//                      {/*special pages */}
-//                      <Route path="/dashboard/special-pages/billing" exact component={Billing}/>
-//                      <Route path="/dashboard/special-pages/kanban" exact component={Kanban}/>
-//                      <Route path="/dashboard/special-pages/pricing" exact component={Pricing}/>
-//                      <Route path="/dashboard/special-pages/timeline" exact component={Timeline}/>
-//                      <Route path="/dashboard/special-pages/calender" exact component={Calender}/>
-//                      {/* map */}
-//                      <Route path="/dashboard/map/vector" exact component={Vector}/>
-//                      <Route path="/dashboard/map/google" exact component={Google}/>
-//                      {/* extra */}
-//                      <Route path="/dashboard/extra/privacy-policy" exact component={PrivacyPolicy}/>
-//                      <Route path="/dashboard/extra/terms-of-service" exact component={TermsofService}/>
-//                      {/*admin*/}
-//                      <Route path="/dashboard/admin/admin" exact component={Admin}/>
-//                 </Switch>
-//             </CSSTransition>
-//         </TransitionGroup>
-//     )
-// }
-
-// export default DefaultRouter

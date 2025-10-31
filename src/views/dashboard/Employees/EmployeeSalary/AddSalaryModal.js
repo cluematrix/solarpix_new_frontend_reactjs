@@ -541,13 +541,7 @@ const AddSalaryModal = ({ show, handleClose, employee, salaryGroups }) => {
                     ) : (
                       <Form.Control
                         type="text"
-<<<<<<< HEAD
-                        value={`${(<CurrencyRupeeIcon />)}${getComponentValue(
-                          compName
-                        )}`}
-=======
                         value={`₹${getComponentValue(compName).toFixed(2)}`}
->>>>>>> 8828c08230739579ad8d3a6a2272fd8685f361ee
                         readOnly
                       />
                     )}

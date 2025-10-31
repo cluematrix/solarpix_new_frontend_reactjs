@@ -35,17 +35,11 @@ import DefaultHoliday from "../EmployeeManagment/DefaultHoliday/DefaultHoliday";
 import ReasonList from "../InventoryManagement/Reason/ReasonList";
 import InterTaxList from "../Tax/InterTax/InterTaxList";
 import IntraTaxList from "../Tax/IntraTax/IntraTaxList";
-import CustomFieldList from "../Customer/CustomField/CustomFieldList";
 import CompanyList from "./Companys/CompanyList";
 import BankList from "../Bank/BankList";
 import TCSList from "../Tax/tcs/TCSList";
-import MSEBFieldList from "../work/MSEB/MSEBFieldList";
-import NetMeteringFieldList from "../work/NetMetering/NetMeteringFieldList";
-import NodalPointList from "../work/NodalPoint/NodalPointList";
 import InventoryCategoriesList from "../InventoryManagement/InventoryCategories/InventoryCategoriesList";
-import InventoryTypeList from "../InventoryManagement/InventoryType/InventoryTypeList";
 import SubsidyList from "../../Subsidy/SubsidyList";
-import SalaryComponentList from "../Employees/Leaves/leaves-list";
 import SalaryComponentListR from "../Employees/SalaryComponents/SalaryComponentListR";
 import SalaryTDSList from "../Employees/SalaryTDS/SalaryTDSList";
 import SalaryPaymentMethodList from "../Employees/SalaryPaymentMethod/SalaryPaymentMethodList";
@@ -197,11 +191,6 @@ export default function SettingsSidebarWithTabs() {
                 <ClientCategory />
               </>
             )}
-            {activeSidebar === "Customer" && activeTab === 1 && (
-              <>
-                <CustomFieldList />
-              </>
-            )}
 
             {activeSidebar === "Projects" && activeTab === 0 && (
               <div>📊 Projects Summary Component render here</div>
@@ -245,35 +234,6 @@ export default function SettingsSidebarWithTabs() {
               </>
             )}
 
-            {activeSidebar === "Project" && activeTab === 2 && (
-              <>
-                <MSEBFieldList />
-              </>
-            )}
-
-            {/* Net Merering */}
-            {activeSidebar === "Project" && activeTab === 3 && (
-              <>
-                <NetMeteringFieldList />
-              </>
-            )}
-
-            {/*  Nodal Point Module */}
-            {activeSidebar === "Project" && activeTab === 4 && (
-              <>
-                <NodalPointList />
-              </>
-            )}
-            {activeSidebar === "Project" && activeTab === 5 && (
-              <>
-                <BillingMethodList />
-              </>
-            )}
-            {activeSidebar === "Project" && activeTab === 6 && (
-              <>
-                <InstallationStatusList />
-              </>
-            )}
             {activeSidebar === "Tax" && activeTab === 0 && (
               <>
                 <GSTTreatmentList />
@@ -328,12 +288,6 @@ export default function SettingsSidebarWithTabs() {
                 <InventoryCategoriesList />
               </>
             )}
-
-            {/* {activeSidebar === "Inventory" && activeTab === 2 && (
-              <>
-                <InventoryTypeList />
-              </>
-            )} */}
 
             {activeSidebar === "Company" && activeTab === 0 && (
               <>
