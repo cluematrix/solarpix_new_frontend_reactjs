@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useContext, memo, Fragment } from "react";
+import React, { useEffect, useState, useContext, memo, Fragment } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AccessibilityIcon from "@mui/icons-material/Accessibility";
 import ListAltIcon from "@mui/icons-material/ListAlt";
@@ -15,7 +15,7 @@ import {
   useAccordionButton,
   AccordionContext,
 } from "react-bootstrap";
- 
+
 import CategoryIcon from "@mui/icons-material/Category";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -24,10 +24,9 @@ import PaymentsIcon from "@mui/icons-material/Payments";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
- import api from "../../../../api/axios"; 
+import api from "../../../../api/axios";
 //setting icon
 import SettingsIcon from "@mui/icons-material/Settings";
- 
 
 function CustomToggle({ children, eventKey, onClick }) {
   const { activeEventKey } = useContext(AccordionContext);
@@ -60,7 +59,7 @@ const VerticalNav = memo((props) => {
   const [userPermissions, setUserPermissions] = useState([]);
   const [loading, setLoading] = useState(true);
   // ========================================================
-  
+
   let location = useLocation();
   const navigate = useNavigate();
   const roleId = sessionStorage.getItem("roleId"); // Changed from roleIdsss to roleId
@@ -76,8 +75,10 @@ const VerticalNav = memo((props) => {
         }
 
         // Fetch permissions based on roleId from sessionStorage
-        const response = await api.get(`/api/v1/admin/rolePermission/?roleId=${roleId}`);
-        
+        const response = await api.get(
+          `/api/v1/admin/rolePermission/?roleId=${roleId}`
+        );
+
         if (response.data && Array.isArray(response.data)) {
           setUserPermissions(response.data);
         } else {
@@ -100,9 +101,11 @@ const VerticalNav = memo((props) => {
   const hasPermission = (route) => {
     if (roleId == 1) return true; // Admin (roleId 1) has all permissions
     if (loading) return false; // Don't show anything while loading
-    
-    return userPermissions.some(permission => 
-      permission.route.toLowerCase() === route.toLowerCase() && permission.view
+
+    return userPermissions.some(
+      (permission) =>
+        permission.route.toLowerCase() === route.toLowerCase() &&
+        permission.view
     );
   };
 
@@ -110,8 +113,8 @@ const VerticalNav = memo((props) => {
   const hasSubMenuPermission = (subRoutes) => {
     if (roleId == 1) return true; // Admin has all permissions
     if (loading) return false; // Don't show anything while loading
-    
-    return subRoutes.some(route => hasPermission(route));
+
+    return subRoutes.some((route) => hasPermission(route));
   };
 
   // ========== ADDED: Loading state ==========
@@ -132,9 +135,15 @@ const VerticalNav = memo((props) => {
     <Fragment>
       <Accordion as="ul" className="navbar-nav iq-main-menu">
         {/* ========== MODIFIED: Dashboard - Always visible for all users ========== */}
-        <li className={`${location.pathname === "/dashboard" ? "active" : ""} nav-item `}>
+        <li
+          className={`${
+            location.pathname === "/dashboard" ? "active" : ""
+          } nav-item `}
+        >
           <Link
-            className={`${location.pathname === "/dashboard" ? "active" : ""} nav-link `}
+            className={`${
+              location.pathname === "/dashboard" ? "active" : ""
+            } nav-link `}
             aria-current="page"
             to="/dashboard"
             onClick={() => {}}
@@ -281,7 +290,8 @@ const VerticalNav = memo((props) => {
         ) : null}
 
         {/* ========== MODIFIED: Leads - Check permissions ========== */}
-        {(roleId == 1 || hasSubMenuPermission(["/leads-list", "/SourceTrackList"])) && (
+        {(roleId == 1 ||
+          hasSubMenuPermission(["/leads-list", "/SourceTrackList"])) && (
           <Accordion.Item
             as="li"
             className={`${activeMenu === "0" ? "active" : ""}`}
@@ -296,7 +306,9 @@ const VerticalNav = memo((props) => {
               <i className="icon">
                 <PeopleIcon fontSize="small" />
               </i>
-              <span className="item-name sidebar-font-size">Lead Managment</span>
+              <span className="item-name sidebar-font-size">
+                Lead Managment
+              </span>
               <i className="right-icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -401,7 +413,66 @@ const VerticalNav = memo((props) => {
                     <i className="icon">
                       <SettingsPhoneIcon fontSize="small" />
                     </i>
-                    <span className="item-name sidebar-font-size">Follow Up</span>
+                    <span className="item-name sidebar-font-size">
+                      Follow Up
+                    </span>
+                  </Link>
+                </li>
+              </ul>
+            </Accordion.Collapse>
+          </Accordion.Item>
+        )}
+
+        {/* ========== MODIFIED: Inventory - Check permissions ========== */}
+        {/* {(roleId == 1 || hasPermission("/LeadFollowupList")) && ( */}
+        {true && (
+          <Accordion.Item
+            as="li"
+            className={`${activeMenu === "0" ? "active" : ""}`}
+            eventKey="sidebar-inventory"
+            bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+            onClick={() => setActive("auth")}
+          >
+            <CustomToggle
+              eventKey="sidebar-inventory"
+              onClick={(activeKey) => setActiveMenu(activeKey)}
+            >
+              <i className="icon">
+                <PeopleIcon fontSize="small" />
+              </i>
+              <span className="item-name sidebar-font-size">
+                Inventory Management
+              </span>
+              <i className="right-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </i>
+            </CustomToggle>
+            <Accordion.Collapse eventKey="sidebar-inventory">
+              <ul className="sub-nav">
+                <li className="nav-item">
+                  <Link
+                    className={`${
+                      location.pathname === "/items" ? "active" : ""
+                    } nav-link`}
+                    to="/items"
+                  >
+                    <i className="icon">
+                      <SettingsPhoneIcon fontSize="small" />
+                    </i>
+                    <span className="item-name sidebar-font-size">Item</span>
                   </Link>
                 </li>
               </ul>
@@ -410,7 +481,18 @@ const VerticalNav = memo((props) => {
         )}
 
         {/* ========== MODIFIED: Employee Management - Check permissions ========== */}
-        {(roleId == 1 || hasSubMenuPermission(["/employee-list", "/LeaveType", "/leaves-list", "/Attendance", "/holiday", "/EmployeePayrollList", "/EmployeeSalary", "/award-list", "/Appreciation-list"])) && (
+        {(roleId == 1 ||
+          hasSubMenuPermission([
+            "/employee-list",
+            "/LeaveType",
+            "/leaves-list",
+            "/Attendance",
+            "/holiday",
+            "/EmployeePayrollList",
+            "/EmployeeSalary",
+            "/award-list",
+            "/Appreciation-list",
+          ])) && (
           <Accordion.Item
             as="li"
             className={`${activeMenu === "0" ? "active" : ""}`}
@@ -459,7 +541,9 @@ const VerticalNav = memo((props) => {
                       <i className="icon">
                         <PeopleAltIcon fontSize="small" />
                       </i>
-                      <span className="item-name sidebar-font-size">Employee</span>
+                      <span className="item-name sidebar-font-size">
+                        Employee
+                      </span>
                     </Link>
                   </li>
                 )}
@@ -530,7 +614,9 @@ const VerticalNav = memo((props) => {
                       <i className="icon">
                         <BeachAccessIcon fontSize="small" />
                       </i>
-                      <span className="item-name sidebar-font-size">Holiday</span>
+                      <span className="item-name sidebar-font-size">
+                        Holiday
+                      </span>
                     </Link>
                   </li>
                 )}
@@ -538,14 +624,18 @@ const VerticalNav = memo((props) => {
                   <li className="nav-item">
                     <Link
                       className={`${
-                        location.pathname === "/EmployeePayrollList" ? "active" : ""
+                        location.pathname === "/EmployeePayrollList"
+                          ? "active"
+                          : ""
                       } nav-link`}
                       to="/EmployeePayrollList"
                     >
                       <i className="icon">
                         <PaymentsIcon fontSize="small" />
                       </i>
-                      <span className="item-name sidebar-font-size">Payroll</span>
+                      <span className="item-name sidebar-font-size">
+                        Payroll
+                      </span>
                     </Link>
                   </li>
                 )}
@@ -587,7 +677,9 @@ const VerticalNav = memo((props) => {
                   <li className="nav-item">
                     <Link
                       className={`${
-                        location.pathname === "/Appreciation-list" ? "active" : ""
+                        location.pathname === "/Appreciation-list"
+                          ? "active"
+                          : ""
                       } nav-link`}
                       to="/Appreciation-list"
                     >
@@ -606,7 +698,11 @@ const VerticalNav = memo((props) => {
         )}
 
         {/* ========== MODIFIED: Expense - Check permissions ========== */}
-        {(roleId == 1 || hasSubMenuPermission(["/ExpenseCategory-list", "/Expensess-list"])) && (
+        {(roleId == 1 ||
+          hasSubMenuPermission([
+            "/ExpenseCategory-list",
+            "/Expensess-list",
+          ])) && (
           <Accordion.Item
             as="li"
             className={`${activeMenu === "0" ? "active" : ""}`}
@@ -671,7 +767,9 @@ const VerticalNav = memo((props) => {
                       <i className="icon">
                         <AddCardIcon fontSize="small" />
                       </i>
-                      <span className="item-name sidebar-font-size">Expense</span>
+                      <span className="item-name sidebar-font-size">
+                        Expense
+                      </span>
                     </Link>
                   </li>
                 )}
@@ -758,6 +856,3 @@ const VerticalNav = memo((props) => {
 });
 
 export default VerticalNav;
- 
- 
- 

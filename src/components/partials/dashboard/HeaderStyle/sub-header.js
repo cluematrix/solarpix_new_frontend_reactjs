@@ -145,20 +145,19 @@ const SubHeader = memo(() => {
 
   return (
     <Fragment>
-      <div className="iq-navbar-header" style={{ marginTop: "50px" }}>
+      <div
+        className="iq-navbar-header"
+        style={{ marginTop: "40px", marginBottom: 0 }}
+      >
         <Container fluid className="iq-container">
           <Row className="clock-in-row d-flex flex-row justify-content-between align-items-center flex-wrap flex-md-nowrap">
             <Col xxl={6} xl={6} lg={6} xs={6} md={6} className="mb-3 mb-md-0 ">
-              {/* <div
-                className="d-flex justify-content-between align-items-center"
-                style={{ border: "solid" }}
-              > */}
               <div>
                 <h1>Welcome</h1>
                 <p>Empower Your Energy, Sustainably Managed.</p>
               </div>
             </Col>
-            <Col xxl={6} xl={6} lg={6} xs={6} className="mb-3 mb-md-0">
+            <Col xxl={6} xl={6} lg={6} xs={6} className=" mb-md-0">
               <div
                 className="text-end p-3 rounded shadow-sm"
                 style={{ minWidth: "100px" }}
@@ -199,7 +198,6 @@ const SubHeader = memo(() => {
                   )}
                 </Link>
               </div>
-              {/* </div> */}
             </Col>
           </Row>
         </Container>
