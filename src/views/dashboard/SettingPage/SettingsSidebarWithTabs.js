@@ -45,6 +45,8 @@ import SalaryTDSList from "../Employees/SalaryTDS/SalaryTDSList";
 import SalaryPaymentMethodList from "../Employees/SalaryPaymentMethod/SalaryPaymentMethodList";
 import SalaryGroupList from "../Employees/SalaryGroups/SalaryGroupList";
 import PFCappingList from "../Employees/PFCapping/PFCappingList";
+import SubCompany from "./Companys/SubCompany";
+import Addpin from "./Companys/Addpin";
 
 export default function SettingsSidebarWithTabs() {
   const [activeSidebar, setActiveSidebar] = useState(sidebarItems[0]);
@@ -294,6 +296,13 @@ export default function SettingsSidebarWithTabs() {
                 <CompanyList />
               </>
             )}
+            {activeSidebar === "Company" &&
+              activeTab === 1 &&
+              sessionStorage.getItem("roleId") === "1" && <SubCompany />}
+
+            {activeSidebar === "Company" &&
+              activeTab === 2 &&
+              sessionStorage.getItem("roleId") === "1" && <Addpin />}
 
             {activeSidebar === "Bank" && activeTab === 0 && (
               <>

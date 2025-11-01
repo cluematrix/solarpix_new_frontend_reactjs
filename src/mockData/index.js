@@ -6,6 +6,7 @@ export const salutationData = [
   { value: "5", salutation: "Mam." },
 ];
 
+const roleId = sessionStorage.getItem("roleId");
 export const maritialStatusData = [
   { id: "1", name: "Single" },
   { id: "2", name: "Married" },
@@ -86,7 +87,10 @@ export const tabConfig = {
   Employee: ["Employee Type", "Department", "Designation", "Office Time"],
   Holiday: ["Default Holiday"],
   Warehouse: ["Warehouse"],
-  Company: ["Details"],
+ Company: [
+    "Details",
+    ...(roleId === "1" ? ["Sub Company" , "Add Pin"] : []), // 👈 only show for roleId=1
+  ],  
   Bank: ["Details"],
   Subsidy: ["Subsidy"],
   Payroll: [

@@ -8,26 +8,20 @@ import {
   Spinner,
   Table,
   Image,
-  Modal,
 } from "react-bootstrap";
 import { Slide, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreateTwoToneIcon from "@mui/icons-material/CreateTwoTone";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import Visibility from "@mui/icons-material/Visibility";
- 
-import { BsEye } from "react-icons/bs/";
 import AddEditCompanyModal from "./AddEditModal";
 import DeleteModal from "./DeleteModal";
-// import { BsViewList } from "react-icons/bs";
 import api from "../../../../api/axios";
 
-const CompanyList = () => {
+const SubCompany = () => {
   const [companyList, setCompanyList] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [showView, setShowView] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,7 +37,11 @@ const CompanyList = () => {
   const fetchCompanies = () => {
     setLoading(true);
     api
-      .get("/api/v1/admin/companyMaster")
+      .get("/api/v1/admin/companyMaster/getCompaniesByAdmin",{
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
       .then((res) => {
         if (Array.isArray(res.data.data)) {
           setCompanyList(res.data.data);
@@ -95,12 +93,6 @@ const CompanyList = () => {
       .catch(() => toast.error("Failed to delete company"));
   };
 
-  // View Company Details
-  const handleViewCompany = (company) => {
-    setSelectedCompany(company);
-    setShowView(true);
-  };
-
   if (loading) {
     return (
       <div className="loader-div">
@@ -135,7 +127,14 @@ const CompanyList = () => {
                       <th>Sr. No.</th>
                       <th>Logo</th>
                       <th>Name</th>
+                      {/* <th>Email</th>
+                      <th>Address</th>
+                      <th>GST No</th>
+                      <th>State</th> */}
+                      {/* <th>City</th> */}
+                      {/* <th>Pincode</th> */}
                       <th>Mobile 1</th>
+                      {/* <th>Mobile 2</th> */}
                       {/* <th>Status</th> */}
                       <th>Action</th>
                     </tr>
@@ -143,7 +142,7 @@ const CompanyList = () => {
                   <tbody>
                     {companyList.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center">
+                        <td colSpan="13" className="text-center">
                           No companies available
                         </td>
                       </tr>
@@ -168,25 +167,25 @@ const CompanyList = () => {
                             )}
                           </td>
                           <td>{company.name}</td>
+                          {/* <td>{company.email}</td> */}
+                          {/* <td>{company.address}</td> */}
+                          {/* <td>{company.GSTno}</td> */}
+                          {/* <td>{company.state}</td> */}
+                          {/* <td>{company.city}</td> */}
+                          {/* <td>{company.pincode}</td> */}
                           <td>{company.mobile1}</td>
-                          {/* <td>
-                            <Form.Check
+                          {/* <td>{company.mobile2}</td> */}
+                          {/* <td>{company.isActive ? "Active" : "Inactive"}</td> */}
+                          <td className="d-flex align-items-center">
+                            {/* <Form.Check
                               type="switch"
                               id={`active-switch-${company.id}`}
                               checked={company.isActive}
                               onChange={() =>
                                 handleToggleActive(company.id, company.isActive)
                               }
-                            />
-                          </td> */}
-                          <td className="d-flex align-items-center">
-                            <Visibility
-                              className="me-2"
-                              onClick={() => handleViewCompany(company)}
-                              color="info"
-                              style={{ cursor: "pointer" }}
-                              title="View Details"
-                            />
+                              className="me-3"
+                            /> */}
                             <CreateTwoToneIcon
                               className="me-2"
                               onClick={() => {
@@ -195,17 +194,15 @@ const CompanyList = () => {
                               }}
                               color="primary"
                               style={{ cursor: "pointer" }}
-                              title="Edit Company"
                             />
-                            <DeleteRoundedIcon
+                            {/* <DeleteRoundedIcon
                               onClick={() => {
                                 setDeleteId(company.id);
                                 setShowDelete(true);
                               }}
                               color="error"
                               style={{ cursor: "pointer" }}
-                              title="Delete Company"
-                            />
+                            /> */}
                           </td>
                         </tr>
                       ))
@@ -259,121 +256,6 @@ const CompanyList = () => {
         onSave={fetchCompanies}
       />
 
-      {/* View Modal */}
-      <Modal show={showView} onHide={() => setShowView(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Company Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedCompany && (
-            <Row>
-              <Col md={4} className="text-center mb-3">
-                {selectedCompany.logo ? (
-                  <Image
-                    src={selectedCompany.logo}
-                    alt="Company Logo"
-                    fluid
-                    style={{
-                      maxHeight: "200px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <div className="text-muted">No Logo Available</div>
-                )}
-              </Col>
-              <Col md={8}>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>Company Name:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.name}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>Email:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.email || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>Address:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.address || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>GST No:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.GSTno || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>State:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.state || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>City:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.city || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>Pincode:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.pincode || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>Mobile 1:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.mobile1 || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>Mobile 2:</strong>
-                  </Col>
-                  <Col sm={6}>{selectedCompany.mobile2 || "N/A"}</Col>
-                </Row>
-                <Row className="mb-2">
-                  <Col sm={6}>
-                    <strong>Status:</strong>
-                  </Col>
-                  <Col sm={6}>
-                    <span
-                      className={`badge ${
-                        selectedCompany.isActive
-                          ? "bg-success"
-                          : "bg-danger"
-                      }`}
-                    >
-                      {selectedCompany.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowView(false)}>
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              setShowView(false);
-              setSelectedCompany(selectedCompany);
-              setShowAddEdit(true);
-            }}
-          >
-            Edit Company
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       {/* Delete Modal */}
       <DeleteModal
         show={showDelete}
@@ -392,4 +274,4 @@ const CompanyList = () => {
   );
 };
 
-export default CompanyList;
+export default SubCompany;

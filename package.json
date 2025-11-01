@@ -26,6 +26,7 @@
     "axios": "^1.11.0",
     "bootstrap": "^5.3.8",
     "choices.js": "^10.1.0",
+    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "formik": "^2.4.6",
     "fslightbox-react": "^1.6.2-2",
