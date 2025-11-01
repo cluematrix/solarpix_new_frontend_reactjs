@@ -1,4 +1,4 @@
-import React, { useState, useContext, memo, Fragment } from "react";
+import React, {useEffect, useState, useContext, memo, Fragment } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AccessibilityIcon from "@mui/icons-material/Accessibility";
 import ListAltIcon from "@mui/icons-material/ListAlt";
@@ -15,7 +15,7 @@ import {
   useAccordionButton,
   AccordionContext,
 } from "react-bootstrap";
-
+ 
 import CategoryIcon from "@mui/icons-material/Category";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -24,9 +24,10 @@ import PaymentsIcon from "@mui/icons-material/Payments";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-
+ import api from "../../../../api/axios"; 
 //setting icon
 import SettingsIcon from "@mui/icons-material/Settings";
+ 
 
 function CustomToggle({ children, eventKey, onClick }) {
   const { activeEventKey } = useContext(AccordionContext);
@@ -55,24 +56,85 @@ function CustomToggle({ children, eventKey, onClick }) {
 const VerticalNav = memo((props) => {
   const [activeMenu, setActiveMenu] = useState(false);
   const [active, setActive] = useState("");
-  //location
+  // ========== ADDED: Permission state management ==========
+  const [userPermissions, setUserPermissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  // ========================================================
+  
   let location = useLocation();
   const navigate = useNavigate();
-  const roleIdsss = sessionStorage.getItem("roleId");
-  console.log(roleIdsss);
+  const roleId = sessionStorage.getItem("roleId"); // Changed from roleIdsss to roleId
+
+  // ========== ADDED: Fetch permissions from API ==========
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      try {
+        if (!roleId) {
+          console.warn("No roleId found in sessionStorage");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch permissions based on roleId from sessionStorage
+        const response = await api.get(`/api/v1/admin/rolePermission/?roleId=${roleId}`);
+        
+        if (response.data && Array.isArray(response.data)) {
+          setUserPermissions(response.data);
+        } else {
+          console.warn("Unexpected API response format:", response.data);
+          setUserPermissions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        setUserPermissions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPermissions();
+  }, [roleId]);
+
+  // ========== ADDED: Permission checking functions ==========
+  // Check if user has permission for a specific route
+  const hasPermission = (route) => {
+    if (roleId == 1) return true; // Admin (roleId 1) has all permissions
+    if (loading) return false; // Don't show anything while loading
+    
+    return userPermissions.some(permission => 
+      permission.route.toLowerCase() === route.toLowerCase() && permission.view
+    );
+  };
+
+  // Check if any sub-menu item has permission
+  const hasSubMenuPermission = (subRoutes) => {
+    if (roleId == 1) return true; // Admin has all permissions
+    if (loading) return false; // Don't show anything while loading
+    
+    return subRoutes.some(route => hasPermission(route));
+  };
+
+  // ========== ADDED: Loading state ==========
+  if (loading) {
+    return (
+      <div className="navbar-nav iq-main-menu">
+        <div className="nav-item text-center p-3">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2 mb-0">Loading permissions...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Fragment>
       <Accordion as="ul" className="navbar-nav iq-main-menu">
-        <li
-          className={`${
-            location.pathname === "/dashboard" ? "active" : ""
-          } nav-item `}
-        >
+        {/* ========== MODIFIED: Dashboard - Always visible for all users ========== */}
+        <li className={`${location.pathname === "/dashboard" ? "active" : ""} nav-item `}>
           <Link
-            className={`${
-              location.pathname === "/dashboard" ? "active" : ""
-            } nav-link `}
+            className={`${location.pathname === "/dashboard" ? "active" : ""} nav-link `}
             aria-current="page"
             to="/dashboard"
             onClick={() => {}}
@@ -105,8 +167,8 @@ const VerticalNav = memo((props) => {
           <hr className="hr-horizontal" />
         </li>
 
-        {/* admin */}
-        {roleIdsss == 1 ? (
+        {/* ========== MODIFIED: Role Management - Only for admin (roleId 1) ========== */}
+        {roleId == 1 ? (
           <Accordion.Item
             as="li"
             eventKey="sidebar-special"
@@ -194,34 +256,6 @@ const VerticalNav = memo((props) => {
                         />
                       </svg>
                     </i>
-                    <i className="sidenav-mini-icon">
-                      {" "}
-                      <svg
-                        width="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9.34933 14.8577C5.38553 14.8577 2 15.47 2 17.9173C2 20.3665 5.364 20.9999 9.34933 20.9999C13.3131 20.9999 16.6987 20.3876 16.6987 17.9403C16.6987 15.4911 13.3347 14.8577 9.34933 14.8577Z"
-                          fill="currentColor"
-                        />
-                        <path
-                          opacity="0.4"
-                          d="M9.34935 12.5248C12.049 12.5248 14.2124 10.4062 14.2124 7.76241C14.2124 5.11865 12.049 3 9.34935 3C6.65072 3 4.48633 5.11865 4.48633 7.76241C4.48633 10.4062 6.65072 12.5248 9.34935 12.5248Z"
-                          fill="currentColor"
-                        />
-                        <path
-                          opacity="0.4"
-                          d="M16.1733 7.84873C16.1733 9.19505 15.7604 10.4513 15.0363 11.4948C14.961 11.6021 15.0275 11.7468 15.1586 11.7698C15.3406 11.7995 15.5275 11.8177 15.7183 11.8216C17.6165 11.8704 19.3201 10.6736 19.7907 8.87116C20.4884 6.19674 18.4414 3.79541 15.8338 3.79541C15.551 3.79541 15.2799 3.82416 15.0157 3.87686C14.9795 3.88453 14.9404 3.90177 14.9208 3.93244C14.8954 3.97172 14.914 4.02251 14.9394 4.05605C15.7232 5.13214 16.1733 6.44205 16.1733 7.84873Z"
-                          fill="currentColor"
-                        />
-                        <path
-                          d="M21.779 15.1693C21.4316 14.4439 20.593 13.9465 19.3171 13.7022C18.7153 13.5585 17.0852 13.3544 15.5695 13.3831C15.547 13.386 15.5343 13.4013 15.5324 13.4109C15.5294 13.4262 15.5363 13.4492 15.5656 13.4655C16.2662 13.8047 18.9737 15.2804 18.6332 18.3927C18.6185 18.5288 18.729 18.6438 18.867 18.6246C19.5333 18.5317 21.2476 18.1704 21.779 17.0474C22.0735 16.4533 22.0735 15.7634 21.779 15.1693Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </i>
                     <span className="item-name sidebar-font-size">Roles</span>
                   </Link>
                 </li>
@@ -236,9 +270,6 @@ const VerticalNav = memo((props) => {
                     <i className="icon">
                       <KeyIcon fontSize="small" />
                     </i>
-                    <i className="sidenav-mini-icon">
-                      <KeyIcon fontSize="small" />
-                    </i>
                     <span className="item-name sidebar-font-size">
                       Roles Permission
                     </span>
@@ -249,482 +280,466 @@ const VerticalNav = memo((props) => {
           </Accordion.Item>
         ) : null}
 
-        {/* Leads */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-leads"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
+        {/* ========== MODIFIED: Leads - Check permissions ========== */}
+        {(roleId == 1 || hasSubMenuPermission(["/leads-list", "/SourceTrackList"])) && (
+          <Accordion.Item
+            as="li"
+            className={`${activeMenu === "0" ? "active" : ""}`}
             eventKey="sidebar-leads"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
+            bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+            onClick={() => setActive("auth")}
           >
-            <i className="icon">
-              <PeopleIcon fontSize="small" />
-            </i>
-            <span className="item-name sidebar-font-size">Lead Managment</span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-leads">
-            <ul className="sub-nav">
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/leads-list" ? "active" : ""
-                  } nav-link`}
-                  to="/leads-list"
+            <CustomToggle
+              eventKey="sidebar-leads"
+              onClick={(activeKey) => setActiveMenu(activeKey)}
+            >
+              <i className="icon">
+                <PeopleIcon fontSize="small" />
+              </i>
+              <span className="item-name sidebar-font-size">Lead Managment</span>
+              <i className="right-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <i className="icon">
-                    <ListAltIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <ListAltIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Leads</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/SourceTrackList" ? "active" : ""
-                  } nav-link`}
-                  to="/SourceTrackList"
-                >
-                  <i className="icon">
-                    <ListAltIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <ListAltIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Source Tracking
-                  </span>
-                </Link>
-              </li>
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </i>
+            </CustomToggle>
+            <Accordion.Collapse eventKey="sidebar-leads">
+              <ul className="sub-nav">
+                {(roleId == 1 || hasPermission("/leads-list")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/leads-list" ? "active" : ""
+                      } nav-link`}
+                      to="/leads-list"
+                    >
+                      <i className="icon">
+                        <ListAltIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">Leads</span>
+                    </Link>
+                  </li>
+                )}
+                {(roleId == 1 || hasPermission("/SourceTrackList")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/SourceTrackList" ? "active" : ""
+                      } nav-link`}
+                      to="/SourceTrackList"
+                    >
+                      <i className="icon">
+                        <ListAltIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">
+                        Source Tracking
+                      </span>
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </Accordion.Collapse>
+          </Accordion.Item>
+        )}
 
-        {/* opportunity */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-oppo"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
+        {/* ========== MODIFIED: opportunity - Check permissions ========== */}
+        {(roleId == 1 || hasPermission("/LeadFollowupList")) && (
+          <Accordion.Item
+            as="li"
+            className={`${activeMenu === "0" ? "active" : ""}`}
             eventKey="sidebar-oppo"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
+            bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+            onClick={() => setActive("auth")}
           >
-            <i className="icon">
-              <PeopleIcon fontSize="small" />
-            </i>
-            <span className="item-name sidebar-font-size">
-              Opportunity Management
-            </span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-oppo">
-            <ul className="sub-nav">
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/LeadFollowupList" ? "active" : ""
-                  } nav-link`}
-                  to="/LeadFollowupList"
+            <CustomToggle
+              eventKey="sidebar-oppo"
+              onClick={(activeKey) => setActiveMenu(activeKey)}
+            >
+              <i className="icon">
+                <PeopleIcon fontSize="small" />
+              </i>
+              <span className="item-name sidebar-font-size">
+                Opportunity Management
+              </span>
+              <i className="right-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <i className="icon">
-                    <SettingsPhoneIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <SettingsPhoneIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Follow Up</span>
-                </Link>
-              </li>
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </i>
+            </CustomToggle>
+            <Accordion.Collapse eventKey="sidebar-oppo">
+              <ul className="sub-nav">
+                <li className="nav-item">
+                  <Link
+                    className={`${
+                      location.pathname === "/LeadFollowupList" ? "active" : ""
+                    } nav-link`}
+                    to="/LeadFollowupList"
+                  >
+                    <i className="icon">
+                      <SettingsPhoneIcon fontSize="small" />
+                    </i>
+                    <span className="item-name sidebar-font-size">Follow Up</span>
+                  </Link>
+                </li>
+              </ul>
+            </Accordion.Collapse>
+          </Accordion.Item>
+        )}
 
-        {/* Employee Manage */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-auth"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
+        {/* ========== MODIFIED: Employee Management - Check permissions ========== */}
+        {(roleId == 1 || hasSubMenuPermission(["/employee-list", "/LeaveType", "/leaves-list", "/Attendance", "/holiday", "/EmployeePayrollList", "/EmployeeSalary", "/award-list", "/Appreciation-list"])) && (
+          <Accordion.Item
+            as="li"
+            className={`${activeMenu === "0" ? "active" : ""}`}
             eventKey="sidebar-auth"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
+            bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+            onClick={() => setActive("auth")}
           >
-            <i className="icon">
-              <AccessibilityIcon fontSize="small" />
-            </i>
-            <span className="item-name sidebar-font-size">
-              Employee Management
-            </span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-auth">
-            <ul className="sub-nav">
-              {/* Employee */}
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/employee-list" ? "active" : ""
-                  } nav-link`}
-                  to="/employee-list"
+            <CustomToggle
+              eventKey="sidebar-auth"
+              onClick={(activeKey) => setActiveMenu(activeKey)}
+            >
+              <i className="icon">
+                <AccessibilityIcon fontSize="small" />
+              </i>
+              <span className="item-name sidebar-font-size">
+                Employee Management
+              </span>
+              <i className="right-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <i className="icon">
-                    <PeopleAltIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <PeopleAltIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Employee</span>
-                </Link>
-              </li>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </i>
+            </CustomToggle>
+            <Accordion.Collapse eventKey="sidebar-auth">
+              <ul className="sub-nav">
+                {/* Employee */}
+                {(roleId == 1 || hasPermission("/employee-list")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/employee-list" ? "active" : ""
+                      } nav-link`}
+                      to="/employee-list"
+                    >
+                      <i className="icon">
+                        <PeopleAltIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">Employee</span>
+                    </Link>
+                  </li>
+                )}
 
-              {/* Leave type */}
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/LeaveType" ? "active" : ""
-                  } nav-link`}
-                  to="/LeaveType"
-                >
-                  <i className="icon">
-                    <CategoryIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <CategoryIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Leave Type
-                  </span>
-                </Link>
-              </li>
+                {/* Leave type */}
+                {(roleId == 1 || hasPermission("/leavetype")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/LeaveType" ? "active" : ""
+                      } nav-link`}
+                      to="/LeaveType"
+                    >
+                      <i className="icon">
+                        <CategoryIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">
+                        Leave Type
+                      </span>
+                    </Link>
+                  </li>
+                )}
 
-              {/* Employee Leave */}
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/leaves-list" ? "active" : ""
-                  } nav-link`}
-                  to="/leaves-list"
-                >
-                  <i className="icon">
-                    <EventAvailableIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <EventAvailableIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Employee Leave
-                  </span>
-                </Link>
-              </li>
+                {/* Employee Leave */}
+                {(roleId == 1 || hasPermission("/leaves-list")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/leaves-list" ? "active" : ""
+                      } nav-link`}
+                      to="/leaves-list"
+                    >
+                      <i className="icon">
+                        <EventAvailableIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">
+                        Employee Leave
+                      </span>
+                    </Link>
+                  </li>
+                )}
 
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/Attendance" ? "active" : ""
-                  } nav-link`}
-                  to="/Attendance"
-                >
-                  <i className="icon">
-                    <AccessTimeIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <AccessTimeIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Attendance
-                  </span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/holiday" ? "active" : ""
-                  } nav-link`}
-                  to="/holiday"
-                >
-                  <i className="icon">
-                    <BeachAccessIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    {" "}
-                    <BeachAccessIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Holiday</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/EmployeePayrollList" ? "active" : ""
-                  } nav-link`}
-                  to="/EmployeePayrollList"
-                >
-                  <i className="icon">
-                    <PaymentsIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <PaymentsIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Payroll</span>
-                </Link>
-              </li>
+                {(roleId == 1 || hasPermission("/Attendance")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/Attendance" ? "active" : ""
+                      } nav-link`}
+                      to="/Attendance"
+                    >
+                      <i className="icon">
+                        <AccessTimeIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">
+                        Attendance
+                      </span>
+                    </Link>
+                  </li>
+                )}
+                {(roleId == 1 || hasPermission("/holiday")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/holiday" ? "active" : ""
+                      } nav-link`}
+                      to="/holiday"
+                    >
+                      <i className="icon">
+                        <BeachAccessIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">Holiday</span>
+                    </Link>
+                  </li>
+                )}
+                {(roleId == 1 || hasPermission("/EmployeePayrollList")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/EmployeePayrollList" ? "active" : ""
+                      } nav-link`}
+                      to="/EmployeePayrollList"
+                    >
+                      <i className="icon">
+                        <PaymentsIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">Payroll</span>
+                    </Link>
+                  </li>
+                )}
 
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/EmployeeSalary" ? "active" : ""
-                  } nav-link`}
-                  to="/EmployeeSalary"
-                >
-                  <i className="icon">
-                    <RequestQuoteIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <RequestQuoteIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Employee Salary
-                  </span>
-                </Link>
-              </li>
+                {(roleId == 1 || hasPermission("/EmployeeSalary")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/EmployeeSalary" ? "active" : ""
+                      } nav-link`}
+                      to="/EmployeeSalary"
+                    >
+                      <i className="icon">
+                        <RequestQuoteIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">
+                        Employee Salary
+                      </span>
+                    </Link>
+                  </li>
+                )}
 
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/award-list" ? "active" : ""
-                  } nav-link`}
-                  to="/award-list"
-                >
-                  <i className="icon">
-                    <MilitaryTechIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <MilitaryTechIcon fontSize="small" />{" "}
-                  </i>
-                  <span className="item-name sidebar-font-size">Award</span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/Appreciation-list" ? "active" : ""
-                  } nav-link`}
-                  to="/Appreciation-list"
-                >
-                  <i className="icon">
-                    <EmojiEventsIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <EmojiEventsIcon fontSize="small" />{" "}
-                    {/* <EmojiEventsIcon fontSize="small" />{" "} */}
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Appreciation
-                  </span>
-                </Link>
-              </li>
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
+                {(roleId == 1 || hasPermission("/award-list")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/award-list" ? "active" : ""
+                      } nav-link`}
+                      to="/award-list"
+                    >
+                      <i className="icon">
+                        <MilitaryTechIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">Award</span>
+                    </Link>
+                  </li>
+                )}
+                {(roleId == 1 || hasPermission("/Appreciation-list")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/Appreciation-list" ? "active" : ""
+                      } nav-link`}
+                      to="/Appreciation-list"
+                    >
+                      <i className="icon">
+                        <EmojiEventsIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">
+                        Appreciation
+                      </span>
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </Accordion.Collapse>
+          </Accordion.Item>
+        )}
 
-        {/* Expense */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-expense"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
+        {/* ========== MODIFIED: Expense - Check permissions ========== */}
+        {(roleId == 1 || hasSubMenuPermission(["/ExpenseCategory-list", "/Expensess-list"])) && (
+          <Accordion.Item
+            as="li"
+            className={`${activeMenu === "0" ? "active" : ""}`}
             eventKey="sidebar-expense"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
+            bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+            onClick={() => setActive("auth")}
           >
-            <i className="icon">
-              <AccountBalanceWalletSharpIcon fontSize="small" />
-            </i>
-            <span className="item-name sidebar-font-size">Expense</span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-expense">
-            <ul className="sub-nav">
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/ExpenseCategory-list"
-                      ? "active"
-                      : ""
-                  } nav-link`}
-                  to="/ExpenseCategory-list"
+            <CustomToggle
+              eventKey="sidebar-expense"
+              onClick={(activeKey) => setActiveMenu(activeKey)}
+            >
+              <i className="icon">
+                <AccountBalanceWalletSharpIcon fontSize="small" />
+              </i>
+              <span className="item-name sidebar-font-size">Expense</span>
+              <i className="right-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <i className="icon">
-                    <CurrencyRupeeSharpIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <CurrencyRupeeSharpIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">
-                    Expense Category
-                  </span>
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/Expensess-list" ? "active" : ""
-                  } nav-link`}
-                  to="/Expensess-list"
-                >
-                  <i className="icon">
-                    <AddCardIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <AddCardIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Expense</span>
-                </Link>
-              </li>
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </i>
+            </CustomToggle>
+            <Accordion.Collapse eventKey="sidebar-expense">
+              <ul className="sub-nav">
+                {(roleId == 1 || hasPermission("/ExpenseCategory-list")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/ExpenseCategory-list"
+                          ? "active"
+                          : ""
+                      } nav-link`}
+                      to="/ExpenseCategory-list"
+                    >
+                      <i className="icon">
+                        <CurrencyRupeeSharpIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">
+                        Expense Category
+                      </span>
+                    </Link>
+                  </li>
+                )}
+                {(roleId == 1 || hasPermission("/Expensess-list")) && (
+                  <li className="nav-item">
+                    <Link
+                      className={`${
+                        location.pathname === "/Expensess-list" ? "active" : ""
+                      } nav-link`}
+                      to="/Expensess-list"
+                    >
+                      <i className="icon">
+                        <AddCardIcon fontSize="small" />
+                      </i>
+                      <span className="item-name sidebar-font-size">Expense</span>
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </Accordion.Collapse>
+          </Accordion.Item>
+        )}
 
-        {/* Notice Board */}
-        <Accordion.Item
-          as="li"
-          className={`${activeMenu === "0" ? "active" : ""}`}
-          eventKey="sidebar-notice"
-          bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          onClick={() => setActive("auth")}
-        >
-          <CustomToggle
+        {/* ========== MODIFIED: Notice Board - Check permissions ========== */}
+        {(roleId == 1 || hasPermission("/notice-board")) && (
+          <Accordion.Item
+            as="li"
+            className={`${activeMenu === "0" ? "active" : ""}`}
             eventKey="sidebar-notice"
-            onClick={(activeKey) => setActiveMenu(activeKey)}
+            bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
+            onClick={() => setActive("auth")}
           >
-            <i className="icon">
-              <TextSnippetIcon fontSize="small" />
-            </i>
-            <span className="item-name sidebar-font-size">Notice Board</span>
-            <i className="right-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </i>
-          </CustomToggle>
-          <Accordion.Collapse eventKey="sidebar-notice">
-            <ul className="sub-nav">
-              <li className="nav-item">
-                <Link
-                  className={`${
-                    location.pathname === "/notice-board" ? "active" : ""
-                  } nav-link`}
-                  to="/notice-board"
+            <CustomToggle
+              eventKey="sidebar-notice"
+              onClick={(activeKey) => setActiveMenu(activeKey)}
+            >
+              <i className="icon">
+                <TextSnippetIcon fontSize="small" />
+              </i>
+              <span className="item-name sidebar-font-size">Notice Board</span>
+              <i className="right-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <i className="icon">
-                    <TextSnippetIcon fontSize="small" />
-                  </i>
-                  <i className="sidenav-mini-icon">
-                    <TextSnippetIcon fontSize="small" />
-                  </i>
-                  <span className="item-name sidebar-font-size">Notice</span>
-                </Link>
-              </li>
-            </ul>
-          </Accordion.Collapse>
-        </Accordion.Item>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </i>
+            </CustomToggle>
+            <Accordion.Collapse eventKey="sidebar-notice">
+              <ul className="sub-nav">
+                <li className="nav-item">
+                  <Link
+                    className={`${
+                      location.pathname === "/notice-board" ? "active" : ""
+                    } nav-link`}
+                    to="/notice-board"
+                  >
+                    <i className="icon">
+                      <TextSnippetIcon fontSize="small" />
+                    </i>
+                    <span className="item-name sidebar-font-size">Notice</span>
+                  </Link>
+                </li>
+              </ul>
+            </Accordion.Collapse>
+          </Accordion.Item>
+        )}
 
-        {/* Setting - created 29/09 by sufyan */}
+        {/* ========== MODIFIED: Setting - Always visible or based on permission ========== */}
         <Accordion.Item
           as="li"
           className={`${activeMenu === "0" ? "active" : ""}`}
           eventKey="sidebar-setting"
           bsPrefix={`nav-item ${active === "auth" ? "active" : ""} `}
-          // onClick={() => setActive("auth")}
           onClick={() => navigate("/dashboard/app/settings")}
         >
           <CustomToggle
@@ -743,3 +758,6 @@ const VerticalNav = memo((props) => {
 });
 
 export default VerticalNav;
+ 
+ 
+ 

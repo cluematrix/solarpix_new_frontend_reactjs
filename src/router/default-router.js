@@ -75,6 +75,15 @@ import EmployeeSalaryList from "../views/dashboard/Employees/EmployeeSalary/Empl
 import EmployeePayrollList from "../views/dashboard/Employees/EmployeePayroll/EmployeePayrollList";
 // employee profile 01 Sep
 
+// item
+import Item from "../views/dashboard/Items/item";
+// vendor
+import Vendor from "../views/dashboard/Vendor/vendor";
+// warehouse
+import Warehouse from "../views/dashboard/Warehouse/warehouse";
+
+// purchaseorder
+
 export const DefaultRouter = [
   {
     path: "/",
@@ -189,6 +198,25 @@ export const DefaultRouter = [
         path: "/shift-list",
         element: <ShiftList />,
       },
+
+
+      //item
+      {
+        path: "Item",
+        element: <Item />,
+      },
+
+      // vendor
+      {
+        path: "Vendor",
+        element: <Vendor />,
+      },
+
+      // warehouse
+      {
+        path: "Warehouse",
+        element: <Warehouse />,
+      },  
 
       //Employee Manage 08 Aug 2025 rishi
       {
@@ -317,6 +345,7 @@ export const DefaultRouter = [
         path: "dashboard/icon/dual-tone",
         element: <DualTone />,
       },
+      
     ],
   },
 ];
